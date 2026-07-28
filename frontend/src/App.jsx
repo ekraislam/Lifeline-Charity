@@ -23,12 +23,13 @@ import EventList from './pages/event/EventList';
 import EventDetail from './pages/event/EventDetail';
 import NGODashboard from './pages/ngo/NGODashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import DashboardRouter from './pages/dashboard/DashboardRouter';
+import DonorDashboard from './pages/donor/DonorDashboard';
 
 // Layouts (will be implemented later)
 const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
 
 // Placeholder Pages (will be implemented in later steps)
-const Dashboard = () => <div className="p-8">Dashboard</div>;
 const Unauthorized = () => <div className="p-8 text-red-500">Unauthorized</div>;
 
 function App() {
@@ -56,7 +57,7 @@ function App() {
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<DashboardRouter />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/campaigns/create" element={<CreateCampaign />} />
               <Route path="/admin/campaigns" element={<AdminCampaignApproval />} />
@@ -67,6 +68,7 @@ function App() {
               <Route path="/beneficiary/dashboard" element={<BeneficiaryDashboard />} />
               <Route path="/ngo/dashboard" element={<NGODashboard />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/donor/dashboard" element={<DonorDashboard />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
