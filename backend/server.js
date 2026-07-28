@@ -24,7 +24,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 const authRoutes = require('./src/routes/auth.routes');
+const profileRoutes = require('./src/routes/profile.routes');
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static('uploads'));
