@@ -12,6 +12,8 @@ import Home from './pages/public/Home';
 import CampaignList from './pages/public/CampaignList';
 import CampaignDetail from './pages/public/CampaignDetail';
 import { About, Contact, Privacy, Terms, FAQ, NotFound } from './pages/public/StaticPages';
+import CreateCampaign from './pages/campaign/CreateCampaign';
+import AdminCampaignApproval from './pages/campaign/AdminCampaignApproval';
 
 // Layouts (will be implemented later)
 const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
@@ -45,6 +47,8 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/campaigns/create" element={<CreateCampaign />} />
+              <Route path="/admin/campaigns" element={<AdminCampaignApproval />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
