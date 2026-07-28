@@ -22,6 +22,10 @@ app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
+const authRoutes = require('./src/routes/auth.routes');
+app.use('/api/auth', authRoutes);
+
 // Serve static uploads
 app.use('/uploads', express.static('uploads'));
 
