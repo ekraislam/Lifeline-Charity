@@ -14,6 +14,8 @@ import CampaignDetail from './pages/public/CampaignDetail';
 import { About, Contact, Privacy, Terms, FAQ, NotFound } from './pages/public/StaticPages';
 import CreateCampaign from './pages/campaign/CreateCampaign';
 import AdminCampaignApproval from './pages/campaign/AdminCampaignApproval';
+import Donate from './pages/donation/Donate';
+import DonationHistory from './pages/donation/DonationHistory';
 
 // Layouts (will be implemented later)
 const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
@@ -49,6 +51,8 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/campaigns/create" element={<CreateCampaign />} />
               <Route path="/admin/campaigns" element={<AdminCampaignApproval />} />
+              <Route path="/campaigns/:id/donate" element={<Donate />} />
+              <Route path="/donations/history" element={<DonationHistory />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
