@@ -8,12 +8,15 @@ import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Profile from './pages/profile/Profile';
+import Home from './pages/public/Home';
+import CampaignList from './pages/public/CampaignList';
+import CampaignDetail from './pages/public/CampaignDetail';
+import { About, Contact, Privacy, Terms, FAQ, NotFound } from './pages/public/StaticPages';
 
 // Layouts (will be implemented later)
 const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
 
 // Placeholder Pages (will be implemented in later steps)
-const Home = () => <div className="p-8">Home Page</div>;
 const Dashboard = () => <div className="p-8">Dashboard</div>;
 const Unauthorized = () => <div className="p-8 text-red-500">Unauthorized</div>;
 
@@ -24,6 +27,14 @@ function App() {
         <MainLayout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/campaigns" element={<CampaignList />} />
+            <Route path="/campaigns/:id" element={<CampaignDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/faq" element={<FAQ />} />
+            
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -35,6 +46,8 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
+            
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>
       </Router>
