@@ -27,10 +27,12 @@ const authRoutes = require('./src/routes/auth.routes');
 const profileRoutes = require('./src/routes/profile.routes');
 const campaignRoutes = require('./src/routes/campaign.routes');
 const donationRoutes = require('./src/routes/donation.routes');
+const volunteerRoutes = require('./src/routes/volunteer.routes');
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/donations', donationRoutes);
+app.use('/api/volunteers', volunteerRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static('uploads'));
