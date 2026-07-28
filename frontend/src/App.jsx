@@ -7,6 +7,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import Profile from './pages/profile/Profile';
 
 // Layouts (will be implemented later)
 const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
@@ -32,6 +33,7 @@ function App() {
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
           </Routes>
         </MainLayout>
