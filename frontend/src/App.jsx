@@ -17,6 +17,8 @@ import AdminCampaignApproval from './pages/campaign/AdminCampaignApproval';
 import Donate from './pages/donation/Donate';
 import DonationHistory from './pages/donation/DonationHistory';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
+import HelpRequest from './pages/beneficiary/HelpRequest';
+import BeneficiaryDashboard from './pages/beneficiary/BeneficiaryDashboard';
 
 // Layouts (will be implemented later)
 const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
@@ -55,6 +57,8 @@ function App() {
               <Route path="/campaigns/:id/donate" element={<Donate />} />
               <Route path="/donations/history" element={<DonationHistory />} />
               <Route path="/volunteer/dashboard" element={<VolunteerDashboard />} />
+              <Route path="/beneficiary/request" element={<HelpRequest />} />
+              <Route path="/beneficiary/dashboard" element={<BeneficiaryDashboard />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
