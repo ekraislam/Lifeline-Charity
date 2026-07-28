@@ -30,6 +30,9 @@ const donationRoutes = require('./src/routes/donation.routes');
 const volunteerRoutes = require('./src/routes/volunteer.routes');
 const beneficiaryRoutes = require('./src/routes/beneficiary.routes');
 const eventRoutes = require('./src/routes/event.routes');
+const notificationRoutes = require('./src/routes/notification.routes');
+const searchRoutes = require('./src/routes/search.routes');
+const fileRoutes = require('./src/routes/file.routes');
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/campaigns', campaignRoutes);
@@ -37,9 +40,16 @@ app.use('/api/donations', donationRoutes);
 app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/beneficiaries', beneficiaryRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/files', fileRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static('uploads'));
+
+// Centralized Error Handling Middleware
+const errorHandler = require('./src/middlewares/error.middleware');
+app.use(errorHandler);
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -51,3 +61,7 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Initialize Socket.io
+const { initSocket } = require('./src/sockets/socket');
+initSocket(server);
