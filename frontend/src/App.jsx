@@ -19,6 +19,8 @@ import DonationHistory from './pages/donation/DonationHistory';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 import HelpRequest from './pages/beneficiary/HelpRequest';
 import BeneficiaryDashboard from './pages/beneficiary/BeneficiaryDashboard';
+import EventList from './pages/event/EventList';
+import EventDetail from './pages/event/EventDetail';
 
 // Layouts (will be implemented later)
 const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
@@ -36,6 +38,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/campaigns" element={<CampaignList />} />
             <Route path="/campaigns/:id" element={<CampaignDetail />} />
+            <Route path="/events" element={<EventList />} />
+            <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
