@@ -25,9 +25,7 @@ import NGODashboard from './pages/ngo/NGODashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import DashboardRouter from './pages/dashboard/DashboardRouter';
 import DonorDashboard from './pages/donor/DonorDashboard';
-
-// Layouts (will be implemented later)
-const MainLayout = ({ children }) => <div className="min-h-screen flex flex-col"><main className="flex-grow">{children}</main></div>;
+import MainLayout from './layouts/MainLayout';
 
 // Placeholder Pages (will be implemented in later steps)
 const Unauthorized = () => <div className="p-8 text-red-500">Unauthorized</div>;
