@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: lifeline_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lifeline
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    # Uncomment the following to run init scripts on startup
+    # volumes:
+    #   - ./backend/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  # Backend Server (Node.js)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lifeline_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=lifeline
+      - JWT_SECRET=supersecretjwtkey_12345
+      - PORT=5000
+    depends_on:
+      - db
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  # Frontend Application (React/Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lifeline_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
