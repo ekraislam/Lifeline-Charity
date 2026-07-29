@@ -66,7 +66,7 @@ const CampaignDetail = () => {
                 <div>
                     <div className="w-full h-96 bg-gray-200 rounded-lg overflow-hidden shadow-md">
                         {campaign.gallery && campaign.gallery[0] ? (
-                            <img src={`http://localhost:5000${campaign.gallery[0]}`} alt={campaign.title} className="w-full h-full object-cover" />
+                            <img src={`${import.meta.env.VITE_API_URL}${campaign.gallery[0]}`} alt={campaign.title} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">No Image Available</div>
                         )}
@@ -74,7 +74,7 @@ const CampaignDetail = () => {
                     {campaign.gallery && campaign.gallery.length > 1 && (
                         <div className="mt-4 grid grid-cols-4 gap-2">
                             {campaign.gallery.slice(1).map((img, idx) => (
-                                <img key={idx} src={`http://localhost:5000${img}`} className="h-20 w-full object-cover rounded-md" alt={`Gallery ${idx}`} />
+                                <img key={idx} src={`${import.meta.env.VITE_API_URL}${img}`} className="h-20 w-full object-cover rounded-md" alt={`Gallery ${idx}`} />
                             ))}
                         </div>
                     )}
@@ -133,7 +133,7 @@ const CampaignDetail = () => {
                             <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:-translate-y-1 border border-gray-100">
                                 <div className="h-48 bg-gray-200">
                                     {item.gallery && item.gallery[0] ? (
-                                        <img src={`http://localhost:5000${item.gallery[0]}`} alt={item.title} className="w-full h-full object-cover" />
+                                        <img src={`${import.meta.env.VITE_API_URL}${item.gallery[0]}`} alt={item.title} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                                     )}

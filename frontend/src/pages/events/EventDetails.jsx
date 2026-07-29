@@ -67,7 +67,7 @@ const EventDetails = () => {
                 <div className="w-full h-64 sm:h-96 bg-gray-200 relative">
                     {event.cover_image ? (
                         <img 
-                            src={`http://localhost:5000${event.cover_image}`} 
+                            src={`${import.meta.env.VITE_API_URL}${event.cover_image}`} 
                             alt={event.title} 
                             className="w-full h-full object-cover"
                         />

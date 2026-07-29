@@ -75,7 +75,7 @@ const EventsList = () => {
                                 <div className="relative h-48 w-full bg-gray-200">
                                     {event.cover_image ? (
                                         <img
-                                            src={`http://localhost:5000${event.cover_image}`}
+                                            src={`${import.meta.env.VITE_API_URL}${event.cover_image}`}
                                             alt={event.title}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />

@@ -53,7 +53,7 @@ const CampaignList = () => {
                             {/* Assuming gallery returns first image or there's a placeholder */}
                             <div className="h-48 bg-gray-200">
                                 {campaign.gallery && campaign.gallery[0] ? (
-                                    <img src={`http://localhost:5000${campaign.gallery[0]}`} alt={campaign.title} className="w-full h-full object-cover" />
+                                    <img src={`${import.meta.env.VITE_API_URL}${campaign.gallery[0]}`} alt={campaign.title} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                                 )}

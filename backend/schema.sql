@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(50),
     address TEXT,
     avatar VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS ngo_profiles (
     org_name VARCHAR(255) NOT NULL,
     description TEXT,
     website VARCHAR(255),
+    status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -52,6 +54,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
     deadline DATETIME,
     status ENUM('pending', 'approved', 'rejected', 'completed', 'cancelled') DEFAULT 'pending',
     is_featured BOOLEAN DEFAULT FALSE,
+    help_request_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (ngo_id) REFERENCES ngo_profiles(id) ON DELETE SET NULL,
@@ -102,7 +105,7 @@ CREATE TABLE IF NOT EXISTS volunteers (
     user_id INT NOT NULL,
     skills TEXT,
     availability TEXT,
-    status ENUM('active', 'inactive') DEFAULT 'active',
+    status ENUM('pending', 'approved', 'rejected', 'inactive') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -160,12 +163,16 @@ CREATE TABLE IF NOT EXISTS help_requests (
     beneficiary_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    status ENUM('pending', 'under_review', 'approved', 'rejected', 'fulfilled') DEFAULT 'pending',
+    status ENUM('pending', 'under_review', 'approved', 'rejected', 'waiting_for_ngo', 'assigned', 'campaign_active', 'fulfilled') DEFAULT 'pending',
     approved_by INT,
+    admin_note TEXT,
+    required_amount DECIMAL(15, 2),
+    assigned_ngo_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (beneficiary_id) REFERENCES beneficiaries(id) ON DELETE CASCADE,
-    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (assigned_ngo_id) REFERENCES ngo_profiles(id) ON DELETE SET NULL
 );
 
 -- 14. Help Request Documents
@@ -182,12 +189,18 @@ CREATE TABLE IF NOT EXISTS events (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    category_id INT,
     location VARCHAR(255),
+    max_volunteers INT,
     event_date DATETIME NOT NULL,
+    registration_deadline DATETIME,
+    status ENUM('upcoming', 'ongoing', 'completed', 'cancelled') DEFAULT 'upcoming',
+    cover_image VARCHAR(255),
     organizer_id INT, -- user who organized it
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (organizer_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (organizer_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
 -- 16. Event Registrations & Attendance
@@ -257,3 +270,13 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- 22. Contact Messages
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

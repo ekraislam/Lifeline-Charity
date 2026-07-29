@@ -25,7 +25,7 @@ const Profile = () => {
                 setValue('email', response.data.email);
                 setValue('address', response.data.address);
                 setValue('phone', response.data.phone);
-                setPhotoPreview(response.data.avatar ? `http://localhost:5000${response.data.avatar}` : null);
+                setPhotoPreview(response.data.avatar ? `${import.meta.env.VITE_API_URL}${response.data.avatar}` : null);
             } catch (error) {
                 console.error('Failed to load profile', error);
             } finally {

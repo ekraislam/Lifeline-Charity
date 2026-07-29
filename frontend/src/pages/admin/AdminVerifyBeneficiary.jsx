@@ -90,7 +90,7 @@ const DetailModal = ({ request, onClose, onStatusUpdate }) => {
                             <p className="text-sm font-semibold text-gray-700 mb-2">📎 Uploaded Documents ({request.documents.length})</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {request.documents.map((doc, i) => {
-                                    const url = `http://localhost:5000${doc.document_url || doc}`;
+                                    const url = `${import.meta.env.VITE_API_URL}${doc.document_url || doc}`;
                                     const isPdf = url.endsWith('.pdf');
                                     return (
                                         <a key={i} href={url} target="_blank" rel="noreferrer" className="block border rounded-lg overflow-hidden hover:shadow-md transition-shadow">

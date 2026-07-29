@@ -58,7 +58,7 @@ const EventForm = () => {
                 }
                 setValue('status', event.status);
                 if (event.cover_image) {
-                    setPreviewImage(`http://localhost:5000${event.cover_image}`);
+                    setPreviewImage(`${import.meta.env.VITE_API_URL}${event.cover_image}`);
                 }
             }
         } catch (error) {
