@@ -61,7 +61,11 @@ const AssignEventModal = ({ volunteer, onClose, onAssign }) => {
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none mb-6"
                     >
                         <option value="">-- Select an Event --</option>
-                        {events.map(ev => (
+                        {events.filter(ev => {
+                            if (!volunteer.registered_events) return true;
+                            const registeredIds = volunteer.registered_events.split(',').map(id => parseInt(id, 10));
+                            return !registeredIds.includes(ev.id);
+                        }).map(ev => (
                             <option key={ev.id} value={ev.id}>{ev.title} ({new Date(ev.event_date).toLocaleDateString()})</option>
                         ))}
                     </select>

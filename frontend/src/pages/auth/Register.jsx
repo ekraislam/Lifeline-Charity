@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../api/axios';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Register = () => {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
@@ -10,6 +11,8 @@ const Register = () => {
     const navigate = useNavigate();
     const [apiError, setApiError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     React.useEffect(() => {
         if (user) {
@@ -148,28 +151,46 @@ const Register = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Password</label>
-                            <input
-                                type="password"
-                                {...register('password', { 
-                                    required: 'Password is required',
-                                    minLength: { value: 6, message: 'Password must be at least 6 characters' }
-                                })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                placeholder="Password"
-                            />
+                            <div className="relative mt-1">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    {...register('password', { 
+                                        required: 'Password is required',
+                                        minLength: { value: 6, message: 'Password must be at least 6 characters' }
+                                    })}
+                                    className="appearance-none rounded-md relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-primary-600"
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
                             {errors.password && <span className="text-xs text-red-500">{errors.password.message}</span>}
                         </div>
                         
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
-                            <input
-                                type="password"
-                                {...register('confirmPassword', { 
-                                    validate: value => value === password || 'Passwords do not match'
-                                })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                placeholder="Confirm Password"
-                            />
+                            <div className="relative mt-1">
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    {...register('confirmPassword', { 
+                                        validate: value => value === password || 'Passwords do not match'
+                                    })}
+                                    className="appearance-none rounded-md relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    placeholder="Confirm Password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-primary-600"
+                                >
+                                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
                             {errors.confirmPassword && <span className="text-xs text-red-500">{errors.confirmPassword.message}</span>}
                         </div>
                     </div>

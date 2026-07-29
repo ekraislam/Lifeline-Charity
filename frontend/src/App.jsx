@@ -38,6 +38,7 @@ import AdminExportReports from './pages/admin/AdminExportReports';
 import AdminManageVolunteers from './pages/admin/AdminManageVolunteers';
 import AdminManageEvents from './pages/admin/AdminManageEvents';
 import AdminSystemSettings from './pages/admin/AdminSystemSettings';
+import AdminContactMessages from './pages/admin/AdminContactMessages';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const Unauthorized = () => <div className="p-8 text-red-500 text-center">Unauthorized — You do not have permission to view this page.</div>;
@@ -95,6 +96,7 @@ function App() {
                 <Route path="/admin/beneficiaries" element={<AdminVerifyBeneficiary />} />
                 <Route path="/admin/reports" element={<AdminExportReports />} />
                 <Route path="/admin/settings" element={<AdminSystemSettings />} />
+                <Route path="/admin/contact-messages" element={<AdminContactMessages />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

@@ -4,6 +4,9 @@ import { format } from 'date-fns';
 import api from '../../api/axios';
 import { AuthContext } from '../../context/AuthContext';
 import { useForm } from 'react-hook-form';
+import logo from '../../assets/fogo.png';
+import sig1 from '../../assets/sig1.png';
+import sig2 from '../../assets/sig2.png';
 
 const VolunteerDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -54,39 +57,96 @@ const VolunteerDashboard = () => {
         }
     };
 
-    const downloadCertificate = () => {
+    const downloadCertificate = async () => {
         const doc = new jsPDF({
             orientation: 'landscape',
         });
 
-        // Add border
-        doc.setLineWidth(5);
-        doc.setDrawColor(14, 165, 233);
+        // Add a premium double border
+        doc.setLineWidth(4);
+        doc.setDrawColor(30, 58, 138); // deep blue
         doc.rect(10, 10, 277, 190);
         
-        doc.setFontSize(40);
-        doc.setTextColor(14, 165, 233);
-        doc.text("Certificate of Appreciation", 148, 50, { align: 'center' });
+        doc.setLineWidth(1);
+        doc.setDrawColor(212, 175, 55); // gold
+        doc.rect(14, 14, 269, 182);
 
-        doc.setFontSize(20);
+        // Try to load the logo
+        try {
+            const img = new Image();
+            img.src = logo;
+            await new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve; // Continue even if logo fails
+            });
+            if (img.width > 0) {
+                // Add logo at the top
+                doc.addImage(img, 'PNG', 128, 20, 40, 40);
+            }
+        } catch (e) {
+            console.warn("Could not load logo", e);
+        }
+
+        // Set font to Times for a more classic look
+        doc.setFont("times", "bold");
+        doc.setFontSize(42);
+        doc.setTextColor(30, 58, 138);
+        doc.text("CERTIFICATE OF APPRECIATION", 148, 75, { align: 'center' });
+
+        doc.setFont("times", "italic");
+        doc.setFontSize(18);
+        doc.setTextColor(100, 100, 100);
+        doc.text("This certificate is proudly presented to", 148, 95, { align: 'center' });
+        
+        doc.setFont("times", "bold");
+        doc.setFontSize(36);
         doc.setTextColor(0, 0, 0);
-        doc.text("This certificate is proudly presented to", 148, 80, { align: 'center' });
+        doc.text(user?.name || "Volunteer", 148, 115, { align: 'center' });
         
-        doc.setFontSize(30);
-        doc.setFont("helvetica", "bold");
-        doc.text(user?.name || "Volunteer", 148, 100, { align: 'center' });
-        
+        // Underline for name
+        const textWidth = doc.getTextWidth(user?.name || "Volunteer");
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(100, 100, 100);
+        doc.line(148 - (textWidth/2) - 10, 118, 148 + (textWidth/2) + 10, 118);
+
+        doc.setFont("times", "normal");
         doc.setFontSize(16);
-        doc.setFont("helvetica", "normal");
-        doc.text("In recognition of your outstanding dedication and service.", 148, 120, { align: 'center' });
+        doc.setTextColor(50, 50, 50);
+        doc.text("In recognition of your outstanding dedication, selfless service, and", 148, 135, { align: 'center' });
+        doc.text("commitment to making a positive impact in our community.", 148, 143, { align: 'center' });
         
-        doc.text(`Total Hours Volunteered: ${stats?.total_hours || 0}`, 148, 135, { align: 'center' });
+        doc.setFont("times", "bolditalic");
+        doc.setFontSize(16);
+        doc.setTextColor(212, 175, 55); // gold
+        doc.text(`Total Volunteered Hours: ${stats?.total_hours || 0}`, 148, 155, { align: 'center' });
         
+        // Load Signatures
+        try {
+            const sig1Img = new Image();
+            sig1Img.src = sig1;
+            await new Promise(r => { sig1Img.onload = r; sig1Img.onerror = r; });
+            if (sig1Img.width > 0) doc.addImage(sig1Img, 'PNG', 40, 145, 40, 20);
+            
+            const sig2Img = new Image();
+            sig2Img.src = sig2;
+            await new Promise(r => { sig2Img.onload = r; sig2Img.onerror = r; });
+            if (sig2Img.width > 0) doc.addImage(sig2Img, 'PNG', 200, 145, 40, 20);
+        } catch (e) { console.warn("Could not load signatures", e); }
+
+        // Bottom section
+        doc.setFont("times", "normal");
         doc.setFontSize(12);
-        doc.text(`Awarded on: ${format(new Date(), 'MMMM dd, yyyy')}`, 148, 160, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Awarded on: ${format(new Date(), 'MMMM dd, yyyy')}`, 148, 175, { align: 'center' });
         
+        doc.setFont("times", "bold");
         doc.setFontSize(14);
-        doc.text("Lifeline Foundation", 148, 180, { align: 'center' });
+        doc.text("President", 60, 175, { align: 'center' });
+        doc.text("Director", 220, 175, { align: 'center' });
+        
+        doc.setLineWidth(0.5);
+        doc.line(30, 168, 90, 168); // sig1 line
+        doc.line(190, 168, 250, 168); // sig2 line
 
         doc.save(`Lifeline_Certificate_${user?.name || 'Volunteer'}.pdf`);
     };

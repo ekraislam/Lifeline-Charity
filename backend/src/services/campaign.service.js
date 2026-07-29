@@ -5,7 +5,7 @@ const getCampaigns = async () => {
         SELECT c.*, (c.raised_amount / c.goal_amount) * 100 AS progress,
         (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image
         FROM campaigns c
-        WHERE c.status = 'approved'
+        WHERE c.status = 'approved' AND c.raised_amount < c.goal_amount
     `);
     return rows.map(row => ({
         ...row,

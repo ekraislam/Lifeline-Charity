@@ -30,12 +30,18 @@ const Donate = () => {
         setSubmitting(true);
         setStatus({ type: '', message: '' });
         try {
-            await api.post('/donations', {
+            const res = await api.post('/donations', {
                 campaign_id: id,
                 amount: parseFloat(data.amount),
-                is_anonymous: data.is_anonymous,
-                payment_method: 'credit_card' // mock
+                is_anonymous: data.is_anonymous
             });
+            
+            // If there's a payment URL (mock callback), trigger it to complete the payment
+            if (res.data.payment_url) {
+                // We use fetch here because the payment_url is an absolute URL
+                await fetch(res.data.payment_url);
+            }
+
             setStatus({ type: 'success', message: 'Thank you for your donation!' });
             setTimeout(() => {
                 navigate(`/campaigns/${id}`);

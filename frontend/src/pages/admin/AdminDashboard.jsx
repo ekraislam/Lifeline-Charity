@@ -26,6 +26,7 @@ const quickLinks = [
     { label: 'Manage Volunteers', href: '/admin/volunteers', icon: '🙋' },
     { label: 'Verify Beneficiaries', href: '/admin/beneficiaries', icon: '✅' },
     { label: 'System Settings', href: '/admin/settings', icon: '⚙️' },
+    { label: 'Contact Messages', href: '/admin/contact-messages', icon: '✉️' },
     { label: 'Export Reports', href: '/admin/reports', icon: '📊' },
 ];
 

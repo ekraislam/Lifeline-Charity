@@ -1,12 +1,14 @@
 import React, { useContext, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import logo from '../assets/fogo.png';
 
 const MainLayout = ({ children }) => {
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -28,7 +30,10 @@ const MainLayout = ({ children }) => {
                     <div className="flex justify-between h-16">
                         <div className="flex">
                             <div className="flex-shrink-0 flex items-center">
-                                <Link to="/" className="text-2xl font-extrabold text-primary-600">Lifeline</Link>
+                                <Link to="/" className="flex items-center gap-3">
+                                    <img src={logo} alt="Lifeline Logo" className="h-12 w-auto drop-shadow-md" />
+                                    <span className="text-3xl font-extrabold text-primary-600 tracking-tight">Lifeline</span>
+                                </Link>
                             </div>
                             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                                 {navigation.map((item) => (
@@ -52,14 +57,55 @@ const MainLayout = ({ children }) => {
                                     <Link to="/dashboard" className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
                                         Dashboard
                                     </Link>
-                                    <div className="relative flex items-center gap-3">
-                                        {user.profile_picture ? (
-                                            <img src={`http://localhost:5000${user.profile_picture}`} alt="" className="h-8 w-8 rounded-full object-cover border border-gray-200" />
-                                        ) : (
-                                            <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
-                                                {(user.name || 'U').charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative">
+                                            <button 
+                                                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                                                className="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition"
+                                                title={user.name}
+                                            >
+                                                {user.avatar || user.profile_picture ? (
+                                                    <img src={`http://localhost:5000${user.avatar || user.profile_picture}`} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+                                                ) : (
+                                                    <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
+                                                        {(user.name || 'U').charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                            </button>
+                                            
+                                            {/* Dropdown menu */}
+                                            {profileDropdownOpen && (
+                                                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                                                    <div className="py-2 px-4 border-b border-gray-100">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-bold text-gray-900 truncate max-w-[130px]" title={user.name}>{user.name}</span>
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800 capitalize">
+                                                                {user.role}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 truncate mt-1" title={user.email}>{user.email}</p>
+                                                    </div>
+                                                    <div className="py-1">
+                                                        <Link 
+                                                            to="/profile" 
+                                                            onClick={() => setProfileDropdownOpen(false)}
+                                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                        >
+                                                            Update Profile
+                                                        </Link>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setProfileDropdownOpen(false);
+                                                                handleLogout();
+                                                            }} 
+                                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                        >
+                                                            Logout
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                         <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700 text-sm font-medium">Logout</button>
                                     </div>
                                 </div>

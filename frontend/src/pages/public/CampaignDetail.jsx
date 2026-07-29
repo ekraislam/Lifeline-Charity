@@ -107,7 +107,11 @@ const CampaignDetail = () => {
                     </div>
 
                     <div className="mt-8">
-                        {campaign.status === 'approved' ? (
+                        {parseFloat(campaign.raised_amount) >= parseFloat(campaign.goal_amount) && parseFloat(campaign.goal_amount) > 0 ? (
+                            <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-md text-center font-medium">
+                                🎉 This campaign has reached its goal! Thank you to all donors.
+                            </div>
+                        ) : campaign.status === 'approved' ? (
                             <Link to={`/campaigns/${campaign.id}/donate`} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                                 Donate Now
                             </Link>

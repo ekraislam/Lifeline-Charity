@@ -2,25 +2,30 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../api/axios';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Profile = () => {
     const { user, login } = useContext(AuthContext);
-    const { register, handleSubmit, setValue } = useForm();
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm();
     const { register: registerPassword, handleSubmit: handlePasswordSubmit, reset: resetPassword, formState: { errors: passwordErrors } } = useForm();
     
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState({ type: '', message: '' });
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const response = await api.get('/profile');
                 setProfileData(response.data);
+                setValue('name', response.data.name);
+                setValue('email', response.data.email);
                 setValue('address', response.data.address);
-                setValue('phone_number', response.data.phone_number);
-                setPhotoPreview(response.data.profile_picture ? `http://localhost:5000${response.data.profile_picture}` : null);
+                setValue('phone', response.data.phone);
+                setPhotoPreview(response.data.avatar ? `http://localhost:5000${response.data.avatar}` : null);
             } catch (error) {
                 console.error('Failed to load profile', error);
             } finally {
@@ -35,15 +40,19 @@ const Profile = () => {
         try {
             await api.put('/profile', data);
             setStatus({ type: 'success', message: 'Profile updated successfully.' });
+            
+            // Update user context with new name and email
+            const updatedUser = { ...user, name: data.name, email: data.email };
+            login(updatedUser, localStorage.getItem('token'));
         } catch (error) {
-            setStatus({ type: 'error', message: 'Failed to update profile.' });
+            setStatus({ type: 'error', message: error.response?.data?.message || 'Failed to update profile.' });
         }
     };
 
     const onChangePassword = async (data) => {
         setStatus({ type: '', message: '' });
         try {
-            await api.put('/profile/password', { oldPassword: data.oldPassword, newPassword: data.newPassword });
+            await api.put('/profile/change-password', { oldPassword: data.oldPassword, newPassword: data.newPassword });
             setStatus({ type: 'success', message: 'Password changed successfully.' });
             resetPassword();
         } catch (error) {
@@ -67,7 +76,7 @@ const Profile = () => {
             setStatus({ type: 'success', message: 'Profile photo updated.' });
             
             // Optionally update user context if photo URL is stored there
-            const updatedUser = { ...user, profile_picture: response.data.avatarUrl };
+            const updatedUser = { ...user, avatar: response.data.avatarUrl };
             login(updatedUser, localStorage.getItem('token')); // refresh user data in context
         } catch (error) {
             setStatus({ type: 'error', message: 'Failed to upload photo.' });
@@ -114,18 +123,20 @@ const Profile = () => {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Username</label>
-                                <input type="text" disabled value={user?.name || ''} className="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-500 sm:text-sm" />
+                                <input type="text" {...register('name', { required: 'Username is required' })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                {errors.name && <span className="text-xs text-red-500">{errors.name.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" disabled value={user?.email || ''} className="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-500 sm:text-sm" />
+                                <input type="email" {...register('email', { required: 'Email is required' })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                                <input type="text" {...register('phone_number')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <input type="text" {...register('phone')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Address</label>
@@ -148,12 +159,30 @@ const Profile = () => {
                     <form onSubmit={handlePasswordSubmit(onChangePassword)} className="space-y-4 max-w-md">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Current Password</label>
-                            <input type="password" {...registerPassword('oldPassword', { required: 'Required' })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                            <div className="relative mt-1">
+                                <input type={showOldPassword ? 'text' : 'password'} {...registerPassword('oldPassword', { required: 'Required' })} className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowOldPassword(!showOldPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-primary-600"
+                                >
+                                    {showOldPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
                             {passwordErrors.oldPassword && <span className="text-xs text-red-500">{passwordErrors.oldPassword.message}</span>}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">New Password</label>
-                            <input type="password" {...registerPassword('newPassword', { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                            <div className="relative mt-1">
+                                <input type={showNewPassword ? 'text' : 'password'} {...registerPassword('newPassword', { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } })} className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-primary-600"
+                                >
+                                    {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
                             {passwordErrors.newPassword && <span className="text-xs text-red-500">{passwordErrors.newPassword.message}</span>}
                         </div>
                         <div className="pt-2">

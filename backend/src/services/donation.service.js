@@ -3,12 +3,16 @@ const db = require('../config/db');
 const createDonation = async (userId, donationData) => {
     const { campaign_id, amount, is_anonymous, is_recurring, recurring_frequency } = donationData;
 
-    const [campaigns] = await db.query('SELECT status FROM campaigns WHERE id = ?', [campaign_id]);
+    const [campaigns] = await db.query('SELECT status, raised_amount, goal_amount FROM campaigns WHERE id = ?', [campaign_id]);
     if (campaigns.length === 0) {
         throw new Error('Campaign not found');
     }
-    if (campaigns[0].status !== 'approved') {
+    const campaign = campaigns[0];
+    if (campaign.status !== 'approved') {
         throw new Error('Donations are only allowed for approved campaigns');
+    }
+    if (campaign.raised_amount >= campaign.goal_amount && campaign.goal_amount > 0) {
+        throw new Error('This campaign has already reached its goal amount');
     }
 
     const connection = await db.getConnection();

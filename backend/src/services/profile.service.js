@@ -7,13 +7,14 @@ const getProfileById = async (userId) => {
 };
 
 const updateProfile = async (userId, updateData) => {
-    const { name, phone, address } = updateData;
+    const { name, email, phone, address } = updateData;
     
     // Dynamically build the query based on provided fields
     const fields = [];
     const values = [];
     
     if (name !== undefined) { fields.push('name = ?'); values.push(name); }
+    if (email !== undefined) { fields.push('email = ?'); values.push(email); }
     if (phone !== undefined) { fields.push('phone = ?'); values.push(phone); }
     if (address !== undefined) { fields.push('address = ?'); values.push(address); }
 

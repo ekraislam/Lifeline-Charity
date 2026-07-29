@@ -124,7 +124,12 @@ const updateNGOStatus = async (id, status) => {
 const getVolunteers = async () => {
     const [rows] = await db.query(`
         SELECT v.id, v.user_id, v.skills, v.availability, v.status, v.created_at,
-               u.name as user_name, u.email, u.phone
+               u.name as user_name, u.email, u.phone,
+               (
+                   SELECT GROUP_CONCAT(event_id)
+                   FROM event_registrations
+                   WHERE user_id = v.user_id
+               ) as registered_events
         FROM volunteers v
         LEFT JOIN users u ON v.user_id = u.id
         ORDER BY v.created_at DESC
