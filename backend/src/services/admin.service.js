@@ -12,11 +12,11 @@ const getSystemStats = async () => {
     stats.total_campaigns = campaignRows[0].count;
 
     // 3. Total Donations
-    const [donationRows] = await db.query('SELECT SUM(amount) as total FROM donations WHERE status = "successful"');
+    const [donationRows] = await db.query('SELECT SUM(amount) as total FROM donations WHERE status = "success"');
     stats.total_donations = donationRows[0].total || 0;
 
     // 4. Active Volunteers
-    const [volunteerRows] = await db.query('SELECT COUNT(*) as count FROM volunteer_profiles');
+    const [volunteerRows] = await db.query('SELECT COUNT(*) as count FROM volunteers');
     stats.total_volunteers = volunteerRows[0].count;
 
     // 5. User Demographics
@@ -35,27 +35,27 @@ const getSystemStats = async () => {
     });
 
     // 6. Donation Trends (Last 6 Months)
-    // We group by month. This is a simplified version.
     const [trendRows] = await db.query(`
         SELECT 
             DATE_FORMAT(created_at, '%b') as month,
             MONTH(created_at) as month_num,
             SUM(amount) as total
         FROM donations
-        WHERE status = 'successful' AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
         GROUP BY month, month_num
         ORDER BY month_num ASC
     `);
 
-    // Prepare arrays for chart
-    stats.donationsByMonth = {
-        labels: [],
-        data: []
-    };
-    trendRows.forEach(row => {
-        stats.donationsByMonth.labels.push(row.month);
-        stats.donationsByMonth.data.push(row.total);
-    });
+    // Prepare flat arrays for chart
+    // If no donation data yet, provide default 6-month labels with zeros
+    if (trendRows.length === 0) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        stats.donationTrendLabels = months;
+        stats.donationTrendData = [0, 0, 0, 0, 0, 0];
+    } else {
+        stats.donationTrendLabels = trendRows.map(r => r.month);
+        stats.donationTrendData = trendRows.map(r => parseFloat(r.total) || 0);
+    }
 
     return stats;
 };

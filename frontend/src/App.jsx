@@ -14,7 +14,9 @@ import CampaignDetail from './pages/public/CampaignDetail';
 import { About, Contact, Privacy, Terms, FAQ, NotFound } from './pages/public/StaticPages';
 import CreateCampaign from './pages/campaign/CreateCampaign';
 import AdminCampaignApproval from './pages/campaign/AdminCampaignApproval';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminManageUsers from './pages/admin/AdminManageUsers';
+import AdminSystemSettings from './pages/admin/AdminSystemSettings';
 import Donate from './pages/donation/Donate';
 import DonationHistory from './pages/donation/DonationHistory';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
@@ -23,7 +25,6 @@ import BeneficiaryDashboard from './pages/beneficiary/BeneficiaryDashboard';
 import EventList from './pages/event/EventList';
 import EventDetail from './pages/event/EventDetail';
 import NGODashboard from './pages/ngo/NGODashboard';
-import AdminDashboard from './pages/admin/AdminDashboard';
 import DashboardRouter from './pages/dashboard/DashboardRouter';
 import DonorDashboard from './pages/donor/DonorDashboard';
 import MainLayout from './layouts/MainLayout';
@@ -61,13 +62,14 @@ function App() {
               <Route path="/campaigns/create" element={<CreateCampaign />} />
               <Route path="/admin/campaigns" element={<AdminCampaignApproval />} />
               <Route path="/admin/users" element={<AdminManageUsers />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/settings" element={<AdminSystemSettings />} />
               <Route path="/campaigns/:id/donate" element={<Donate />} />
               <Route path="/donations/history" element={<DonationHistory />} />
               <Route path="/volunteer/dashboard" element={<VolunteerDashboard />} />
               <Route path="/beneficiary/request" element={<HelpRequest />} />
               <Route path="/beneficiary/dashboard" element={<BeneficiaryDashboard />} />
               <Route path="/ngo/dashboard" element={<NGODashboard />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/donor/dashboard" element={<DonorDashboard />} />
             </Route>
             
