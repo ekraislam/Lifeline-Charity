@@ -60,7 +60,7 @@ const DetailModal = ({ request, onClose, onStatusUpdate }) => {
                         </div>
                         <div className="bg-gray-50 rounded-xl p-4">
                             <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Required Amount</p>
-                            <p className="font-semibold text-green-700 text-xl">৳{parseFloat(request.required_amount || 0).toLocaleString()}</p>
+                            <p className="font-semibold text-green-700 text-xl">${parseFloat(request.required_amount || 0).toLocaleString()}</p>
                         </div>
                     </div>
 
@@ -293,7 +293,7 @@ const AdminVerifyBeneficiary = () => {
                                             <p className="text-xs text-gray-500">{req.title}</p>
                                         </td>
                                         <td className="px-4 py-3 text-sm font-medium text-green-700">
-                                            ৳{parseFloat(req.required_amount || 0).toLocaleString()}
+                                            ${parseFloat(req.required_amount || 0).toLocaleString()}
                                         </td>
                                         <td className="px-4 py-3">
                                             <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[req.status] || 'bg-gray-100 text-gray-800'}`}>

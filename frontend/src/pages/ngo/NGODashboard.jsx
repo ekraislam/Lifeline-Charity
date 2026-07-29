@@ -131,7 +131,7 @@ const NGODashboard = () => {
                                 </div>
                                 <h3 className="font-bold text-gray-900 mb-1 truncate">{req.title}</h3>
                                 <p className="text-sm text-gray-500 mb-2">{req.beneficiary_name} · {req.beneficiary_email}</p>
-                                <p className="text-sm font-medium text-green-700 mb-3">৳{parseFloat(req.required_amount || 0).toLocaleString()} needed</p>
+                                <p className="text-sm font-medium text-green-700 mb-3">${parseFloat(req.required_amount || 0).toLocaleString()} needed</p>
                                 
                                 {req.status === 'assigned' && !req.has_campaign ? (
                                     <button

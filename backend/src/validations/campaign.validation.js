@@ -6,7 +6,8 @@ const createCampaignSchema = Joi.object({
     category_id: Joi.number().optional(),
     goal_amount: Joi.number().positive().required(),
     deadline: Joi.date().iso().optional(),
-    is_featured: Joi.boolean().optional()
+    is_featured: Joi.boolean().optional(),
+    help_request_id: Joi.number().integer().optional()
 });
 
 const updateCampaignSchema = Joi.object({

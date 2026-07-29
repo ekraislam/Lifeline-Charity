@@ -4,13 +4,13 @@ import api from '../../api/axios';
 import { format } from 'date-fns';
 
 const STATUS_CONFIG = {
-    pending: { label: 'পেন্ডিং', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
-    under_review: { label: 'পর্যালোচনায়', color: 'bg-blue-100 text-blue-800', icon: '🔍' },
-    waiting_for_ngo: { label: 'NGO-এর অপেক্ষায়', color: 'bg-purple-100 text-purple-800', icon: '🏢' },
-    assigned: { label: 'NGO নির্ধারিত', color: 'bg-indigo-100 text-indigo-800', icon: '✅' },
-    campaign_active: { label: 'ক্যাম্পেইন চলছে', color: 'bg-green-100 text-green-800', icon: '📢' },
-    rejected: { label: 'প্রত্যাখ্যাত', color: 'bg-red-100 text-red-800', icon: '❌' },
-    fulfilled: { label: 'সম্পন্ন', color: 'bg-emerald-100 text-emerald-800', icon: '🎉' },
+    pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
+    under_review: { label: 'Under Review', color: 'bg-blue-100 text-blue-800', icon: '🔍' },
+    waiting_for_ngo: { label: 'Waiting for NGO', color: 'bg-purple-100 text-purple-800', icon: '🏢' },
+    assigned: { label: 'NGO Assigned', color: 'bg-indigo-100 text-indigo-800', icon: '✅' },
+    campaign_active: { label: 'Campaign Active', color: 'bg-green-100 text-green-800', icon: '📢' },
+    rejected: { label: 'Rejected', color: 'bg-red-100 text-red-800', icon: '❌' },
+    fulfilled: { label: 'Fulfilled', color: 'bg-emerald-100 text-emerald-800', icon: '🎉' },
 };
 
 const BeneficiaryDashboard = () => {
@@ -37,11 +37,11 @@ const BeneficiaryDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">আমার সাহায্যের আবেদনসমূহ</h1>
-                    <p className="text-sm text-gray-500 mt-1">আপনার সকল আবেদনের স্থিতি এখানে দেখুন</p>
+                    <h1 className="text-2xl font-bold text-gray-900">My Help Requests</h1>
+                    <p className="text-sm text-gray-500 mt-1">View the status of all your requests here</p>
                 </div>
                 <Link to="/beneficiary/request" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
-                    + নতুন আবেদন
+                    + New Request
                 </Link>
             </div>
 
@@ -57,9 +57,9 @@ const BeneficiaryDashboard = () => {
             {requests.length === 0 ? (
                 <div className="bg-white rounded-lg shadow p-12 text-center">
                     <div className="text-5xl mb-4">📝</div>
-                    <p className="text-gray-500 font-medium">আপনি এখনও কোনো আবেদন জমা দেননি</p>
+                    <p className="text-gray-500 font-medium">You haven't submitted any requests yet</p>
                     <Link to="/beneficiary/request" className="mt-4 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700">
-                        আবেদন করুন
+                        Submit a Request
                     </Link>
                 </div>
             ) : (
@@ -84,8 +84,8 @@ const BeneficiaryDashboard = () => {
                                             <div className="flex flex-wrap gap-4 text-sm">
                                                 {request.required_amount > 0 && (
                                                     <div className="flex items-center gap-1 text-gray-600">
-                                                        <span className="font-medium">৳{parseFloat(request.required_amount).toLocaleString()}</span>
-                                                        <span className="text-gray-400">প্রয়োজন</span>
+                                                        <span className="font-medium">${parseFloat(request.required_amount).toLocaleString()}</span>
+                                                        <span className="text-gray-400">Required</span>
                                                     </div>
                                                 )}
                                                 {request.assigned_ngo_org && (
@@ -95,13 +95,13 @@ const BeneficiaryDashboard = () => {
                                                     </div>
                                                 )}
                                                 <div className="text-gray-400">
-                                                    জমা: {format(new Date(request.created_at), 'dd MMM yyyy')}
+                                                    Submitted: {format(new Date(request.created_at), 'dd MMM yyyy')}
                                                 </div>
                                             </div>
 
                                             {request.admin_note && (
                                                 <div className="mt-3 bg-gray-50 rounded-md px-3 py-2 text-sm text-gray-600 border-l-4 border-primary-400">
-                                                    <strong>অ্যাডমিন নোট:</strong> {request.admin_note}
+                                                    <strong>Admin Note:</strong> {request.admin_note}
                                                 </div>
                                             )}
                                         </div>

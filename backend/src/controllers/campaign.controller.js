@@ -48,6 +48,9 @@ const createCampaign = async (req, res) => {
         res.status(201).json({ message: 'Campaign created successfully', campaignId });
     } catch (error) {
         console.error(error);
+        if (error.message.includes('not found') || error.message.includes('not assigned') || error.message.includes('not in the correct status') || error.message.includes('already exists')) {
+            return res.status(400).json({ message: error.message });
+        }
         res.status(500).json({ message: 'Internal server error' });
     }
 };

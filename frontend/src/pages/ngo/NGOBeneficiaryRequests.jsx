@@ -103,7 +103,7 @@ const NGOBeneficiaryRequests = () => {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-500">Required Amount</span>
-                                        <span className="font-bold text-green-700">৳{parseFloat(req.required_amount || 0).toLocaleString()}</span>
+                                        <span className="font-bold text-green-700">${parseFloat(req.required_amount || 0).toLocaleString()}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-500">Submitted</span>

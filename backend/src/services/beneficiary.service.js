@@ -1,10 +1,17 @@
 const db = require('../config/db');
 
 const submitHelpRequest = async (userId, data) => {
+    let beneficiaryId;
     const [rows] = await db.query('SELECT id FROM beneficiaries WHERE user_id = ?', [userId]);
-    if (rows.length === 0) throw new Error('Beneficiary profile not found');
     
-    const beneficiaryId = rows[0].id;
+    if (rows.length === 0) {
+        // Auto-create missing beneficiary profile
+        const [insertRes] = await db.query('INSERT INTO beneficiaries (user_id) VALUES (?)', [userId]);
+        beneficiaryId = insertRes.insertId;
+    } else {
+        beneficiaryId = rows[0].id;
+    }
+    
     const { title, description, required_amount } = data;
     
     const [result] = await db.query(
