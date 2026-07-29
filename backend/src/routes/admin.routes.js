@@ -1,15 +1,36 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/admin.controller');
+const c = require('../controllers/admin.controller');
 const { authMiddleware, roleMiddleware } = require('../middlewares/auth.middleware');
 
 router.use(authMiddleware);
 router.use(roleMiddleware(['admin']));
 
-router.get('/stats', adminController.getSystemStats);
-router.get('/campaigns', adminController.getCampaigns);
-router.get('/users', adminController.getUsers);
-router.put('/users/:id/status', adminController.updateUserStatus);
-router.get('/export', adminController.exportReport);
+// Stats
+router.get('/stats', c.getSystemStats);
+
+// Campaigns
+router.get('/campaigns', c.getCampaigns);
+router.put('/campaigns/:id', c.editCampaign);
+router.delete('/campaigns/:id', c.deleteCampaign);
+router.put('/campaigns/:id/status', c.updateCampaignStatus);
+
+// Users
+router.get('/users', c.getUsers);
+router.put('/users/:id/status', c.updateUserStatus);
+
+// NGOs
+router.get('/ngos', c.getNGOs);
+router.put('/ngos/:id/status', c.updateNGOStatus);
+
+// Beneficiaries
+router.get('/beneficiaries', c.getBeneficiaryRequests);
+router.get('/beneficiaries/:id', c.getBeneficiaryById);
+router.put('/beneficiaries/:id/status', c.updateBeneficiaryStatus);
+
+// Excel Exports
+router.get('/export/campaigns', c.exportCampaigns);
+router.get('/export/donations', c.exportDonations);
+router.get('/export/users', c.exportUsers);
 
 module.exports = router;

@@ -14,6 +14,27 @@ const getCampaignById = async (req, res) => {
     try {
         const campaign = await campaignService.getCampaignById(req.params.id);
         if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
+
+        if (campaign.status !== 'approved') {
+            const authHeader = req.headers.authorization;
+            let isAdminOrOwner = false;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                const token = authHeader.split(' ')[1];
+                try {
+                    const { verifyAccessToken } = require('../utils/jwt.util');
+                    const decoded = verifyAccessToken(token);
+                    if (decoded.role === 'admin' || (decoded.role === 'ngo' && campaign.ngo_id === decoded.ngo_id)) {
+                        isAdminOrOwner = true;
+                    }
+                } catch (e) {
+                    // Ignore token errors
+                }
+            }
+            if (!isAdminOrOwner) {
+                return res.status(403).json({ message: 'This campaign is not active or approved' });
+            }
+        }
+
         res.json(campaign);
     } catch (error) {
         console.error(error);

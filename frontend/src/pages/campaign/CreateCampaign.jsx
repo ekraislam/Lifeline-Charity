@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const CreateCampaign = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const [searchParams] = useSearchParams();
+    const helpRequestId = searchParams.get('help_request_id');
+    const prefillTitle = searchParams.get('title') || '';
+    const prefillAmount = searchParams.get('amount') || '';
+
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        defaultValues: {
+            title: prefillTitle ? `Campaign: ${prefillTitle}` : '',
+            target_amount: prefillAmount || '',
+        }
+    });
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState({ type: '', message: '' });
@@ -14,18 +24,23 @@ const CreateCampaign = () => {
         setLoading(true);
         setStatus({ type: '', message: '' });
         try {
-            // First, create campaign details
-            const response = await api.post('/campaigns', {
+            const payload = {
                 title: data.title,
                 description: data.description,
                 category_id: data.category_id,
                 goal_amount: data.target_amount,
                 deadline: data.end_date
-            });
-            
+            };
+
+            // If creating for a beneficiary
+            if (helpRequestId) {
+                payload.help_request_id = parseInt(helpRequestId);
+            }
+
+            const response = await api.post('/campaigns', payload);
             const campaignId = response.data.campaignId;
 
-            // Then, upload gallery if files exist
+            // Upload gallery if files exist
             if (files && files.length > 0) {
                 const formData = new FormData();
                 for (let i = 0; i < files.length; i++) {
@@ -38,7 +53,7 @@ const CreateCampaign = () => {
 
             setStatus({ type: 'success', message: 'Campaign created successfully! Awaiting admin approval.' });
             setTimeout(() => {
-                navigate('/dashboard'); // or back to campaigns list
+                navigate(helpRequestId ? '/ngo/dashboard' : '/dashboard');
             }, 2000);
         } catch (error) {
             setStatus({ type: 'error', message: error.response?.data?.message || 'Failed to create campaign.' });
@@ -49,7 +64,13 @@ const CreateCampaign = () => {
 
     return (
         <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Create New Campaign</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Campaign</h1>
+            {helpRequestId && (
+                <div className="mb-6 p-4 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm">
+                    <strong>📋 Beneficiary Campaign:</strong> This campaign is being created for Help Request #{helpRequestId}. 
+                    The campaign will be linked to the assigned beneficiary.
+                </div>
+            )}
             
             {status.message && (
                 <div className={`mb-6 p-4 rounded-md ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -100,8 +121,11 @@ const CreateCampaign = () => {
                     <input type="file" multiple accept="image/*" onChange={(e) => setFiles(e.target.files)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
                 </div>
 
-                <div className="pt-4 border-t border-gray-200">
-                    <button type="submit" disabled={loading} className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                <div className="pt-4 border-t border-gray-200 flex gap-3">
+                    <button type="button" onClick={() => navigate(-1)} className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" disabled={loading} className={`flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
                         {loading ? 'Submitting...' : 'Create Campaign'}
                     </button>
                 </div>

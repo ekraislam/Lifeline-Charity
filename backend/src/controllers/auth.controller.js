@@ -38,6 +38,20 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        // Check NGO approval status
+        if (user.role === 'ngo') {
+            const db = require('../config/db');
+            const [[ngoProfile]] = await db.query('SELECT status FROM ngo_profiles WHERE user_id = ?', [user.id]);
+            if (ngoProfile) {
+                if (ngoProfile.status === 'pending') {
+                    return res.status(403).json({ message: 'Your NGO account is pending admin approval. Please wait for verification.' });
+                }
+                if (ngoProfile.status === 'rejected') {
+                    return res.status(403).json({ message: 'Your NGO account has been rejected by admin. Please contact support.' });
+                }
+            }
+        }
+
         const tokens = generateTokens(user);
         const { password: _, ...userData } = user;
         res.json({ message: 'Login successful', user: userData, ...tokens });

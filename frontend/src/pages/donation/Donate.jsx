@@ -52,7 +52,16 @@ const Donate = () => {
 
     return (
         <div className="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-100">
+            <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-100 relative">
+                {/* Close/Cancel Button */}
+                <button 
+                    type="button"
+                    onClick={() => navigate(`/campaigns/${id}`)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold focus:outline-none"
+                    title="Cancel donation and return to campaign"
+                >
+                    &times;
+                </button>
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-extrabold text-gray-900">Make a Donation</h2>
                     <p className="mt-2 text-gray-600">You are donating to: <span className="font-semibold text-primary-600">{campaign.title}</span></p>

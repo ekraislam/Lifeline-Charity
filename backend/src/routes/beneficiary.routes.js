@@ -10,11 +10,16 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Beneficiary routes
-router.post('/requests', roleMiddleware(['beneficiary']), validate(createHelpRequestSchema), beneficiaryController.submitHelpRequest);
+router.post('/requests', roleMiddleware(['beneficiary']), upload.array('documents', 5), validate(createHelpRequestSchema), beneficiaryController.submitHelpRequest);
 router.post('/requests/:id/documents', roleMiddleware(['beneficiary']), upload.array('documents', 5), beneficiaryController.uploadDocuments);
 
-// Admin / NGO routes
-router.get('/requests', roleMiddleware(['admin', 'ngo']), beneficiaryController.getAllRequests);
+// NGO routes — must be before /:id to avoid conflict
+router.get('/requests/waiting', roleMiddleware(['ngo']), beneficiaryController.getWaitingRequests);
+router.get('/requests/my-assigned', roleMiddleware(['ngo']), beneficiaryController.getMyAssigned);
+router.post('/requests/:id/accept', roleMiddleware(['ngo']), beneficiaryController.acceptRequest);
+
+// Admin / NGO / Beneficiary routes
+router.get('/requests', roleMiddleware(['admin', 'ngo', 'beneficiary']), beneficiaryController.getAllRequests);
 router.get('/requests/:id', roleMiddleware(['admin', 'ngo']), beneficiaryController.getRequestById);
 router.put('/requests/:id/status', roleMiddleware(['admin']), validate(updateStatusSchema), beneficiaryController.updateRequestStatus);
 

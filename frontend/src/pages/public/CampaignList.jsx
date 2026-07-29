@@ -64,11 +64,11 @@ const CampaignList = () => {
                                 
                                 <div className="mt-auto">
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="font-semibold text-primary-600">${campaign.current_amount} raised</span>
-                                        <span className="text-gray-500">Goal: ${campaign.target_amount}</span>
+                                        <span className="font-semibold text-primary-600">${campaign.raised_amount} raised</span>
+                                        <span className="text-gray-500">Goal: ${campaign.goal_amount}</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                                        <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${Math.min(100, (campaign.current_amount / campaign.target_amount) * 100)}%` }}></div>
+                                        <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${Math.min(100, (campaign.raised_amount / campaign.goal_amount) * 100)}%` }}></div>
                                     </div>
                                     <Link to={`/campaigns/${campaign.id}`} className="block w-full text-center bg-primary-50 border border-primary-500 text-primary-700 hover:bg-primary-100 font-medium py-2 rounded-md transition-colors">
                                         View Details

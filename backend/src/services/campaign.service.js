@@ -5,6 +5,7 @@ const getCampaigns = async () => {
         SELECT c.*, (c.raised_amount / c.goal_amount) * 100 AS progress,
         (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image
         FROM campaigns c
+        WHERE c.status = 'approved'
     `);
     return rows.map(row => ({
         ...row,
@@ -30,11 +31,33 @@ const createCampaign = async (campaignData, userId) => {
         ngoId = ngoRows[0].id;
     }
 
-    const { title, description, category_id, goal_amount, deadline, is_featured } = campaignData;
+    const { title, description, category_id, goal_amount, deadline, is_featured, help_request_id } = campaignData;
+
+    // If creating campaign for a beneficiary help request
+    if (help_request_id) {
+        // Validate NGO is assigned to this request
+        const [hrRows] = await db.query('SELECT status, assigned_ngo_id FROM help_requests WHERE id = ?', [help_request_id]);
+        if (hrRows.length === 0) throw new Error('Help request not found');
+        if (hrRows[0].assigned_ngo_id !== ngoId) throw new Error('You are not assigned to this beneficiary');
+        if (hrRows[0].status !== 'assigned') throw new Error('This request is not in the correct status for campaign creation');
+
+        // Check no active campaign exists for this request
+        const [existingCampaigns] = await db.query(
+            "SELECT id FROM campaigns WHERE help_request_id = ? AND status NOT IN ('cancelled','completed')", [help_request_id]
+        );
+        if (existingCampaigns.length > 0) throw new Error('An active campaign already exists for this beneficiary');
+    }
+
     const [result] = await db.query(
-        'INSERT INTO campaigns (ngo_id, category_id, title, description, goal_amount, deadline, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [ngoId, category_id || null, title, description, goal_amount, deadline || null, is_featured || false]
+        'INSERT INTO campaigns (ngo_id, category_id, title, description, goal_amount, deadline, is_featured, help_request_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [ngoId, category_id || null, title, description, goal_amount, deadline || null, is_featured || false, help_request_id || null]
     );
+
+    // Update help request status to campaign_active
+    if (help_request_id) {
+        await db.query("UPDATE help_requests SET status = 'campaign_active' WHERE id = ?", [help_request_id]);
+    }
+
     return result.insertId;
 };
 

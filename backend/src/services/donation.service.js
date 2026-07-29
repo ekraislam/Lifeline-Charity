@@ -3,6 +3,14 @@ const db = require('../config/db');
 const createDonation = async (userId, donationData) => {
     const { campaign_id, amount, is_anonymous, is_recurring, recurring_frequency } = donationData;
 
+    const [campaigns] = await db.query('SELECT status FROM campaigns WHERE id = ?', [campaign_id]);
+    if (campaigns.length === 0) {
+        throw new Error('Campaign not found');
+    }
+    if (campaigns[0].status !== 'approved') {
+        throw new Error('Donations are only allowed for approved campaigns');
+    }
+
     const connection = await db.getConnection();
     try {
         await connection.beginTransaction();

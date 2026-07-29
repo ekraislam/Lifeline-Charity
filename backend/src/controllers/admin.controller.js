@@ -1,69 +1,116 @@
 const adminService = require('../services/admin.service');
 
+// ── Stats ──────────────────────────────────────────────────────────
 const getSystemStats = async (req, res) => {
-    try {
-        const stats = await adminService.getSystemStats();
-        res.json(stats);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    try { res.json(await adminService.getSystemStats()); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
 
+// ── Campaigns ──────────────────────────────────────────────────────
 const getCampaigns = async (req, res) => {
-    try {
-        const campaigns = await adminService.getCampaigns(req.query.status);
-        res.json({ campaigns });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    try { res.json({ campaigns: await adminService.getCampaigns(req.query.status) }); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
 
+const editCampaign = async (req, res) => {
+    try { await adminService.editCampaign(req.params.id, req.body); res.json({ message: 'Campaign updated' }); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+const deleteCampaign = async (req, res) => {
+    try { await adminService.deleteCampaign(req.params.id); res.json({ message: 'Campaign deleted' }); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+const updateCampaignStatus = async (req, res) => {
+    try { await adminService.updateCampaignStatus(req.params.id, req.body.status); res.json({ message: 'Status updated' }); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+// ── Users ──────────────────────────────────────────────────────────
 const getUsers = async (req, res) => {
-    try {
-        const users = await adminService.getUsers();
-        res.json(users);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    try { res.json(await adminService.getUsers()); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
 
 const updateUserStatus = async (req, res) => {
     try {
-        const { isActive } = req.body;
-        await adminService.updateUserStatus(req.params.id, isActive);
-        res.json({ message: `User status updated successfully` });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+        await adminService.updateUserStatus(req.params.id, req.body.isActive);
+        res.json({ message: 'User status updated' });
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
 
-const exportReport = async (req, res) => {
+// ── NGOs ───────────────────────────────────────────────────────────
+const getNGOs = async (req, res) => {
+    try { res.json(await adminService.getNGOs()); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+const updateNGOStatus = async (req, res) => {
     try {
-        const stats = await adminService.getSystemStats();
-        // Generate a very basic CSV for demonstration
-        let csv = 'Metric,Value\n';
-        csv += `Total Users,${stats.total_users}\n`;
-        csv += `Total Campaigns,${stats.total_campaigns}\n`;
-        csv += `Total Donations,${stats.total_donations}\n`;
-        csv += `Active Volunteers,${stats.total_volunteers}\n`;
-        
-        res.header('Content-Type', 'text/csv');
-        res.attachment('lifeline_system_report.csv');
-        return res.send(csv);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+        await adminService.updateNGOStatus(req.params.id, req.body.status);
+        res.json({ message: 'NGO status updated' });
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+// ── Beneficiaries ──────────────────────────────────────────────────
+const getBeneficiaryRequests = async (req, res) => {
+    try { res.json(await adminService.getBeneficiaryRequests(req.query.search)); }
+    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+const getBeneficiaryById = async (req, res) => {
+    try {
+        const beneficiaryService = require('../services/beneficiary.service');
+        const request = await beneficiaryService.getHelpRequestById(req.params.id);
+        if (!request) return res.status(404).json({ message: 'Request not found' });
+        res.json(request);
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+const updateBeneficiaryStatus = async (req, res) => {
+    try {
+        await adminService.updateBeneficiaryStatus(req.params.id, req.body.status, req.body.adminNote);
+        res.json({ message: 'Beneficiary request status updated' });
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
+// ── Excel Exports ──────────────────────────────────────────────────
+const exportCampaigns = async (req, res) => {
+    try {
+        const wb = await adminService.generateCampaignReport();
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=campaigns_report.xlsx');
+        await wb.xlsx.write(res);
+        res.end();
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Export failed' }); }
+};
+
+const exportDonations = async (req, res) => {
+    try {
+        const wb = await adminService.generateDonationReport();
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=donations_report.xlsx');
+        await wb.xlsx.write(res);
+        res.end();
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Export failed' }); }
+};
+
+const exportUsers = async (req, res) => {
+    try {
+        const wb = await adminService.generateUserReport();
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=users_report.xlsx');
+        await wb.xlsx.write(res);
+        res.end();
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Export failed' }); }
 };
 
 module.exports = {
     getSystemStats,
-    getCampaigns,
-    getUsers,
-    updateUserStatus,
-    exportReport
+    getCampaigns, editCampaign, deleteCampaign, updateCampaignStatus,
+    getUsers, updateUserStatus,
+    getNGOs, updateNGOStatus,
+    getBeneficiaryRequests, getBeneficiaryById, updateBeneficiaryStatus,
+    exportCampaigns, exportDonations, exportUsers,
 };
