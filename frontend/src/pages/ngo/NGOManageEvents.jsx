@@ -47,6 +47,16 @@ const NGOManageEvents = () => {
         }
     };
 
+    const updateVolunteerStatus = async (eventId, userId, status) => {
+        try {
+            await api.patch(`/events/${eventId}/volunteers/${userId}/status`, { status });
+            // Refresh volunteers list
+            fetchVolunteers(eventId);
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to update volunteer status');
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="sm:flex sm:items-center sm:justify-between mb-8">
@@ -142,15 +152,30 @@ const NGOManageEvents = () => {
                                     <div className="max-h-96 overflow-y-auto">
                                         <ul className="divide-y divide-gray-200">
                                             {volunteersList.map(vol => (
-                                                <li key={vol.registration_id} className="py-3 flex justify-between items-center">
+                                                <li key={vol.registration_id} className="py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                                                     <div>
                                                         <p className="text-sm font-medium text-gray-900">{vol.name}</p>
                                                         <p className="text-sm text-gray-500">{vol.email} • {vol.phone || 'No phone'}</p>
                                                         <p className="text-xs text-gray-400 mt-1">Skills: {vol.skills || 'None listed'}</p>
                                                     </div>
-                                                    <span className={`px-2 py-1 text-xs rounded-full ${vol.attendance_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                                                        {vol.attendance_status}
-                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`px-2 py-1 text-xs rounded-full uppercase tracking-wider font-semibold
+                                                            ${vol.attendance_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                                              vol.attendance_status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                                              'bg-red-100 text-red-800'}`}>
+                                                            {vol.attendance_status}
+                                                        </span>
+                                                        {vol.attendance_status === 'pending' && (
+                                                            <div className="flex gap-1">
+                                                                <button onClick={() => updateVolunteerStatus(viewingVolunteers, vol.user_id, 'approved')} className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                                    Approve
+                                                                </button>
+                                                                <button onClick={() => updateVolunteerStatus(viewingVolunteers, vol.user_id, 'rejected')} className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">
+                                                                    Reject
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </li>
                                             ))}
                                         </ul>

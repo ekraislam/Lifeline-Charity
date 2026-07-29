@@ -167,6 +167,29 @@ const getEventVolunteers = async (eventId, userId, userRole) => {
     return rows;
 };
 
+const updateVolunteerApplicationStatus = async (eventId, userId, status, updaterId, updaterRole) => {
+    const event = await getEventById(eventId);
+    if (!event) throw new Error('Event not found');
+    
+    if (updaterRole === 'ngo' && event.organizer_id !== updaterId) {
+        throw new Error('Unauthorized to update volunteer status for this event');
+    }
+
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+        throw new Error('Invalid status');
+    }
+
+    const [result] = await db.query(`
+        UPDATE event_registrations 
+        SET attendance_status = ? 
+        WHERE event_id = ? AND user_id = ? AND role = 'volunteer'
+    `, [status, eventId, userId]);
+
+    if (result.affectedRows === 0) {
+        throw new Error('Volunteer registration not found');
+    }
+};
+
 module.exports = {
     getEvents,
     getEventById,
@@ -175,5 +198,6 @@ module.exports = {
     deleteEvent,
     updateEventStatus,
     registerVolunteer,
-    getEventVolunteers
+    getEventVolunteers,
+    updateVolunteerApplicationStatus
 };

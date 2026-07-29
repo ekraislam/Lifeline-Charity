@@ -100,6 +100,23 @@ const getEventVolunteers = async (req, res) => {
     }
 };
 
+const updateVolunteerStatus = async (req, res) => {
+    try {
+        await eventService.updateVolunteerApplicationStatus(
+            req.params.id, 
+            req.params.userId, 
+            req.body.status, 
+            req.user.id, 
+            req.user.role
+        );
+        res.json({ message: 'Volunteer status updated successfully' });
+    } catch (error) {
+        console.error(error);
+        const status = error.message.includes('Unauthorized') ? 403 : (error.message.includes('not found') ? 404 : 400);
+        res.status(status).json({ message: error.message || 'Internal server error' });
+    }
+};
+
 module.exports = {
     getEvents,
     getEventById,
@@ -108,5 +125,6 @@ module.exports = {
     deleteEvent,
     updateEventStatus,
     registerVolunteer,
-    getEventVolunteers
+    getEventVolunteers,
+    updateVolunteerStatus
 };

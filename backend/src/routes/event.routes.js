@@ -46,5 +46,6 @@ router.put('/:id', roleMiddleware(['admin', 'ngo']), upload.single('cover_image'
 router.delete('/:id', roleMiddleware(['admin', 'ngo']), eventController.deleteEvent);
 router.patch('/:id/status', roleMiddleware(['admin', 'ngo']), eventController.updateEventStatus);
 router.get('/:id/volunteers', roleMiddleware(['admin', 'ngo']), eventController.getEventVolunteers);
+router.patch('/:id/volunteers/:userId/status', roleMiddleware(['admin', 'ngo']), eventController.updateVolunteerStatus);
 
 module.exports = router;

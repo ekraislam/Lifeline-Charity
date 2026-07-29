@@ -3,22 +3,34 @@ import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import api from '../../api/axios';
 import { AuthContext } from '../../context/AuthContext';
+import { useForm } from 'react-hook-form';
 
 const VolunteerDashboard = () => {
     const { user } = useContext(AuthContext);
     const [stats, setStats] = useState(null);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [profileLoading, setProfileLoading] = useState(false);
+    const [profileSuccess, setProfileSuccess] = useState('');
+    const [profileError, setProfileError] = useState('');
+    const { register, handleSubmit, setValue } = useForm();
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [statsRes, eventsRes] = await Promise.all([
+                const [statsRes, eventsRes, profileRes] = await Promise.all([
                     api.get('/volunteers/stats'),
-                    api.get('/volunteers/events')
+                    api.get('/volunteers/events'),
+                    api.get('/profile')
                 ]);
                 setStats(statsRes.data);
                 setEvents(eventsRes.data.events || []);
+                
+                // Fetch profile to get skills and availability
+                if (profileRes.data) {
+                    setValue('skills', profileRes.data.volunteer?.skills || '');
+                    setValue('availability', profileRes.data.volunteer?.availability || '');
+                }
             } catch (error) {
                 console.error("Error fetching volunteer dashboard data", error);
             } finally {
@@ -26,7 +38,21 @@ const VolunteerDashboard = () => {
             }
         };
         fetchDashboardData();
-    }, []);
+    }, [setValue]);
+
+    const onProfileSubmit = async (data) => {
+        setProfileLoading(true);
+        setProfileSuccess('');
+        setProfileError('');
+        try {
+            await api.put('/volunteers/profile', data);
+            setProfileSuccess('Profile updated successfully!');
+        } catch (error) {
+            setProfileError(error.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setProfileLoading(false);
+        }
+    };
 
     const downloadCertificate = () => {
         const doc = new jsPDF({
@@ -95,39 +121,85 @@ const VolunteerDashboard = () => {
                 </div>
             </div>
 
-            {/* Assigned Events */}
-            <h2 className="text-xl font-bold text-gray-900 mb-4">My Assigned Events</h2>
-            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-8">
-                {events.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 bg-gray-50">
-                        <div className="text-4xl mb-3">📅</div>
-                        You have not been assigned to any events yet.
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                {/* Volunteer Profile Form */}
+                <div className="lg:col-span-1 bg-white shadow sm:rounded-lg overflow-hidden">
+                    <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900">Volunteer Profile</h3>
+                        <p className="mt-1 max-w-2xl text-sm text-gray-500">Update your skills and availability.</p>
                     </div>
-                ) : (
-                    <ul className="divide-y divide-gray-200">
-                        {events.map((ev) => (
-                            <li key={ev.registration_id}>
-                                <div className="px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:px-6 justify-between gap-4">
-                                    <div>
-                                        <p className="text-lg font-bold text-primary-700">{ev.title}</p>
-                                        <p className="mt-1 text-sm text-gray-600">
-                                            {ev.description}
-                                        </p>
-                                        <div className="mt-2 flex items-center text-xs text-gray-500 gap-4">
-                                            <span>📍 {ev.location}</span>
-                                            <span>🕒 {new Date(ev.event_date).toLocaleString()}</span>
+                    <div className="px-4 py-5 sm:p-6">
+                        {profileSuccess && <div className="mb-4 p-2 bg-green-50 text-green-700 text-sm rounded">{profileSuccess}</div>}
+                        {profileError && <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded">{profileError}</div>}
+                        <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Skills</label>
+                                <textarea
+                                    {...register('skills')}
+                                    rows="3"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    placeholder="e.g. First Aid, Teaching, Event Management"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Availability</label>
+                                <textarea
+                                    {...register('availability')}
+                                    rows="3"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    placeholder="e.g. Weekends only, Monday mornings"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={profileLoading}
+                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                            >
+                                {profileLoading ? 'Saving...' : 'Save Profile Details'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {/* Assigned Events / My Applications */}
+                <div className="lg:col-span-2">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">My Applications</h2>
+                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                        {events.length === 0 ? (
+                            <div className="p-8 text-center text-gray-500 bg-gray-50">
+                                <div className="text-4xl mb-3">📅</div>
+                                You have not applied to any events yet.
+                            </div>
+                        ) : (
+                            <ul className="divide-y divide-gray-200">
+                                {events.map((ev) => (
+                                    <li key={ev.registration_id}>
+                                        <div className="px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:px-6 justify-between gap-4">
+                                            <div>
+                                                <p className="text-lg font-bold text-primary-700">{ev.title}</p>
+                                                <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                                                    {ev.description}
+                                                </p>
+                                                <div className="mt-2 flex flex-wrap items-center text-xs text-gray-500 gap-4">
+                                                    <span>📍 {ev.location}</span>
+                                                    <span>🕒 {new Date(ev.event_date).toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className="shrink-0 flex items-center justify-center">
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider
+                                                    ${ev.attendance_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                                      ev.attendance_status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                                      'bg-red-100 text-red-800'}`}>
+                                                    {ev.attendance_status}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold capitalize ${ev.attendance_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                                            Status: {ev.attendance_status}
-                                        </span>
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );
