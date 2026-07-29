@@ -35,6 +35,7 @@ const eventRoutes = require('./src/routes/event.routes');
 const notificationRoutes = require('./src/routes/notification.routes');
 const searchRoutes = require('./src/routes/search.routes');
 const fileRoutes = require('./src/routes/file.routes');
+const adminRoutes = require('./src/routes/admin.routes');
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/campaigns', campaignRoutes);
@@ -45,6 +46,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static('uploads'));

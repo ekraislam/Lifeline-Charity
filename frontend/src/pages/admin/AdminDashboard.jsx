@@ -26,21 +26,26 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const handleExport = async () => {
+        try {
+            const response = await api.get('/admin/export', { responseType: 'blob' });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'lifeline_system_report.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+        } catch (error) {
+            console.error("Export failed", error);
+            alert("Failed to export report.");
+        }
+    };
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // We'd hit an admin stats endpoint here.
-                // Assuming some mock data if endpoint not built
-                const response = await api.get('/admin/stats').catch(() => ({
-                    data: {
-                        total_users: 1250,
-                        total_donations: 45000,
-                        total_campaigns: 120,
-                        total_volunteers: 350,
-                        donationsByMonth: [5000, 7000, 4500, 8000, 6500, 14000],
-                        usersByRole: { donor: 800, volunteer: 300, ngo: 50, beneficiary: 100 }
-                    }
-                }));
+                const response = await api.get('/admin/stats');
                 setStats(response.data);
             } catch (error) {
                 console.error("Error fetching stats", error);
@@ -144,9 +149,9 @@ const AdminDashboard = () => {
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Links</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <a href="/admin/campaigns" className="block p-4 bg-gray-50 rounded text-center hover:bg-gray-100 text-primary-600 font-medium">Manage Campaigns</a>
-                    <a href="#" className="block p-4 bg-gray-50 rounded text-center hover:bg-gray-100 text-primary-600 font-medium">Manage Users</a>
+                    <a href="/admin/users" className="block p-4 bg-gray-50 rounded text-center hover:bg-gray-100 text-primary-600 font-medium">Manage Users</a>
                     <a href="#" className="block p-4 bg-gray-50 rounded text-center hover:bg-gray-100 text-primary-600 font-medium">System Settings</a>
-                    <a href="#" className="block p-4 bg-gray-50 rounded text-center hover:bg-gray-100 text-primary-600 font-medium">Export Full Report</a>
+                    <button onClick={handleExport} className="block p-4 bg-gray-50 rounded text-center hover:bg-gray-100 text-primary-600 font-medium w-full">Export Full Report</button>
                 </div>
             </div>
         </div>

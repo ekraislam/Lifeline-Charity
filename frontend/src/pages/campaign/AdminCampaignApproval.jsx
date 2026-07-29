@@ -12,8 +12,7 @@ const AdminCampaignApproval = () => {
 
     const fetchPendingCampaigns = async () => {
         try {
-            // Ideally we pass status=pending to global search or have a dedicated endpoint
-            const response = await api.get('/search?status=pending');
+            const response = await api.get('/admin/campaigns?status=pending');
             setCampaigns(response.data.campaigns || []);
         } catch (error) {
             console.error("Error fetching campaigns", error);
@@ -62,7 +61,7 @@ const AdminCampaignApproval = () => {
                                             </div>
                                             <div className="mt-2 flex">
                                                 <div className="flex items-center text-sm text-gray-500">
-                                                    Target: ${campaign.target_amount}
+                                                    Target: ${campaign.goal_amount}
                                                 </div>
                                             </div>
                                         </div>

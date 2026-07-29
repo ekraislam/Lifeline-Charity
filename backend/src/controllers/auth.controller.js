@@ -29,6 +29,10 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        if (user.is_active === 0 || user.is_active === false) {
+            return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
+        }
+
         const isMatch = await authService.comparePassword(req.body.password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });

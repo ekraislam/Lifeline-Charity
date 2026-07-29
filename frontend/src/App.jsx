@@ -14,6 +14,7 @@ import CampaignDetail from './pages/public/CampaignDetail';
 import { About, Contact, Privacy, Terms, FAQ, NotFound } from './pages/public/StaticPages';
 import CreateCampaign from './pages/campaign/CreateCampaign';
 import AdminCampaignApproval from './pages/campaign/AdminCampaignApproval';
+import AdminManageUsers from './pages/admin/AdminManageUsers';
 import Donate from './pages/donation/Donate';
 import DonationHistory from './pages/donation/DonationHistory';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
@@ -59,6 +60,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/campaigns/create" element={<CreateCampaign />} />
               <Route path="/admin/campaigns" element={<AdminCampaignApproval />} />
+              <Route path="/admin/users" element={<AdminManageUsers />} />
               <Route path="/campaigns/:id/donate" element={<Donate />} />
               <Route path="/donations/history" element={<DonationHistory />} />
               <Route path="/volunteer/dashboard" element={<VolunteerDashboard />} />
