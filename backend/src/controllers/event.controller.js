@@ -1,63 +1,112 @@
 const eventService = require('../services/event.service');
 
+const getEvents = async (req, res) => {
+    try {
+        const filters = {
+            search: req.query.search,
+            category_id: req.query.category_id,
+            status: req.query.status,
+            organizer_id: req.query.organizer_id
+        };
+        const events = await eventService.getEvents(filters);
+        res.json({ events });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+const getEventById = async (req, res) => {
+    try {
+        const event = await eventService.getEventById(req.params.id);
+        if (!event) return res.status(404).json({ message: 'Event not found' });
+        res.json(event);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 const createEvent = async (req, res) => {
     try {
-        const eventId = await eventService.createEvent(req.user.id, req.body);
+        const data = { ...req.body };
+        if (req.file) {
+            data.cover_image = '/uploads/events/' + req.file.filename;
+        }
+        const eventId = await eventService.createEvent(data, req.user.id);
         res.status(201).json({ message: 'Event created successfully', eventId });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 };
 
-const joinEvent = async (req, res) => {
+const updateEvent = async (req, res) => {
     try {
-        await eventService.joinEvent(req.params.id, req.user.id, req.body.role);
-        res.json({ message: 'Successfully joined event' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
-const markAttendance = async (req, res) => {
-    try {
-        await eventService.markAttendance(req.params.id, req.body.user_id, req.body.attendance_status);
-        res.json({ message: 'Attendance marked successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
-const uploadGallery = async (req, res) => {
-    try {
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ message: 'No files uploaded' });
+        const data = { ...req.body };
+        if (req.file) {
+            data.cover_image = '/uploads/events/' + req.file.filename;
         }
-        const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-        await eventService.uploadGallery(req.params.id, imageUrls);
-        res.json({ message: 'Gallery updated successfully', imageUrls });
+        await eventService.updateEvent(req.params.id, data, req.user.id, req.user.role);
+        res.json({ message: 'Event updated successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
+        const status = error.message.includes('Unauthorized') ? 403 : (error.message.includes('not found') ? 404 : 500);
+        res.status(status).json({ message: error.message || 'Internal server error' });
     }
 };
 
-const getAllEvents = async (req, res) => {
+const deleteEvent = async (req, res) => {
     try {
-        const events = await eventService.getEvents();
-        res.json(events);
+        await eventService.deleteEvent(req.params.id, req.user.id, req.user.role);
+        res.json({ message: 'Event deleted successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
+        const status = error.message.includes('Unauthorized') ? 403 : (error.message.includes('not found') ? 404 : 500);
+        res.status(status).json({ message: error.message || 'Internal server error' });
+    }
+};
+
+const updateEventStatus = async (req, res) => {
+    try {
+        await eventService.updateEventStatus(req.params.id, req.body.status, req.user.id, req.user.role);
+        res.json({ message: 'Event status updated' });
+    } catch (error) {
+        console.error(error);
+        const status = error.message.includes('Unauthorized') ? 403 : (error.message.includes('not found') ? 404 : 500);
+        res.status(status).json({ message: error.message || 'Internal server error' });
+    }
+};
+
+const registerVolunteer = async (req, res) => {
+    try {
+        await eventService.registerVolunteer(req.params.id, req.user.id);
+        res.json({ message: 'Successfully registered for event' });
+    } catch (error) {
+        console.error(error);
+        const status = error.message.includes('not found') ? 404 : 400;
+        res.status(status).json({ message: error.message || 'Internal server error' });
+    }
+};
+
+const getEventVolunteers = async (req, res) => {
+    try {
+        const volunteers = await eventService.getEventVolunteers(req.params.id, req.user.id, req.user.role);
+        res.json({ volunteers });
+    } catch (error) {
+        console.error(error);
+        const status = error.message.includes('Unauthorized') ? 403 : (error.message.includes('not found') ? 404 : 500);
+        res.status(status).json({ message: error.message || 'Internal server error' });
     }
 };
 
 module.exports = {
+    getEvents,
+    getEventById,
     createEvent,
-    joinEvent,
-    markAttendance,
-    uploadGallery,
-    getAllEvents
+    updateEvent,
+    deleteEvent,
+    updateEventStatus,
+    registerVolunteer,
+    getEventVolunteers
 };

@@ -36,6 +36,7 @@ const notificationRoutes = require('./src/routes/notification.routes');
 const searchRoutes = require('./src/routes/search.routes');
 const fileRoutes = require('./src/routes/file.routes');
 const adminRoutes = require('./src/routes/admin.routes');
+const categoryRoutes = require('./src/routes/category.routes');
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/campaigns', campaignRoutes);
@@ -47,6 +48,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static('uploads'));

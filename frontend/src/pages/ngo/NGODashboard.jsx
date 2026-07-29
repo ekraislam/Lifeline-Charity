@@ -69,6 +69,10 @@ const NGODashboard = () => {
                         className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         📄 Export Report
                     </button>
+                    <Link to="/campaigns/create"
+                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                        ➕ Create Campaign
+                    </Link>
                 </div>
             </div>
 
@@ -93,11 +97,15 @@ const NGODashboard = () => {
                     </div>
                 </div>
                 <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Quick Action</dt>
+                    <div className="px-4 py-5 sm:p-6 flex flex-col gap-2">
+                        <dt className="text-sm font-medium text-gray-500 truncate mb-1">Quick Actions</dt>
                         <Link to="/ngo/beneficiary-requests"
-                            className="mt-2 inline-flex items-center px-3 py-1.5 border border-primary-500 text-sm font-medium rounded-md text-primary-700 bg-primary-50 hover:bg-primary-100">
+                            className="inline-flex items-center px-3 py-1.5 border border-primary-500 text-sm font-medium rounded-md text-primary-700 bg-primary-50 hover:bg-primary-100">
                             🔍 Browse Waiting Requests
+                        </Link>
+                        <Link to="/ngo/events"
+                            className="inline-flex items-center px-3 py-1.5 border border-blue-500 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100">
+                            📅 Manage Events
                         </Link>
                     </div>
                 </div>

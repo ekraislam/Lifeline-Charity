@@ -55,10 +55,32 @@ const issueCertificate = async (req, res) => {
     }
 };
 
+const getStats = async (req, res) => {
+    try {
+        const stats = await volunteerService.getStats(req.user.id);
+        res.json(stats);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+const getEvents = async (req, res) => {
+    try {
+        const events = await volunteerService.getEvents(req.user.id);
+        res.json({ events });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     updateProfile,
     createTask,
     assignTask,
     logHours,
-    issueCertificate
+    issueCertificate,
+    getStats,
+    getEvents
 };

@@ -119,6 +119,48 @@ const updateNGOStatus = async (id, status) => {
 };
 
 // ──────────────────────────────────────────────────────────────────
+// VOLUNTEERS
+// ──────────────────────────────────────────────────────────────────
+const getVolunteers = async () => {
+    const [rows] = await db.query(`
+        SELECT v.id, v.user_id, v.skills, v.availability, v.status, v.created_at,
+               u.name as user_name, u.email, u.phone
+        FROM volunteers v
+        LEFT JOIN users u ON v.user_id = u.id
+        ORDER BY v.created_at DESC
+    `);
+    return rows;
+};
+
+const updateVolunteerStatus = async (id, status) => {
+    await db.query('UPDATE volunteers SET status = ? WHERE id = ?', [status, id]);
+    
+    // Also update users.is_active
+    const [[vol]] = await db.query('SELECT user_id FROM volunteers WHERE id = ?', [id]);
+    if (vol) {
+        const isActive = status === 'approved' ? 1 : (status === 'pending' || status === 'rejected' ? 0 : 1);
+        // Note: For pending, we might still want them to login but see "Pending" dashboard, so is_active=1 might be better.
+        // Let's keep is_active = 1 unless rejected.
+        await db.query('UPDATE users SET is_active = ? WHERE id = ?', [status === 'rejected' ? 0 : 1, vol.user_id]);
+    }
+};
+
+const assignVolunteerToEvent = async (volunteerId, eventId) => {
+    // Need user_id for event_registrations
+    const [[vol]] = await db.query('SELECT user_id FROM volunteers WHERE id = ?', [volunteerId]);
+    if (!vol) throw new Error('Volunteer not found');
+
+    // Check if already registered
+    const [[existing]] = await db.query('SELECT * FROM event_registrations WHERE event_id = ? AND user_id = ?', [eventId, vol.user_id]);
+    if (existing) throw new Error('Volunteer is already assigned to this event');
+
+    await db.query(
+        'INSERT INTO event_registrations (event_id, user_id, role, attendance_status) VALUES (?, ?, ?, ?)',
+        [eventId, vol.user_id, 'volunteer', 'pending']
+    );
+};
+
+// ──────────────────────────────────────────────────────────────────
 // BENEFICIARIES
 // ──────────────────────────────────────────────────────────────────
 const getBeneficiaryRequests = async (search) => {
@@ -302,6 +344,7 @@ module.exports = {
     getCampaigns, editCampaign, deleteCampaign, updateCampaignStatus,
     getUsers, updateUserStatus,
     getNGOs, updateNGOStatus,
+    getVolunteers, updateVolunteerStatus, assignVolunteerToEvent,
     getBeneficiaryRequests, updateBeneficiaryStatus,
     generateCampaignReport, generateDonationReport, generateUserReport,
 };

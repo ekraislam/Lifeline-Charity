@@ -7,18 +7,18 @@ import { AuthContext } from '../../context/AuthContext';
 const VolunteerDashboard = () => {
     const { user } = useContext(AuthContext);
     const [stats, setStats] = useState(null);
-    const [tasks, setTasks] = useState([]);
+    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [statsRes, tasksRes] = await Promise.all([
+                const [statsRes, eventsRes] = await Promise.all([
                     api.get('/volunteers/stats'),
-                    api.get('/volunteers/tasks')
+                    api.get('/volunteers/events')
                 ]);
                 setStats(statsRes.data);
-                setTasks(tasksRes.data.tasks || []);
+                setEvents(eventsRes.data.events || []);
             } catch (error) {
                 console.error("Error fetching volunteer dashboard data", error);
             } finally {
@@ -27,34 +27,6 @@ const VolunteerDashboard = () => {
         };
         fetchDashboardData();
     }, []);
-
-    const handleTaskSignup = async (taskId) => {
-        try {
-            await api.post('/volunteers/tasks', { task_id: taskId });
-            alert('Successfully signed up for task!');
-            // Refresh tasks
-            const res = await api.get('/volunteers/tasks');
-            setTasks(res.data.tasks || []);
-        } catch (error) {
-            alert(error.response?.data?.message || 'Failed to sign up for task');
-        }
-    };
-
-    const handleAttendance = async (taskId) => {
-        try {
-            await api.post(`/volunteers/tasks/${taskId}/attendance`, { status: 'present', hours: 2 });
-            alert('Attendance marked!');
-            // Refresh
-            const [statsRes, tasksRes] = await Promise.all([
-                api.get('/volunteers/stats'),
-                api.get('/volunteers/tasks')
-            ]);
-            setStats(statsRes.data);
-            setTasks(tasksRes.data.tasks || []);
-        } catch (error) {
-            alert(error.response?.data?.message || 'Failed to mark attendance');
-        }
-    };
 
     const downloadCertificate = () => {
         const doc = new jsPDF({
@@ -109,8 +81,8 @@ const VolunteerDashboard = () => {
                 </div>
                 <div className="bg-white overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Tasks Completed</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{stats?.tasks_completed || 0}</dd>
+                        <dt className="text-sm font-medium text-gray-500 truncate">Events Assigned</dt>
+                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{stats?.events_assigned || 0}</dd>
                     </div>
                 </div>
                 <div className="bg-white overflow-hidden shadow rounded-lg flex items-center justify-center p-6">
@@ -123,36 +95,33 @@ const VolunteerDashboard = () => {
                 </div>
             </div>
 
-            {/* Available Tasks */}
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Available Tasks</h2>
+            {/* Assigned Events */}
+            <h2 className="text-xl font-bold text-gray-900 mb-4">My Assigned Events</h2>
             <div className="bg-white shadow overflow-hidden sm:rounded-md mb-8">
-                {tasks.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">No tasks available at the moment.</div>
+                {events.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 bg-gray-50">
+                        <div className="text-4xl mb-3">📅</div>
+                        You have not been assigned to any events yet.
+                    </div>
                 ) : (
                     <ul className="divide-y divide-gray-200">
-                        {tasks.map((task) => (
-                            <li key={task.id}>
-                                <div className="px-4 py-4 flex items-center sm:px-6 justify-between">
+                        {events.map((ev) => (
+                            <li key={ev.registration_id}>
+                                <div className="px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:px-6 justify-between gap-4">
                                     <div>
-                                        <p className="text-sm font-medium text-primary-600 truncate">{task.title}</p>
-                                        <p className="mt-1 flex items-center text-sm text-gray-500">
-                                            {task.description}
+                                        <p className="text-lg font-bold text-primary-700">{ev.title}</p>
+                                        <p className="mt-1 text-sm text-gray-600">
+                                            {ev.description}
                                         </p>
-                                        <p className="mt-1 text-xs text-gray-400">Campaign ID: {task.campaign_id}</p>
+                                        <div className="mt-2 flex items-center text-xs text-gray-500 gap-4">
+                                            <span>📍 {ev.location}</span>
+                                            <span>🕒 {new Date(ev.event_date).toLocaleString()}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => handleTaskSignup(task.id)}
-                                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-primary-700 bg-primary-100 hover:bg-primary-200 focus:outline-none"
-                                        >
-                                            Sign Up
-                                        </button>
-                                        <button
-                                            onClick={() => handleAttendance(task.id)}
-                                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none"
-                                        >
-                                            Mark Present
-                                        </button>
+                                    <div>
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold capitalize ${ev.attendance_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                                            Status: {ev.attendance_status}
+                                        </span>
                                     </div>
                                 </div>
                             </li>

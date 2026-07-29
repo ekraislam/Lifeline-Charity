@@ -10,7 +10,36 @@ const HelpRequest = () => {
     const [status, setStatus] = useState({ type: '', message: '' });
     const [files, setFiles] = useState(null);
 
+    const handleFileChange = (e) => {
+        const selectedFiles = e.target.files;
+        if (!selectedFiles || selectedFiles.length === 0) return;
+
+        if (selectedFiles.length > 5) {
+            setStatus({ type: 'error', message: 'You can only select up to 5 images.' });
+            e.target.value = '';
+            setFiles(null);
+            return;
+        }
+
+        // Validate image type only
+        for (let i = 0; i < selectedFiles.length; i++) {
+            if (!selectedFiles[i].type.startsWith('image/')) {
+                setStatus({ type: 'error', message: 'Only image files are allowed.' });
+                e.target.value = '';
+                setFiles(null);
+                return;
+            }
+        }
+
+        setStatus({ type: '', message: '' });
+        setFiles(selectedFiles);
+    };
+
     const onSubmit = async (data) => {
+        if (files && files.length > 5) {
+            setStatus({ type: 'error', message: 'You can only upload a maximum of 5 images.' });
+            return;
+        }
         setLoading(true);
         setStatus({ type: '', message: '' });
         try {
@@ -93,12 +122,12 @@ const HelpRequest = () => {
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Upload Documents</label>
-                    <p className="text-xs text-gray-400 mb-1">ID card, Medical reports, Prescriptions, etc. (Max 5)</p>
+                    <p className="text-xs text-gray-400 mb-1">Upload images of ID card, Medical reports, etc. (Max 5 images)</p>
                     <input 
                         type="file" 
                         multiple 
-                        accept="image/*,.pdf"
-                        onChange={(e) => setFiles(e.target.files)}
+                        accept="image/*"
+                        onChange={handleFileChange}
                         className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                     />
                 </div>

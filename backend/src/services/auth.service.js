@@ -27,7 +27,8 @@ const createUser = async (userData) => {
                 [userId, org_name, registration_number]
             );
         } else if (role === 'volunteer') {
-            await connection.query('INSERT INTO volunteers (user_id) VALUES (?)', [userId]);
+            const { skills, availability } = userData;
+            await connection.query('INSERT INTO volunteers (user_id, skills, availability, status) VALUES (?, ?, ?, ?)', [userId, skills || null, availability || null, 'pending']);
         } else if (role === 'beneficiary') {
             await connection.query('INSERT INTO beneficiaries (user_id) VALUES (?)', [userId]);
         }

@@ -35,6 +35,9 @@ const Register = () => {
             if (data.role === 'ngo') {
                 payload.org_name = data.org_name;
                 payload.registration_number = data.registration_number;
+            } else if (data.role === 'volunteer') {
+                payload.skills = data.skills;
+                payload.availability = data.availability;
             }
             await api.post('/auth/register', payload);
             navigate('/login', { state: { message: 'Registration successful! Please login.' } });
@@ -116,6 +119,29 @@ const Register = () => {
                                         placeholder="Registration Number"
                                     />
                                     {errors.registration_number && <span className="text-xs text-red-500">{errors.registration_number.message}</span>}
+                                </div>
+                            </>
+                        )}
+
+                        {selectedRole === 'volunteer' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Skills</label>
+                                    <input
+                                        type="text"
+                                        {...register('skills')}
+                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                        placeholder="E.g., Medical, Teaching, Driving"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Availability</label>
+                                    <input
+                                        type="text"
+                                        {...register('availability')}
+                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                        placeholder="E.g., Weekends, Full-time"
+                                    />
                                 </div>
                             </>
                         )}

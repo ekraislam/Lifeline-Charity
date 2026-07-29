@@ -20,7 +20,36 @@ const CreateCampaign = () => {
     const [status, setStatus] = useState({ type: '', message: '' });
     const [files, setFiles] = useState(null);
 
+    const handleFileChange = (e) => {
+        const selectedFiles = e.target.files;
+        if (!selectedFiles || selectedFiles.length === 0) return;
+
+        if (selectedFiles.length > 5) {
+            setStatus({ type: 'error', message: 'You can only select up to 5 images.' });
+            e.target.value = '';
+            setFiles(null);
+            return;
+        }
+
+        // Validate image type only
+        for (let i = 0; i < selectedFiles.length; i++) {
+            if (!selectedFiles[i].type.startsWith('image/')) {
+                setStatus({ type: 'error', message: 'Only image files are allowed.' });
+                e.target.value = '';
+                setFiles(null);
+                return;
+            }
+        }
+
+        setStatus({ type: '', message: '' });
+        setFiles(selectedFiles);
+    };
+
     const onSubmit = async (data) => {
+        if (files && files.length > 5) {
+            setStatus({ type: 'error', message: 'You can only upload a maximum of 5 images.' });
+            return;
+        }
         setLoading(true);
         setStatus({ type: '', message: '' });
         try {
@@ -118,7 +147,7 @@ const CreateCampaign = () => {
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Gallery Images (Max 5)</label>
-                    <input type="file" multiple accept="image/*" onChange={(e) => setFiles(e.target.files)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                    <input type="file" multiple accept="image/*" onChange={handleFileChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
                 </div>
 
                 <div className="pt-4 border-t border-gray-200 flex gap-3">

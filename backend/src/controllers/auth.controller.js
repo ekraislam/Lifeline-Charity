@@ -52,6 +52,20 @@ const login = async (req, res) => {
             }
         }
 
+        // Check Volunteer approval status
+        if (user.role === 'volunteer') {
+            const db = require('../config/db');
+            const [[volProfile]] = await db.query('SELECT status FROM volunteers WHERE user_id = ?', [user.id]);
+            if (volProfile) {
+                if (volProfile.status === 'pending') {
+                    return res.status(403).json({ message: 'Your volunteer application is pending admin approval.' });
+                }
+                if (volProfile.status === 'rejected') {
+                    return res.status(403).json({ message: 'Your volunteer application has been rejected by admin.' });
+                }
+            }
+        }
+
         const tokens = generateTokens(user);
         const { password: _, ...userData } = user;
         res.json({ message: 'Login successful', user: userData, ...tokens });

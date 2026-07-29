@@ -42,10 +42,38 @@ const issueCertificate = async (volunteerId) => {
     return url;
 };
 
+const getStats = async (userId) => {
+    // Basic stats: hours logged, events assigned
+    const [[vol]] = await db.query('SELECT id FROM volunteers WHERE user_id = ?', [userId]);
+    if (!vol) return { total_hours: 0, events_assigned: 0 };
+
+    const [[hoursRow]] = await db.query('SELECT SUM(hours_logged) as total FROM volunteer_assignments WHERE volunteer_id = ?', [vol.id]);
+    const [[eventsRow]] = await db.query('SELECT COUNT(*) as total FROM event_registrations WHERE user_id = ? AND role = "volunteer"', [userId]);
+    
+    return {
+        total_hours: hoursRow?.total || 0,
+        events_assigned: eventsRow?.total || 0,
+        tasks_completed: eventsRow?.total || 0 // Mock tasks completed for UI compatibility
+    };
+};
+
+const getEvents = async (userId) => {
+    const [rows] = await db.query(`
+        SELECT er.id as registration_id, er.attendance_status, e.id as event_id, e.title, e.description, e.location, e.event_date
+        FROM event_registrations er
+        JOIN events e ON er.event_id = e.id
+        WHERE er.user_id = ? AND er.role = 'volunteer'
+        ORDER BY e.event_date DESC
+    `, [userId]);
+    return rows;
+};
+
 module.exports = {
     updateProfile,
     createTask,
     assignTask,
     logHours,
-    issueCertificate
+    issueCertificate,
+    getStats,
+    getEvents
 };

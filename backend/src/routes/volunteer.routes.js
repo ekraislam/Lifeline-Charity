@@ -9,6 +9,8 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Volunteer specific routes
+router.get('/stats', roleMiddleware(['volunteer']), volunteerController.getStats);
+router.get('/events', roleMiddleware(['volunteer']), volunteerController.getEvents);
 router.put('/profile', roleMiddleware(['volunteer']), validate(updateProfileSchema), volunteerController.updateProfile);
 router.post('/log-hours', roleMiddleware(['volunteer']), validate(logHoursSchema), volunteerController.logHours);
 
