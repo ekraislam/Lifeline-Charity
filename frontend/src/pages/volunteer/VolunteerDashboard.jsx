@@ -76,7 +76,7 @@ const VolunteerDashboard = () => {
         
         doc.setFontSize(30);
         doc.setFont("helvetica", "bold");
-        doc.text(user?.username || "Volunteer", 148, 100, { align: 'center' });
+        doc.text(user?.name || "Volunteer", 148, 100, { align: 'center' });
         
         doc.setFontSize(16);
         doc.setFont("helvetica", "normal");
@@ -90,7 +90,7 @@ const VolunteerDashboard = () => {
         doc.setFontSize(14);
         doc.text("Lifeline Foundation", 148, 180, { align: 'center' });
 
-        doc.save(`Lifeline_Certificate_${user?.username}.pdf`);
+        doc.save(`Lifeline_Certificate_${user?.name || 'Volunteer'}.pdf`);
     };
 
     if (loading) return <div className="p-12 text-center">Loading dashboard...</div>;

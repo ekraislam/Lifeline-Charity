@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 import api from '../../api/axios';
 
 const Register = () => {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
+    const { user } = React.useContext(AuthContext);
     const navigate = useNavigate();
     const [apiError, setApiError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    React.useEffect(() => {
+        if (user) {
+            navigate('/dashboard');
+        }
+    }, [user, navigate]);
+
     const password = watch("password");
+    const selectedRole = watch("role");
 
     const onSubmit = async (data) => {
         setLoading(true);
@@ -17,11 +26,16 @@ const Register = () => {
         try {
             // Adjust payload structure based on API
             const payload = {
-                username: data.username,
+                name: data.username,
                 email: data.email,
                 password: data.password,
                 role: data.role
             };
+
+            if (data.role === 'ngo') {
+                payload.org_name = data.org_name;
+                payload.registration_number = data.registration_number;
+            }
             await api.post('/auth/register', payload);
             navigate('/login', { state: { message: 'Registration successful! Please login.' } });
         } catch (error) {
@@ -80,6 +94,31 @@ const Register = () => {
                             </select>
                             {errors.role && <span className="text-xs text-red-500">{errors.role.message}</span>}
                         </div>
+
+                        {selectedRole === 'ngo' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Organization Name</label>
+                                    <input
+                                        type="text"
+                                        {...register('org_name', { required: 'Organization Name is required for NGOs' })}
+                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                        placeholder="Organization Name"
+                                    />
+                                    {errors.org_name && <span className="text-xs text-red-500">{errors.org_name.message}</span>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Registration Number</label>
+                                    <input
+                                        type="text"
+                                        {...register('registration_number', { required: 'Registration Number is required for NGOs' })}
+                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                        placeholder="Registration Number"
+                                    />
+                                    {errors.registration_number && <span className="text-xs text-red-500">{errors.registration_number.message}</span>}
+                                </div>
+                            </>
+                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Password</label>

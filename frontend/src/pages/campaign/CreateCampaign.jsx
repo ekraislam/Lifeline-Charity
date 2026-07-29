@@ -19,8 +19,8 @@ const CreateCampaign = () => {
                 title: data.title,
                 description: data.description,
                 category_id: data.category_id,
-                target_amount: data.target_amount,
-                end_date: data.end_date
+                goal_amount: data.target_amount,
+                deadline: data.end_date
             });
             
             const campaignId = response.data.campaignId;

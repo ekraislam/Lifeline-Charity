@@ -9,7 +9,9 @@ const app = express();
 const server = http.createServer(app);
 
 // Security Middlewares
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 app.use(cors());
 
 const limiter = rateLimit({

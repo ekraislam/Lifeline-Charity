@@ -35,7 +35,8 @@ const login = async (req, res) => {
         }
 
         const tokens = generateTokens(user);
-        res.json({ message: 'Login successful', ...tokens });
+        const { password: _, ...userData } = user;
+        res.json({ message: 'Login successful', user: userData, ...tokens });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });

@@ -6,10 +6,16 @@ import api from '../../api/axios';
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
-    const { login } = useContext(AuthContext);
+    const { login, user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [apiError, setApiError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    React.useEffect(() => {
+        if (user) {
+            navigate('/dashboard');
+        }
+    }, [user, navigate]);
 
     const onSubmit = async (data) => {
         setLoading(true);

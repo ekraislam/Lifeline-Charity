@@ -1,8 +1,15 @@
 const db = require('../config/db');
 
 const getCampaigns = async () => {
-    const [rows] = await db.query('SELECT *, (raised_amount / goal_amount) * 100 AS progress FROM campaigns');
-    return rows;
+    const [rows] = await db.query(`
+        SELECT c.*, (c.raised_amount / c.goal_amount) * 100 AS progress,
+        (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image
+        FROM campaigns c
+    `);
+    return rows.map(row => ({
+        ...row,
+        gallery: row.cover_image ? [row.cover_image] : []
+    }));
 };
 
 const getCampaignById = async (id) => {
@@ -10,7 +17,7 @@ const getCampaignById = async (id) => {
     const campaign = rows[0];
     if (campaign) {
         const [gallery] = await db.query('SELECT image_url FROM campaign_gallery WHERE campaign_id = ?', [id]);
-        campaign.gallery = gallery;
+        campaign.gallery = gallery.map(g => g.image_url);
     }
     return campaign;
 };

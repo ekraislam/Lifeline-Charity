@@ -57,7 +57,7 @@ const MainLayout = ({ children }) => {
                                             <img src={`http://localhost:5000${user.profile_picture}`} alt="" className="h-8 w-8 rounded-full object-cover border border-gray-200" />
                                         ) : (
                                             <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
-                                                {user.username.charAt(0).toUpperCase()}
+                                                {(user.name || 'U').charAt(0).toUpperCase()}
                                             </div>
                                         )}
                                         <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700 text-sm font-medium">Logout</button>
