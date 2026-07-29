@@ -12,7 +12,20 @@ const server = http.createServer(app);
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
-app.use(cors());
+
+const allowedOrigins = [
+  process.env.CORS_ORIGIN_1,
+  process.env.CORS_ORIGIN_2,
+  process.env.CORS_ORIGIN_3
+].filter(Boolean);
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+// Trust proxy for rate limiting behind Cloudflare/Nginx
+app.set('trust proxy', 1);
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

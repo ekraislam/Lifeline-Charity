@@ -5,7 +5,12 @@ let io;
 const initSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: '*',
+            origin: [
+                process.env.CORS_ORIGIN_1,
+                process.env.CORS_ORIGIN_2,
+                process.env.CORS_ORIGIN_3
+            ].filter(Boolean),
+            credentials: true
         }
     });
 

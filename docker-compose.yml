@@ -18,7 +18,7 @@ services:
     networks:
       - lifeline-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,7 +30,7 @@ services:
     container_name: lifeline_backend
     restart: always
     env_file:
-      - ./backend/.env
+      - ./backend/.env.example
     environment:
       - DB_HOST=db
       # Override DB variables to match the container setup

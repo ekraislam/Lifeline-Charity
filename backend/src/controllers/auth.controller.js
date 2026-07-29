@@ -12,7 +12,8 @@ const register = async (req, res) => {
         const userId = await authService.createUser(req.body);
         
         // Mock email verification
-        const verificationLink = `http://localhost:5000/api/auth/verify?email=${req.body.email}`;
+        const frontendUrl = process.env.CORS_ORIGIN_1 || 'http://localhost:5173';
+        const verificationLink = `${frontendUrl}/verify?email=${req.body.email}`;
         await sendEmail(req.body.email, 'Verify your Lifeline Account', `<p>Click here to verify: <a href="${verificationLink}">Verify</a></p>`);
 
         res.status(201).json({ message: 'User registered successfully. Please verify your email.', userId });
@@ -83,7 +84,8 @@ const forgotPassword = async (req, res) => {
         }
 
         const resetToken = authService.generateResetToken(user.email);
-        const resetLink = `http://localhost:5000/reset-password?token=${resetToken}`;
+        const frontendUrl = process.env.CORS_ORIGIN_1 || 'http://localhost:5173';
+        const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
         
         await sendEmail(user.email, 'Lifeline - Password Reset', `<p>Click here to reset: <a href="${resetLink}">Reset Password</a></p>`);
 

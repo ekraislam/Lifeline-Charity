@@ -5,9 +5,11 @@ const donate = async (req, res) => {
     try {
         const userId = req.user ? req.user.id : null; // allow anonymous
         const donationId = await donationService.createDonation(userId, req.body);
-        
+
         // Mock payment process
-        const returnUrl = `http://localhost:5000/api/donations/payment-callback`;
+        const backendUrl = process.env.API_URL || 'http://localhost:5000';
+        console.log(process.env.API_URL)
+        const returnUrl = `${backendUrl}/api/donations/payment-callback`;
         const paymentData = await paymentGateway.processPayment(req.body.amount, 'USD', donationId, returnUrl);
 
         res.json({ message: 'Donation initiated', payment_url: paymentData.payment_url });
