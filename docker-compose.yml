@@ -40,7 +40,7 @@ services:
     volumes:
       - backend_uploads:/app/uploads
     ports:
-      - "5000:5000"
+      - "5010:5000"
     networks:
       - lifeline-network
     depends_on:
@@ -54,7 +54,7 @@ services:
     container_name: lifeline_frontend
     restart: always
     ports:
-      - "80:80"
+      - "8040:80"
     networks:
       - lifeline-network
     depends_on:

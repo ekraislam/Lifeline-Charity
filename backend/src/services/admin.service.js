@@ -16,7 +16,7 @@ const getSystemStats = async () => {
     const [[donationRow]] = await db.query('SELECT SUM(amount) as total FROM donations WHERE status = "success"');
     stats.total_donations = donationRow.total || 0;
 
-    const [[volunteerRow]] = await db.query("SELECT COUNT(*) as count FROM volunteers WHERE status = 'active'");
+    const [[volunteerRow]] = await db.query("SELECT COUNT(*) as count FROM volunteers WHERE status = 'approved'");
     stats.total_volunteers = volunteerRow.count;
 
     const [[ngoRow]] = await db.query('SELECT COUNT(*) as count FROM ngo_profiles');

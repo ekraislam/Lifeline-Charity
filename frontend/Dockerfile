@@ -1,5 +1,5 @@
 # Stage 1: Build the React application
-FROM node:18 as build
+FROM node:22-slim as build
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN rm -f package-lock.json && npm install --legacy-peer-deps
 
 # Copy application code
 COPY . .

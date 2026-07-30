@@ -1,12 +1,12 @@
 # Stage 1: Build (install all dependencies)
-FROM node:18-alpine AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
 
 # Stage 2: Production (keep it lightweight)
-FROM node:18-alpine
+FROM node:22-slim
 WORKDIR /app
 
 # Only install production dependencies
