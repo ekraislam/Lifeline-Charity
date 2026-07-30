@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api, { getMediaUrl } from '../../api/axios?v=1';
 
 const STATUS_COLORS = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -145,8 +145,8 @@ const AdminManageNGOs = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {(typeof viewDocsNgo.documents === 'string' ? JSON.parse(viewDocsNgo.documents) : viewDocsNgo.documents).map((doc, idx) => (
                                         <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                                            <a href={`http://localhost:5000${doc}`} target="_blank" rel="noopener noreferrer">
-                                                <img src={`http://localhost:5000${doc}`} alt={`Document ${idx+1}`} className="w-full h-auto object-contain hover:opacity-90 transition-opacity bg-gray-50 dark:bg-gray-900" />
+                                            <a href={getMediaUrl(doc)} target="_blank" rel="noopener noreferrer">
+                                                <img src={getMediaUrl(doc)} alt={`Document ${idx+1}`} className="w-full h-auto object-contain hover:opacity-90 transition-opacity bg-gray-50 dark:bg-gray-900" />
                                             </a>
                                         </div>
                                     ))}
