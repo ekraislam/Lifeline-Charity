@@ -51,7 +51,7 @@ const getEvents = async (filters = {}) => {
     return processedRows;
 };
 
-const getEventById = async (id) => {
+const getEventById = async (id, userId = null, userRole = null) => {
     const [rows] = await db.query(`
         SELECT e.*, c.name as category_name, u.name as organizer_name,
         CASE 
@@ -69,6 +69,14 @@ const getEventById = async (id) => {
     
     if (rows[0]) {
         rows[0].status = rows[0].computed_status;
+        
+        if (userId && userRole === 'volunteer') {
+            const [[reg]] = await db.query(`SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ? AND role = 'volunteer'`, [id, userId]);
+            rows[0].isRegistered = !!reg;
+            
+            const [[vol]] = await db.query(`SELECT status FROM volunteers WHERE user_id = ?`, [userId]);
+            rows[0].isRestricted = vol?.status === 'restricted';
+        }
     }
     return rows[0];
 };
@@ -200,7 +208,7 @@ const updateVolunteerApplicationStatus = async (eventId, userId, status, updater
         throw new Error('Unauthorized to update volunteer status for this event');
     }
 
-    if (!['pending', 'approved', 'rejected', 'attended', 'absent'].includes(status)) {
+    if (!['pending', 'attended', 'absent'].includes(status)) {
         throw new Error('Invalid status');
     }
 

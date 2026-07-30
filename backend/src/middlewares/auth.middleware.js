@@ -25,4 +25,18 @@ const roleMiddleware = (roles) => {
     };
 };
 
-module.exports = { authMiddleware, roleMiddleware };
+const optionalAuthMiddleware = (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyAccessToken(token);
+            req.user = decoded;
+        }
+    } catch (error) {
+        // Ignore errors, just don't set req.user
+    }
+    next();
+};
+
+module.exports = { authMiddleware, roleMiddleware, optionalAuthMiddleware };

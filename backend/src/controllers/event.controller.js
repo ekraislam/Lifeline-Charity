@@ -18,7 +18,7 @@ const getEvents = async (req, res) => {
 
 const getEventById = async (req, res) => {
     try {
-        const event = await eventService.getEventById(req.params.id);
+        const event = await eventService.getEventById(req.params.id, req.user?.id, req.user?.role);
         if (!event) return res.status(404).json({ message: 'Event not found' });
         res.json(event);
     } catch (error) {

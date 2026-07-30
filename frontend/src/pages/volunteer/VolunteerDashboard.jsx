@@ -174,13 +174,20 @@ const VolunteerDashboard = () => {
                         <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{stats?.events_assigned || 0}</dd>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg flex items-center justify-center p-6">
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg flex flex-col items-center justify-center p-6 text-center">
                     <button
                         onClick={downloadCertificate}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                        disabled={stats?.total_hours < 15 || stats?.participated_events < 5}
+                        title={stats?.total_hours < 15 || stats?.participated_events < 5 ? "You need at least 15 total hours and 5 participated events to download the certificate." : ""}
+                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Download Certificate
                     </button>
+                    {(stats?.total_hours < 15 || stats?.participated_events < 5) && (
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            Requires 15 hours & 5 events
+                        </p>
+                    )}
                 </div>
             </div>
 

@@ -29,7 +29,7 @@ const updateCampaignStatus = async (req, res) => {
 
 // ── Users ──────────────────────────────────────────────────────────
 const getUsers = async (req, res) => {
-    try { res.json(await adminService.getUsers()); }
+    try { res.json(await adminService.getUsers(req.user.id)); }
     catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
 
@@ -63,13 +63,6 @@ const updateVolunteerStatus = async (req, res) => {
     try {
         await adminService.updateVolunteerStatus(req.params.id, req.body.status);
         res.json({ message: 'Volunteer status updated' });
-    } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
-};
-
-const assignVolunteerToEvent = async (req, res) => {
-    try {
-        await adminService.assignVolunteerToEvent(req.params.id, req.body.eventId);
-        res.json({ message: 'Volunteer assigned to event' });
     } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
 
@@ -131,7 +124,7 @@ module.exports = {
     getCampaigns, editCampaign, deleteCampaign, updateCampaignStatus,
     getUsers, updateUserStatus,
     getNGOs, updateNGOStatus,
-    getVolunteers, updateVolunteerStatus, assignVolunteerToEvent,
+    getVolunteers, updateVolunteerStatus,
     getBeneficiaryRequests, getBeneficiaryById, updateBeneficiaryStatus,
     exportCampaigns, exportDonations, exportUsers,
 };

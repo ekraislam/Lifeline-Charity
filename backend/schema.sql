@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS volunteers (
     user_id INT NOT NULL,
     skills TEXT,
     availability TEXT,
-    status ENUM('pending', 'approved', 'rejected', 'inactive') DEFAULT 'pending',
+    status ENUM('pending', 'approved', 'rejected', 'inactive', 'restricted') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

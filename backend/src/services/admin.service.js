@@ -91,8 +91,8 @@ const updateCampaignStatus = async (id, status) => {
 // ──────────────────────────────────────────────────────────────────
 // USERS
 // ──────────────────────────────────────────────────────────────────
-const getUsers = async () => {
-    const [rows] = await db.query('SELECT id, name, email, role, is_active, created_at FROM users ORDER BY created_at DESC');
+const getUsers = async (currentUserId) => {
+    const [rows] = await db.query('SELECT id, name, email, role, is_active, created_at FROM users WHERE id != ? ORDER BY created_at DESC', [currentUserId]);
     return rows;
 };
 
@@ -150,20 +150,6 @@ const updateVolunteerStatus = async (id, status) => {
     }
 };
 
-const assignVolunteerToEvent = async (volunteerId, eventId) => {
-    // Need user_id for event_registrations
-    const [[vol]] = await db.query('SELECT user_id FROM volunteers WHERE id = ?', [volunteerId]);
-    if (!vol) throw new Error('Volunteer not found');
-
-    // Check if already registered
-    const [[existing]] = await db.query('SELECT * FROM event_registrations WHERE event_id = ? AND user_id = ?', [eventId, vol.user_id]);
-    if (existing) throw new Error('Volunteer is already assigned to this event');
-
-    await db.query(
-        'INSERT INTO event_registrations (event_id, user_id, role, attendance_status) VALUES (?, ?, ?, ?)',
-        [eventId, vol.user_id, 'volunteer', 'pending']
-    );
-};
 
 // ──────────────────────────────────────────────────────────────────
 // BENEFICIARIES
@@ -349,7 +335,7 @@ module.exports = {
     getCampaigns, editCampaign, deleteCampaign, updateCampaignStatus,
     getUsers, updateUserStatus,
     getNGOs, updateNGOStatus,
-    getVolunteers, updateVolunteerStatus, assignVolunteerToEvent,
+    getVolunteers, updateVolunteerStatus,
     getBeneficiaryRequests, updateBeneficiaryStatus,
     generateCampaignReport, generateDonationReport, generateUserReport,
 };

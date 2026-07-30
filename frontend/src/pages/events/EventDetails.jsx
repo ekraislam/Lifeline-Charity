@@ -58,7 +58,7 @@ const EventDetails = () => {
 
     const isPastDeadline = event.registration_deadline && new Date() > new Date(event.registration_deadline);
     const isFull = event.max_volunteers > 0 && event.registered_volunteers >= event.max_volunteers;
-    const canRegister = event.status === 'upcoming' && !isPastDeadline && !isFull;
+    const canRegister = event.status === 'upcoming' && !isPastDeadline && !isFull && !event.isRegistered && !event.isRestricted;
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -150,7 +150,15 @@ const EventDetails = () => {
                             )}
 
                             <div className="pt-6">
-                                {canRegister ? (
+                                {event.isRestricted ? (
+                                    <div className="p-4 bg-purple-50 text-purple-700 rounded-lg text-center font-medium">
+                                        Your account is restricted. You cannot apply for events.
+                                    </div>
+                                ) : event.isRegistered ? (
+                                    <div className="p-4 bg-blue-50 text-blue-700 rounded-lg text-center font-medium">
+                                        You have already registered for this event.
+                                    </div>
+                                ) : canRegister ? (
                                     <button
                                         onClick={handleRegister}
                                         disabled={registering}
@@ -159,14 +167,9 @@ const EventDetails = () => {
                                         {registering ? 'Registering...' : 'Register as Volunteer'}
                                     </button>
                                 ) : (
-                                    <button
-                                        disabled
-                                        className="w-full flex justify-center py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
-                                    >
-                                        {event.status !== 'upcoming' ? `Event is ${event.status}` : 
-                                         isPastDeadline ? 'Registration Closed' : 
-                                         isFull ? 'Event is Full' : 'Registration Unavailable'}
-                                    </button>
+                                    <div className="p-4 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-center font-medium">
+                                        {isPastDeadline ? 'Registration Closed' : isFull ? 'Event is Full' : 'Registration Unavailable'}
+                                    </div>
                                 )}
                                 {(!user || user.role !== 'volunteer') && canRegister && (
                                     <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">

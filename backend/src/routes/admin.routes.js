@@ -26,7 +26,6 @@ router.put('/ngos/:id/status', c.updateNGOStatus);
 // Volunteers
 router.get('/volunteers', c.getVolunteers);
 router.put('/volunteers/:id/status', c.updateVolunteerStatus);
-router.post('/volunteers/:id/assign', c.assignVolunteerToEvent);
 
 // Beneficiaries
 router.get('/beneficiaries', c.getBeneficiaryRequests);

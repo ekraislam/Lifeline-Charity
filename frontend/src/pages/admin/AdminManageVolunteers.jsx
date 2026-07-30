@@ -2,95 +2,16 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 
 const STATUS_COLORS = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    approved: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-800',
-    inactive: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100',
-};
-
-const AssignEventModal = ({ volunteer, onClose, onAssign }) => {
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedEvent, setSelectedEvent] = useState('');
-    const [assigning, setAssigning] = useState(false);
-
-    useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                // Assuming we have a public or admin endpoint to list upcoming events
-                const res = await api.get('/events');
-                setEvents(res.data.events || res.data || []);
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchEvents();
-    }, []);
-
-    const handleSubmit = async () => {
-        if (!selectedEvent) return;
-        setAssigning(true);
-        try {
-            await api.post(`/admin/volunteers/${volunteer.id}/assign`, { eventId: selectedEvent });
-            alert('Successfully assigned to event!');
-            onAssign();
-            onClose();
-        } catch (error) {
-            alert(error.response?.data?.message || 'Failed to assign volunteer');
-        } finally {
-            setAssigning(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Assign Volunteer to Event</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Assign <strong>{volunteer.user_name}</strong> to an upcoming event.</p>
-                
-                {loading ? (
-                    <div className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">Loading events...</div>
-                ) : events.length === 0 ? (
-                    <div className="py-4 text-center text-sm text-red-500">No events available.</div>
-                ) : (
-                    <select
-                        value={selectedEvent}
-                        onChange={(e) => setSelectedEvent(e.target.value)}
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none mb-6"
-                    >
-                        <option value="">-- Select an Event --</option>
-                        {events.filter(ev => {
-                            if (!volunteer.registered_events) return true;
-                            const registeredIds = volunteer.registered_events.split(',').map(id => parseInt(id, 10));
-                            return !registeredIds.includes(ev.id);
-                        }).map(ev => (
-                            <option key={ev.id} value={ev.id}>{ev.title} ({new Date(ev.event_date).toLocaleDateString()})</option>
-                        ))}
-                    </select>
-                )}
-
-                <div className="flex gap-3">
-                    <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:bg-gray-700 font-medium">Cancel</button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!selectedEvent || assigning}
-                        className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
-                    >
-                        {assigning ? 'Assigning...' : 'Assign'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500',
+    approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500',
+    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500',
+    restricted: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-500'
 };
 
 const AdminManageVolunteers = () => {
     const [volunteers, setVolunteers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
-    const [assignTarget, setAssignTarget] = useState(null);
     const [filterStatus, setFilterStatus] = useState('all');
 
     const fetchVolunteers = async () => {
@@ -119,19 +40,11 @@ const AdminManageVolunteers = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {assignTarget && (
-                <AssignEventModal
-                    volunteer={assignTarget}
-                    onClose={() => setAssignTarget(null)}
-                    onAssign={fetchVolunteers}
-                />
-            )}
-
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Volunteers</h1>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Approve applications and assign volunteers to events.
+                        Approve applications and manage volunteer accounts.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -145,6 +58,7 @@ const AdminManageVolunteers = () => {
                         <option value="pending">Pending</option>
                         <option value="approved">Approved</option>
                         <option value="rejected">Rejected</option>
+                        <option value="restricted">Restricted</option>
                     </select>
                 </div>
             </div>
@@ -197,8 +111,10 @@ const AdminManageVolunteers = () => {
                                                         <button onClick={() => handleStatus(v.id, 'rejected')} disabled={actionLoading} className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 font-medium">✗ Reject</button>
                                                     </>
                                                 )}
-                                                {v.status === 'approved' && (
-                                                    <button onClick={() => setAssignTarget(v)} className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 font-medium">📅 Assign Event</button>
+                                                {v.status !== 'restricted' ? (
+                                                    <button onClick={() => handleStatus(v.id, 'restricted')} disabled={actionLoading} className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 font-medium">🚫 Restrict</button>
+                                                ) : (
+                                                    <button onClick={() => handleStatus(v.id, 'approved')} disabled={actionLoading} className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 font-medium">✅ Unrestrict</button>
                                                 )}
                                             </div>
                                         </td>

@@ -34,7 +34,7 @@ const upload = multer({
 
 // Public Routes
 router.get('/', eventController.getEvents);
-router.get('/:id', eventController.getEventById);
+router.get('/:id', optionalAuthMiddleware, eventController.getEventById);
 
 // Volunteer Route
 router.post('/:id/register', authMiddleware, roleMiddleware(['volunteer']), eventController.registerVolunteer);
