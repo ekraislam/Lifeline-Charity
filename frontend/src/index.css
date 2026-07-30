@@ -16,7 +16,7 @@
   --color-secondary-600: #059669;
 }
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark, .dark *));
 
 @layer base {
   body {

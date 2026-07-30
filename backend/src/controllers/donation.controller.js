@@ -8,7 +8,6 @@ const donate = async (req, res) => {
 
         // Mock payment process
         const backendUrl = process.env.API_URL || 'http://localhost:5000';
-        console.log(process.env.API_URL)
         const returnUrl = `${backendUrl}/api/donations/payment-callback`;
         const paymentData = await paymentGateway.processPayment(req.body.amount, 'USD', donationId, returnUrl);
 
@@ -19,6 +18,9 @@ const donate = async (req, res) => {
             return res.status(404).json({ message: error.message });
         }
         if (error.message === 'Donations are only allowed for approved campaigns') {
+            return res.status(400).json({ message: error.message });
+        }
+        if (error.message === 'This campaign has already reached its goal amount') {
             return res.status(400).json({ message: error.message });
         }
         res.status(500).json({ message: 'Internal server error' });
