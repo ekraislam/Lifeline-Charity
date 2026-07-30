@@ -3,12 +3,11 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 
 const app = express();
 const server = http.createServer(app);
 
-// Security Middlewares
+// Security & CORS Middlewares
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
@@ -24,14 +23,8 @@ app.use(cors({
   credentials: true
 }));
 
-// Trust proxy for rate limiting behind Cloudflare/Nginx
+// Trust proxy behind Cloudflare/Nginx
 app.set('trust proxy', 1);
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
 
 // Body Parsers
 app.use(express.json());
@@ -77,10 +70,14 @@ app.get('/', (req, res) => {
   res.send('Lifeline API is running...');
 });
 
+// Auto-initialize database schema if missing
+const initDb = require('./src/config/initDb');
+
 // Start Server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  await initDb();
 });
 
 // Initialize Socket.io

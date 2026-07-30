@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../api/axios';
+import api, { getMediaUrl } from '../../api/axios?v=1';
 import { AuthContext } from '../../context/AuthContext';
 
 const EventDetails = () => {
@@ -58,7 +58,7 @@ const EventDetails = () => {
 
     const isPastDeadline = event.registration_deadline && new Date() > new Date(event.registration_deadline);
     const isFull = event.max_volunteers > 0 && event.registered_volunteers >= event.max_volunteers;
-    const canRegister = event.status === 'upcoming' && !isPastDeadline && !isFull && !event.isRegistered && !event.isRestricted;
+    const canRegister = event.status === 'upcoming' && !isPastDeadline && !isFull;
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -67,7 +67,7 @@ const EventDetails = () => {
                 <div className="w-full h-64 sm:h-96 bg-gray-200 dark:bg-gray-700 relative">
                     {event.cover_image ? (
                         <img 
-                            src={`${import.meta.env.VITE_API_URL}${event.cover_image}`} 
+                            src={getMediaUrl(event.cover_image)} 
                             alt={event.title} 
                             className="w-full h-full object-cover"
                         />
@@ -150,15 +150,7 @@ const EventDetails = () => {
                             )}
 
                             <div className="pt-6">
-                                {event.isRestricted ? (
-                                    <div className="p-4 bg-purple-50 text-purple-700 rounded-lg text-center font-medium">
-                                        Your account is restricted. You cannot apply for events.
-                                    </div>
-                                ) : event.isRegistered ? (
-                                    <div className="p-4 bg-blue-50 text-blue-700 rounded-lg text-center font-medium">
-                                        You have already registered for this event.
-                                    </div>
-                                ) : canRegister ? (
+                                {canRegister ? (
                                     <button
                                         onClick={handleRegister}
                                         disabled={registering}
@@ -167,9 +159,14 @@ const EventDetails = () => {
                                         {registering ? 'Registering...' : 'Register as Volunteer'}
                                     </button>
                                 ) : (
-                                    <div className="p-4 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-center font-medium">
-                                        {isPastDeadline ? 'Registration Closed' : isFull ? 'Event is Full' : 'Registration Unavailable'}
-                                    </div>
+                                    <button
+                                        disabled
+                                        className="w-full flex justify-center py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+                                    >
+                                        {event.status !== 'upcoming' ? `Event is ${event.status}` : 
+                                         isPastDeadline ? 'Registration Closed' : 
+                                         isFull ? 'Event is Full' : 'Registration Unavailable'}
+                                    </button>
                                 )}
                                 {(!user || user.role !== 'volunteer') && canRegister && (
                                     <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">

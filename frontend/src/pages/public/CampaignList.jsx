@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios';
+import api, { getMediaUrl } from '../../api/axios?v=1';
 
 const CampaignList = () => {
     const [campaigns, setCampaigns] = useState([]);
@@ -53,7 +53,7 @@ const CampaignList = () => {
                             {/* Assuming gallery returns first image or there's a placeholder */}
                             <div className="h-48 bg-gray-200 dark:bg-gray-700">
                                 {campaign.gallery && campaign.gallery[0] ? (
-                                    <img src={`${import.meta.env.VITE_API_URL}${campaign.gallery[0]}`} alt={campaign.title} className="w-full h-full object-cover" />
+                                    <img src={getMediaUrl(campaign.gallery[0])} alt={campaign.title} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                                 )}

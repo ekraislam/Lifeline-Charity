@@ -13,9 +13,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copy source code from builder
+# Copy source code and SQL scripts from builder
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/server.js ./
+COPY --from=builder /app/schema.sql ./
+COPY --from=builder /app/init-admin.sql ./
 
 # Create uploads directory (will be mounted as a volume)
 RUN mkdir -p uploads

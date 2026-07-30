@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios';
+import api, { getMediaUrl } from '../../api/axios?v=1';
 
 const EventsList = () => {
     const [events, setEvents] = useState([]);
@@ -75,7 +75,7 @@ const EventsList = () => {
                                 <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700">
                                     {event.cover_image ? (
                                         <img
-                                            src={`${import.meta.env.VITE_API_URL}${event.cover_image}`}
+                                            src={getMediaUrl(event.cover_image)}
                                             alt={event.title}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />

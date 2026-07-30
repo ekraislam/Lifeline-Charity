@@ -4,6 +4,9 @@ const { sendEmail } = require('../utils/email.util');
 
 const register = async (req, res) => {
     try {
+        if (req.body.email) req.body.email = req.body.email.trim().toLowerCase();
+        if (req.body.password) req.body.password = req.body.password.trim();
+
         const existingUser = await authService.findUserByEmail(req.body.email);
         if (existingUser) {
             return res.status(409).json({ message: 'Email already in use' });
@@ -16,7 +19,7 @@ const register = async (req, res) => {
         const userId = await authService.createUser(req.body);
         
         // Mock email verification
-        const frontendUrl = process.env.CORS_ORIGIN_1 || 'http://localhost:5173';
+        const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN_2 || process.env.CORS_ORIGIN_1 || 'http://localhost:5173';
         const verificationLink = `${frontendUrl}/verify?email=${req.body.email}`;
         await sendEmail(req.body.email, 'Verify your Lifeline Account', `<p>Click here to verify: <a href="${verificationLink}">Verify</a></p>`);
 
@@ -29,7 +32,10 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const user = await authService.findUserByEmail(req.body.email);
+        const email = req.body.email ? req.body.email.trim().toLowerCase() : '';
+        const password = req.body.password ? req.body.password.trim() : '';
+
+        const user = await authService.findUserByEmail(email);
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -38,7 +44,7 @@ const login = async (req, res) => {
             return res.status(403).json({ message: 'Your account has been blocked. Please contact support.' });
         }
 
-        const isMatch = await authService.comparePassword(req.body.password, user.password);
+        const isMatch = await authService.comparePassword(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -88,7 +94,7 @@ const forgotPassword = async (req, res) => {
         }
 
         const resetToken = authService.generateResetToken(user.email);
-        const frontendUrl = process.env.CORS_ORIGIN_1 || 'http://localhost:5173';
+        const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN_2 || process.env.CORS_ORIGIN_1 || 'http://localhost:5173';
         const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
         
         await sendEmail(user.email, 'Lifeline - Password Reset', `<p>Click here to reset: <a href="${resetLink}">Reset Password</a></p>`);

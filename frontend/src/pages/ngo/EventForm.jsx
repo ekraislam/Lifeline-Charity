@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import api from '../../api/axios';
+import api, { getMediaUrl } from '../../api/axios?v=1';
 import { AuthContext } from '../../context/AuthContext';
 
 const EventForm = () => {
@@ -71,7 +71,7 @@ const EventForm = () => {
                 reset(formData);
 
                 if (event.cover_image) {
-                    setPreviewImage(`${import.meta.env.VITE_API_URL}${event.cover_image}`);
+                    setPreviewImage(getMediaUrl(event.cover_image));
                 }
             }
         } catch (error) {

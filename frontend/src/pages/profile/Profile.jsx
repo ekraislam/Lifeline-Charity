@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AuthContext } from '../../context/AuthContext';
-import api from '../../api/axios';
+import api, { getMediaUrl } from '../../api/axios?v=1';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Profile = () => {
@@ -25,7 +25,7 @@ const Profile = () => {
                 setValue('email', response.data.email);
                 setValue('address', response.data.address);
                 setValue('phone', response.data.phone);
-                setPhotoPreview(response.data.avatar ? `${import.meta.env.VITE_API_URL}${response.data.avatar}` : null);
+                setPhotoPreview(response.data.avatar ? getMediaUrl(response.data.avatar) : null);
             } catch (error) {
                 console.error('Failed to load profile', error);
             } finally {

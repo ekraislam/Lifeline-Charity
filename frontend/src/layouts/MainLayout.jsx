@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
+import { getMediaUrl } from '../api/axios?v=1';
 import logo from '../assets/fogo.png';
 
 const MainLayout = ({ children }) => {
@@ -42,11 +43,10 @@ const MainLayout = ({ children }) => {
                                     <Link
                                         key={item.name}
                                         to={item.href}
-                                        className={`${
-                                            item.current
+                                        className={`${item.current
                                                 ? 'bg-primary-50 text-primary-700 font-semibold shadow-sm'
                                                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900 hover:text-gray-900 dark:text-white'
-                                        } px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out`}
+                                            } px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out`}
                                     >
                                         {item.name}
                                     </Link>
@@ -73,20 +73,20 @@ const MainLayout = ({ children }) => {
                                     </Link>
                                     <div className="flex items-center gap-3">
                                         <div className="relative">
-                                            <button 
+                                            <button
                                                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                                                 className="flex text-sm border-2 border-primary-200 rounded-full focus:outline-none focus:border-primary-500 transition-all duration-200 shadow-sm hover:shadow-md"
                                                 title={user.name}
                                             >
                                                 {user.avatar || user.profile_picture ? (
-                                                    <img src={`${import.meta.env.VITE_API_URL}${user.avatar || user.profile_picture}`} alt={user.name} className="h-9 w-9 rounded-full object-cover border-2 border-white dark:border-gray-800" />
+                                                    <img src={getMediaUrl(user.avatar || user.profile_picture)} alt={user.name} className="h-9 w-9 rounded-full object-cover border-2 border-white dark:border-gray-800" />
                                                 ) : (
                                                     <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-primary-700 font-bold border-2 border-white dark:border-gray-800">
                                                         {(user.name || 'U').charAt(0).toUpperCase()}
                                                     </div>
                                                 )}
                                             </button>
-                                            
+
                                             {/* Dropdown menu */}
                                             {profileDropdownOpen && (
                                                 <div className="origin-top-right absolute right-0 mt-3 w-56 rounded-xl shadow-xl bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50 overflow-hidden transition-all transform opacity-100 scale-100">
@@ -100,8 +100,8 @@ const MainLayout = ({ children }) => {
                                                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1" title={user.email}>{user.email}</p>
                                                     </div>
                                                     <div className="py-2">
-                                                        <Link 
-                                                            to="/profile" 
+                                                        <Link
+                                                            to="/profile"
                                                             onClick={() => setProfileDropdownOpen(false)}
                                                             className="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 hover:text-primary-700 transition-colors"
                                                         >
@@ -110,11 +110,11 @@ const MainLayout = ({ children }) => {
                                                             </svg>
                                                             Update Profile
                                                         </Link>
-                                                        <button 
+                                                        <button
                                                             onClick={() => {
                                                                 setProfileDropdownOpen(false);
                                                                 handleLogout();
-                                                            }} 
+                                                            }}
                                                             className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                                                         >
                                                             <svg className="mr-3 h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -176,11 +176,10 @@ const MainLayout = ({ children }) => {
                             <Link
                                 key={item.name}
                                 to={item.href}
-                                className={`${
-                                    item.current
+                                className={`${item.current
                                         ? 'bg-primary-50 text-primary-700 font-semibold'
                                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900 hover:text-gray-900 dark:text-white'
-                                } block px-3 py-2.5 rounded-lg text-base font-medium transition-colors`}
+                                    } block px-3 py-2.5 rounded-lg text-base font-medium transition-colors`}
                             >
                                 {item.name}
                             </Link>
@@ -192,7 +191,7 @@ const MainLayout = ({ children }) => {
                                 <div className="flex items-center px-2 py-2 mb-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
                                     <div className="flex-shrink-0">
                                         {user.avatar || user.profile_picture ? (
-                                            <img src={`${import.meta.env.VITE_API_URL}${user.avatar || user.profile_picture}`} alt={user.name} className="h-10 w-10 rounded-full object-cover border-2 border-white dark:border-gray-800 shadow-sm" />
+                                            <img src={getMediaUrl(user.avatar || user.profile_picture)} alt={user.name} className="h-10 w-10 rounded-full object-cover border-2 border-white dark:border-gray-800 shadow-sm" />
                                         ) : (
                                             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-primary-700 font-bold border-2 border-white dark:border-gray-800 shadow-sm">
                                                 {(user.name || 'U').charAt(0).toUpperCase()}

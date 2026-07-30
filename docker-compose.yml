@@ -6,10 +6,10 @@ services:
     container_name: lifeline_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-LifelineSecurePass2026!}
       MYSQL_DATABASE: lifeline_db
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
       - db_data:/var/lib/mysql
       # Initialization scripts mapped to initdb directory
@@ -35,8 +35,9 @@ services:
       - DB_HOST=db
       # Override DB variables to match the container setup
       - DB_USER=root
-      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - DB_PASSWORD=${DB_PASSWORD:-LifelineSecurePass2026!}
       - DB_NAME=lifeline_db
+      - API_URL=${API_URL:-https://backend-lifeline.smsakib.shop}
     volumes:
       - backend_uploads:/app/uploads
     ports:
@@ -51,6 +52,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://backend-lifeline.smsakib.shop}
     container_name: lifeline_frontend
     restart: always
     ports:

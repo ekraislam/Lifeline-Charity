@@ -6,8 +6,12 @@ const donate = async (req, res) => {
         const userId = req.user ? req.user.id : null; // allow anonymous
         const donationId = await donationService.createDonation(userId, req.body);
 
-        // Mock payment process
-        const backendUrl = process.env.API_URL || 'http://localhost:5000';
+        // Payment return URL generation
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const host = req.headers['x-forwarded-host'] || req.get('host');
+        const defaultBackend = `${protocol}://${host}`;
+        const rawBackendUrl = process.env.API_URL || defaultBackend;
+        const backendUrl = rawBackendUrl.replace(/\/+$/, '');
         const returnUrl = `${backendUrl}/api/donations/payment-callback`;
         const paymentData = await paymentGateway.processPayment(req.body.amount, 'USD', donationId, returnUrl);
 

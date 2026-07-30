@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../../api/axios';
+import api, { getMediaUrl } from '../../api/axios?v=1';
 
 const CampaignDetail = () => {
     const { id } = useParams();
@@ -66,7 +66,7 @@ const CampaignDetail = () => {
                 <div>
                     <div className="w-full h-96 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md">
                         {campaign.gallery && campaign.gallery[0] ? (
-                            <img src={`${import.meta.env.VITE_API_URL}${campaign.gallery[0]}`} alt={campaign.title} className="w-full h-full object-cover" />
+                            <img src={getMediaUrl(campaign.gallery[0])} alt={campaign.title} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">No Image Available</div>
                         )}
@@ -74,7 +74,7 @@ const CampaignDetail = () => {
                     {campaign.gallery && campaign.gallery.length > 1 && (
                         <div className="mt-4 grid grid-cols-4 gap-2">
                             {campaign.gallery.slice(1).map((img, idx) => (
-                                <img key={idx} src={`${import.meta.env.VITE_API_URL}${img}`} className="h-20 w-full object-cover rounded-md" alt={`Gallery ${idx}`} />
+                                <img key={idx} src={getMediaUrl(img)} className="h-20 w-full object-cover rounded-md" alt={`Gallery ${idx}`} />
                             ))}
                         </div>
                     )}
