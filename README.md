@@ -33,7 +33,7 @@ The easiest way to deploy and run the LifeLine platform is using Docker. The pro
 1.  **Clone the repository (if you haven't already):**
     ```bash
     git clone https://github.com/ekraislam/Lifeline-Charity
-    cd LifeLine
+    cd Lifeline-Charity
     ```
 
 2.  **Configure Environment Variables:**
@@ -55,7 +55,7 @@ The easiest way to deploy and run the LifeLine platform is using Docker. The pro
 3.  **Build and Start the Containers:**
     Run the following command from the root directory of the project:
     ```bash
-    docker-compose up --build -d
+    docker compose up --build -d
     ```
 
 4.  **Access the Application:**
@@ -97,6 +97,6 @@ LifeLine/
 
 To stop the running containers without deleting your persistent data, run:
 ```bash
-docker-compose down
+docker compose down
 ```
-*(To completely remove the containers and reset the database volumes, you can use `docker-compose down -v`)*
+*(To completely remove the containers and reset the database volumes, you can use `docker compose down -v`)*
