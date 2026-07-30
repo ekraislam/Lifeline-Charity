@@ -50,7 +50,7 @@ const EventDetail = () => {
     };
 
     if (loading) {
-        return <div className="max-w-7xl mx-auto px-4 py-12"><div className="animate-pulse h-64 bg-gray-200 rounded-md"></div></div>;
+        return <div className="max-w-7xl mx-auto px-4 py-12"><div className="animate-pulse h-64 bg-gray-200 dark:bg-gray-700 rounded-md"></div></div>;
     }
 
     if (!event) {
@@ -59,7 +59,7 @@ const EventDetail = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
                 <div className="h-64 sm:h-80 bg-primary-700 flex items-center justify-center">
                     <h1 className="text-4xl font-extrabold text-white text-center px-4">{event.title}</h1>
                 </div>
@@ -68,25 +68,25 @@ const EventDetail = () => {
                     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
                         <div className="lg:col-span-2 space-y-6">
                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-4">About the Event</h3>
-                                <div className="prose text-gray-600">
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">About the Event</h3>
+                                <div className="prose text-gray-600 dark:text-gray-300">
                                     <p>{event.description}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="mt-8 lg:mt-0">
-                            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                                <h4 className="text-lg font-bold text-gray-900 mb-4">Event Details</h4>
+                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Event Details</h4>
                                 <ul className="space-y-4">
                                     <li className="flex items-start">
                                         <svg className="flex-shrink-0 h-6 w-6 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         <div className="ml-3">
-                                            <p className="text-sm font-medium text-gray-900">Date & Time</p>
-                                            <p className="text-sm text-gray-500">{format(new Date(event.date), 'MMMM dd, yyyy')}</p>
-                                            <p className="text-sm text-gray-500">{format(new Date(event.date), 'h:mm a')}</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">Date & Time</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(event.date), 'MMMM dd, yyyy')}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(event.date), 'h:mm a')}</p>
                                         </div>
                                     </li>
                                     <li className="flex items-start">
@@ -95,8 +95,8 @@ const EventDetail = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
                                         <div className="ml-3">
-                                            <p className="text-sm font-medium text-gray-900">Location</p>
-                                            <p className="text-sm text-gray-500">{event.location}</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">Location</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{event.location}</p>
                                         </div>
                                     </li>
                                 </ul>

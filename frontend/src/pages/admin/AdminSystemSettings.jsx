@@ -28,41 +28,41 @@ const AdminSystemSettings = () => {
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">System Settings</h1>
-            <p className="text-sm text-gray-500 mb-8">Configure global platform settings.</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">System Settings</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Configure global platform settings.</p>
 
             <form onSubmit={handleSave} className="space-y-6">
                 {/* General Settings */}
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-3">General</h2>
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4 border-b pb-3">General</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Site Name</label>
                             <input
                                 type="text"
                                 name="siteName"
                                 value={settings.siteName}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Admin Email</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Admin Email</label>
                             <input
                                 type="email"
                                 name="siteEmail"
                                 value={settings.siteEmail}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Donation Currency</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Donation Currency</label>
                             <select
                                 name="donationCurrency"
                                 value={settings.donationCurrency}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="USD">USD ($)</option>
                                 <option value="BDT">BDT (৳)</option>
@@ -71,26 +71,26 @@ const AdminSystemSettings = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Max Campaign Goal ($)</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Max Campaign Goal ($)</label>
                             <input
                                 type="number"
                                 name="maxCampaignGoal"
                                 value={settings.maxCampaignGoal}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Access Control */}
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-3">Access Control</h2>
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4 border-b pb-3">Access Control</h2>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-700">Maintenance Mode</p>
-                                <p className="text-xs text-gray-500">Disable public access to the platform</p>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Maintenance Mode</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Disable public access to the platform</p>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
@@ -100,13 +100,13 @@ const AdminSystemSettings = () => {
                                     onChange={handleChange}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-800 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:bg-gray-800 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
                             </label>
                         </div>
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-700">Allow New Registrations</p>
-                                <p className="text-xs text-gray-500">Allow new users to sign up</p>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Allow New Registrations</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Allow new users to sign up</p>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
@@ -116,7 +116,7 @@ const AdminSystemSettings = () => {
                                     onChange={handleChange}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-800 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:bg-gray-800 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                             </label>
                         </div>
                     </div>

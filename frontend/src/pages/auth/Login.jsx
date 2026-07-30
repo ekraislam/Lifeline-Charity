@@ -34,11 +34,11 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100">
                 <div>
-                    <h2 className="text-center text-3xl font-extrabold text-gray-900">Welcome Back</h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+                    <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">Welcome Back</h2>
+                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
                         Sign in to your Lifeline account
                     </p>
                 </div>
@@ -46,28 +46,28 @@ const Login = () => {
                     {apiError && <div className="p-3 bg-red-50 text-red-500 text-sm rounded-md">{apiError}</div>}
                     <div className="rounded-md shadow-sm space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Email address</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email address</label>
                             <input
                                 type="email"
                                 {...register('email', { required: 'Email is required' })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm mt-1"
+                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm mt-1"
                                 placeholder="Email address"
                             />
                             {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Password</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
                             <div className="relative mt-1">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     {...register('password', { required: 'Password is required' })}
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                                    className="appearance-none rounded-md relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                                     placeholder="Password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-primary-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
@@ -95,7 +95,7 @@ const Login = () => {
                     </div>
                 </form>
                 <div className="text-center mt-4">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                         Don't have an account?{' '}
                         <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
                             Sign up

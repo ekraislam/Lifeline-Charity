@@ -16,8 +16,10 @@
   --color-secondary-600: #059669;
 }
 
+@custom-variant dark (&:is(.dark *));
+
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300;
   }
 }

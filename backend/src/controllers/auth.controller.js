@@ -9,6 +9,10 @@ const register = async (req, res) => {
             return res.status(409).json({ message: 'Email already in use' });
         }
 
+        if (req.files && req.files.length > 0) {
+            req.body.documents = req.files.map(f => `/uploads/${f.filename}`);
+        }
+
         const userId = await authService.createUser(req.body);
         
         // Mock email verification

@@ -37,11 +37,11 @@ const NGOManageEvents = () => {
         }
     };
 
-    const fetchVolunteers = async (eventId) => {
+    const fetchVolunteers = async (event) => {
         try {
-            const res = await api.get(`/events/${eventId}/volunteers`);
+            const res = await api.get(`/events/${event.id}/volunteers`);
             setVolunteersList(res.data.volunteers || []);
-            setViewingVolunteers(eventId);
+            setViewingVolunteers(event);
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to fetch volunteers');
         }
@@ -51,7 +51,8 @@ const NGOManageEvents = () => {
         try {
             await api.patch(`/events/${eventId}/volunteers/${userId}/status`, { status });
             // Refresh volunteers list
-            fetchVolunteers(eventId);
+            const res = await api.get(`/events/${eventId}/volunteers`);
+            setVolunteersList(res.data.volunteers || []);
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to update volunteer status');
         }
@@ -61,8 +62,8 @@ const NGOManageEvents = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="sm:flex sm:items-center sm:justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Manage My Events</h1>
-                    <p className="mt-2 text-sm text-gray-500">Create and manage events organized by your NGO.</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage My Events</h1>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Create and manage events organized by your NGO.</p>
                 </div>
                 <div className="mt-4 sm:mt-0">
                     <Link
@@ -75,17 +76,17 @@ const NGOManageEvents = () => {
             </div>
 
             {loading ? (
-                <div className="text-center py-12 text-gray-500">Loading events...</div>
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading events...</div>
             ) : events.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">
-                    <p className="text-gray-500 mb-4">You have not created any events yet.</p>
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100">
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">You have not created any events yet.</p>
                     <Link to="/ngo/events/create" className="text-primary-600 font-medium hover:text-primary-500">
                         Create your first event
                     </Link>
                 </div>
             ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                    <ul className="divide-y divide-gray-200">
+                <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                         {events.map((event) => (
                             <li key={event.id}>
                                 <div className="px-4 py-4 sm:px-6 flex flex-col sm:flex-row justify-between gap-4">
@@ -102,7 +103,7 @@ const NGOManageEvents = () => {
                                             </div>
                                         </div>
                                         <div className="mt-2 sm:flex sm:justify-between">
-                                            <div className="sm:flex flex-col gap-1 text-sm text-gray-500">
+                                            <div className="sm:flex flex-col gap-1 text-sm text-gray-500 dark:text-gray-400">
                                                 <p className="flex items-center">
                                                     📅 {new Date(event.event_date).toLocaleDateString()}
                                                 </p>
@@ -117,10 +118,10 @@ const NGOManageEvents = () => {
                                     </div>
                                     
                                     <div className="flex sm:flex-col justify-end gap-2 shrink-0">
-                                        <Link to={`/events/${event.id}`} className="text-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                                        <Link to={`/events/${event.id}`} className="text-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-900">
                                             View Public
                                         </Link>
-                                        <button onClick={() => fetchVolunteers(event.id)} className="px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200">
+                                        <button onClick={() => fetchVolunteers(event)} className="px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200">
                                             View Volunteers
                                         </button>
                                         <Link to={`/ngo/events/edit/${event.id}`} className="text-center px-3 py-1 border border-transparent text-xs font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200">
@@ -143,37 +144,39 @@ const NGOManageEvents = () => {
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setViewingVolunteers(null)}></div>
                         <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full relative">
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Registered Volunteers</h3>
+                        <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full relative">
+                            <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">Registered Volunteers</h3>
                                 {volunteersList.length === 0 ? (
-                                    <p className="text-gray-500 text-center py-4">No volunteers registered yet.</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">No volunteers registered yet.</p>
                                 ) : (
                                     <div className="max-h-96 overflow-y-auto">
-                                        <ul className="divide-y divide-gray-200">
+                                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                                             {volunteersList.map(vol => (
                                                 <li key={vol.registration_id} className="py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                                                     <div>
-                                                        <p className="text-sm font-medium text-gray-900">{vol.name}</p>
-                                                        <p className="text-sm text-gray-500">{vol.email} • {vol.phone || 'No phone'}</p>
+                                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{vol.name}</p>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400">{vol.email} • {vol.phone || 'No phone'}</p>
                                                         <p className="text-xs text-gray-400 mt-1">Skills: {vol.skills || 'None listed'}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <span className={`px-2 py-1 text-xs rounded-full uppercase tracking-wider font-semibold
-                                                            ${vol.attendance_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                                              vol.attendance_status === 'approved' ? 'bg-green-100 text-green-800' : 
-                                                              'bg-red-100 text-red-800'}`}>
+                                                            ${vol.attendance_status === 'attended' ? 'bg-green-100 text-green-800' : 
+                                                              vol.attendance_status === 'absent' ? 'bg-red-100 text-red-800' : 
+                                                              'bg-yellow-100 text-yellow-800'}`}>
                                                             {vol.attendance_status}
                                                         </span>
-                                                        {vol.attendance_status === 'pending' && (
-                                                            <div className="flex gap-1">
-                                                                <button onClick={() => updateVolunteerStatus(viewingVolunteers, vol.user_id, 'approved')} className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
-                                                                    Approve
+                                                        {new Date() >= new Date(viewingVolunteers.event_date) ? (
+                                                            <div className="flex gap-1 ml-2">
+                                                                <button title="Mark Present" onClick={() => updateVolunteerStatus(viewingVolunteers.id, vol.user_id, 'attended')} className="p-1 rounded text-green-600 hover:bg-green-100 transition-colors">
+                                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                                                                 </button>
-                                                                <button onClick={() => updateVolunteerStatus(viewingVolunteers, vol.user_id, 'rejected')} className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">
-                                                                    Reject
+                                                                <button title="Mark Absent" onClick={() => updateVolunteerStatus(viewingVolunteers.id, vol.user_id, 'absent')} className="p-1 rounded text-red-600 hover:bg-red-100 transition-colors">
+                                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                                                 </button>
                                                             </div>
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400 ml-2 italic">Starts {new Date(viewingVolunteers.event_date).toLocaleDateString()}</span>
                                                         )}
                                                     </div>
                                                 </li>
@@ -182,8 +185,8 @@ const NGOManageEvents = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                <button type="button" onClick={() => setViewingVolunteers(null)} className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:w-auto sm:text-sm">
+                            <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button type="button" onClick={() => setViewingVolunteers(null)} className="w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900 sm:w-auto sm:text-sm">
                                     Close
                                 </button>
                             </div>

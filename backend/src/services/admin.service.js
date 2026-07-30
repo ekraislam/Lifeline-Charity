@@ -105,7 +105,7 @@ const updateUserStatus = async (userId, isActive) => {
 // ──────────────────────────────────────────────────────────────────
 const getNGOs = async () => {
     const [rows] = await db.query(`
-        SELECT np.id, np.org_name, np.registration_number, np.status, np.created_at,
+        SELECT np.id, np.org_name, np.registration_number, np.documents, np.status, np.created_at,
                u.name as user_name, u.email
         FROM ngo_profiles np
         LEFT JOIN users u ON np.user_id = u.id

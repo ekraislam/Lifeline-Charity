@@ -22,11 +22,11 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100">
                 <div>
-                    <h2 className="text-center text-3xl font-extrabold text-gray-900">Reset Password</h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+                    <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">Reset Password</h2>
+                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
                         Enter your email to receive a reset link
                     </p>
                 </div>
@@ -39,11 +39,11 @@ const ForgotPassword = () => {
 
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email address</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email address</label>
                         <input
                             type="email"
                             {...register('email', { required: 'Email is required' })}
-                            className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                            className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
                             placeholder="Email address"
                         />
                         {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}

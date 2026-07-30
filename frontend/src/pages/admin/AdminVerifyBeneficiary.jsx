@@ -40,54 +40,54 @@ const DetailModal = ({ request, onClose, onStatusUpdate }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-                <div className="p-6 border-b sticky top-0 bg-white z-10">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b sticky top-0 bg-white dark:bg-gray-800 z-10">
                     <div className="flex items-start justify-between">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">{request.title}</h2>
-                            <p className="text-sm text-gray-500 mt-0.5">Request #{request.id} · Submitted {new Date(request.created_at).toLocaleString()}</p>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{request.title}</h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Request #{request.id} · Submitted {new Date(request.created_at).toLocaleString()}</p>
                         </div>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300 text-2xl leading-none">&times;</button>
                     </div>
                 </div>
 
                 <div className="p-6 space-y-5">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-50 rounded-xl p-4">
-                            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Beneficiary</p>
-                            <p className="font-semibold text-gray-900">{request.beneficiary_name}</p>
-                            <p className="text-sm text-gray-600">{request.beneficiary_email}</p>
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Beneficiary</p>
+                            <p className="font-semibold text-gray-900 dark:text-white">{request.beneficiary_name}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">{request.beneficiary_email}</p>
                         </div>
-                        <div className="bg-gray-50 rounded-xl p-4">
-                            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Required Amount</p>
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Required Amount</p>
                             <p className="font-semibold text-green-700 text-xl">${parseFloat(request.required_amount || 0).toLocaleString()}</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-50 rounded-xl p-4">
-                            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Current Status</p>
-                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[request.status] || 'bg-gray-100 text-gray-800'}`}>
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Current Status</p>
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[request.status] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100'}`}>
                                 {STATUS_LABELS[request.status] || request.status}
                             </span>
                         </div>
                         {request.assigned_ngo_org && (
-                            <div className="bg-gray-50 rounded-xl p-4">
-                                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Assigned NGO</p>
+                            <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Assigned NGO</p>
                                 <p className="font-semibold text-indigo-700">{request.assigned_ngo_org}</p>
                             </div>
                         )}
                     </div>
 
                     <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-2">Request Description</p>
-                        <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap">{request.description || 'No description provided.'}</div>
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Request Description</p>
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{request.description || 'No description provided.'}</div>
                     </div>
 
                     {/* Documents */}
                     {request.documents && request.documents.length > 0 && (
                         <div>
-                            <p className="text-sm font-semibold text-gray-700 mb-2">📎 Uploaded Documents ({request.documents.length})</p>
+                            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">📎 Uploaded Documents ({request.documents.length})</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {request.documents.map((doc, i) => {
                                     const url = `${import.meta.env.VITE_API_URL}${doc.document_url || doc}`;
@@ -101,7 +101,7 @@ const DetailModal = ({ request, onClose, onStatusUpdate }) => {
                                             ) : (
                                                 <img src={url} alt={`Doc ${i+1}`} className="h-24 w-full object-cover" />
                                             )}
-                                            <p className="text-xs text-center py-1 text-gray-500">Document {i+1}</p>
+                                            <p className="text-xs text-center py-1 text-gray-500 dark:text-gray-400">Document {i+1}</p>
                                         </a>
                                     );
                                 })}
@@ -113,7 +113,7 @@ const DetailModal = ({ request, onClose, onStatusUpdate }) => {
                     {['pending', 'under_review'].includes(request.status) && (
                         <>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
                                     Admin Note <span className="text-gray-400 font-normal">(optional)</span>
                                 </label>
                                 <textarea
@@ -121,12 +121,12 @@ const DetailModal = ({ request, onClose, onStatusUpdate }) => {
                                     value={adminNote}
                                     onChange={e => setAdminNote(e.target.value)}
                                     placeholder="Add a note about your decision..."
-                                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                                 />
                             </div>
 
                             <div className="flex gap-3 pt-2">
-                                <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium text-sm">
+                                <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:bg-gray-700 font-medium text-sm">
                                     Close
                                 </button>
                                 <button
@@ -149,7 +149,7 @@ const DetailModal = ({ request, onClose, onStatusUpdate }) => {
 
                     {!['pending', 'under_review'].includes(request.status) && (
                         <div className="flex justify-end pt-2">
-                            <button onClick={onClose} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium text-sm">
+                            <button onClick={onClose} className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:bg-gray-700 font-medium text-sm">
                                 Close
                             </button>
                         </div>
@@ -210,8 +210,8 @@ const AdminVerifyBeneficiary = () => {
             )}
 
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Verify Beneficiaries</h1>
-                <p className="mt-1 text-sm text-gray-500">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Verify Beneficiaries</h1>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Review help requests, verify documents, and approve/reject. Approved requests go to NGOs for assignment.
                 </p>
             </div>
@@ -228,14 +228,14 @@ const AdminVerifyBeneficiary = () => {
                         value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1); }}
                         placeholder="Search by beneficiary name or request ID..."
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
                 </div>
                 <select
                     value={statusFilter}
                     onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                    className="border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                     <option value="all">All Statuses</option>
                     <option value="pending">Pending</option>
@@ -261,49 +261,49 @@ const AdminVerifyBeneficiary = () => {
                     );
                 })}
                 <button onClick={() => { setStatusFilter('all'); setPage(1); }}
-                    className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:bg-gray-700">
                     All: {requests.length}
                 </button>
             </div>
 
             {loading ? (
-                <div className="text-center py-12 text-gray-500">Loading beneficiary requests...</div>
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading beneficiary requests...</div>
             ) : paginated.length === 0 ? (
-                <div className="bg-white rounded-xl shadow p-12 text-center text-gray-400">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center text-gray-400">
                     <div className="text-5xl mb-3">✅</div>
                     <p className="font-medium">No requests found</p>
                 </div>
             ) : (
-                <div className="bg-white shadow rounded-xl overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 shadow rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-900">
                                 <tr>
                                     {['ID','Beneficiary','Amount','Status','Assigned NGO','Submitted','Action'].map(h => (
-                                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-100">
+                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100">
                                 {paginated.map(req => (
-                                    <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 text-sm font-mono text-gray-500">#{req.id}</td>
+                                    <tr key={req.id} className="hover:bg-gray-50 dark:bg-gray-900 transition-colors">
+                                        <td className="px-4 py-3 text-sm font-mono text-gray-500 dark:text-gray-400">#{req.id}</td>
                                         <td className="px-4 py-3">
-                                            <p className="text-sm font-semibold text-gray-900">{req.beneficiary_name}</p>
-                                            <p className="text-xs text-gray-500">{req.title}</p>
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{req.beneficiary_name}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">{req.title}</p>
                                         </td>
                                         <td className="px-4 py-3 text-sm font-medium text-green-700">
                                             ${parseFloat(req.required_amount || 0).toLocaleString()}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[req.status] || 'bg-gray-100 text-gray-800'}`}>
+                                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[req.status] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100'}`}>
                                                 {STATUS_LABELS[req.status] || req.status}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                                             {req.assigned_ngo_org || '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                             {new Date(req.created_at).toLocaleDateString()}
                                         </td>
                                         <td className="px-4 py-3">
@@ -321,16 +321,16 @@ const AdminVerifyBeneficiary = () => {
                     </div>
 
                     {/* Pagination */}
-                    <div className="px-4 py-3 border-t flex items-center justify-between bg-gray-50">
-                        <p className="text-sm text-gray-600">
+                    <div className="px-4 py-3 border-t flex items-center justify-between bg-gray-50 dark:bg-gray-900">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
                             Showing {((page-1)*PAGE_SIZE)+1}–{Math.min(page*PAGE_SIZE, filtered.length)} of {filtered.length}
                         </p>
                         <div className="flex gap-2">
                             <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1}
-                                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-100 disabled:opacity-40">← Prev</button>
+                                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-100 dark:bg-gray-700 disabled:opacity-40">← Prev</button>
                             <span className="px-3 py-1.5 text-sm font-medium">{page} / {totalPages}</span>
                             <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page===totalPages}
-                                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-100 disabled:opacity-40">Next →</button>
+                                className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-100 dark:bg-gray-700 disabled:opacity-40">Next →</button>
                         </div>
                     </div>
                 </div>

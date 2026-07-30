@@ -39,15 +39,15 @@ const AdminCampaignApproval = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Pending Campaigns Approval</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Pending Campaigns Approval</h1>
 
             {campaigns.length === 0 ? (
-                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center text-gray-500 dark:text-gray-400">
                     No pending campaigns found.
                 </div>
             ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                    <ul className="divide-y divide-gray-200">
+                <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                         {campaigns.map((campaign) => (
                             <li key={campaign.id}>
                                 <div className="px-4 py-4 flex items-center sm:px-6">
@@ -55,12 +55,12 @@ const AdminCampaignApproval = () => {
                                         <div className="truncate">
                                             <div className="flex text-sm">
                                                 <p className="font-medium text-primary-600 truncate">{campaign.title}</p>
-                                                <p className="ml-1 flex-shrink-0 font-normal text-gray-500">
+                                                <p className="ml-1 flex-shrink-0 font-normal text-gray-500 dark:text-gray-400">
                                                     in Category {campaign.category_id}
                                                 </p>
                                             </div>
                                             <div className="mt-2 flex">
-                                                <div className="flex items-center text-sm text-gray-500">
+                                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                     Target: ${campaign.goal_amount}
                                                 </div>
                                             </div>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
     return (
-        <div className="bg-white">
+        <div className="bg-white dark:bg-gray-800">
             <div className="relative bg-primary-700 overflow-hidden">
                 <div className="max-w-7xl mx-auto">
                     <div className="relative z-10 pb-8 bg-primary-700 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
@@ -18,7 +18,7 @@ const Home = () => {
                                 </p>
                                 <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                                     <div className="rounded-md shadow">
-                                        <Link to="/campaigns" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10">
+                                        <Link to="/campaigns" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-900 md:py-4 md:text-lg md:px-10">
                                             Donate Now
                                         </Link>
                                     </div>
@@ -35,11 +35,11 @@ const Home = () => {
             </div>
             
             {/* Quick stats / Features */}
-            <div className="py-12 bg-gray-50">
+            <div className="py-12 bg-gray-50 dark:bg-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="lg:text-center">
                         <h2 className="text-base text-primary-600 font-semibold tracking-wide uppercase">Impact</h2>
-                        <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                             A better way to give
                         </p>
                     </div>

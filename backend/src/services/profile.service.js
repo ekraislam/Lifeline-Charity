@@ -3,7 +3,12 @@ const bcrypt = require('bcrypt');
 
 const getProfileById = async (userId) => {
     const [rows] = await db.query('SELECT id, name, email, role, phone, address, avatar, created_at, updated_at FROM users WHERE id = ?', [userId]);
-    return rows[0];
+    const user = rows[0];
+    if (user && user.role === 'volunteer') {
+        const [volRows] = await db.query('SELECT skills, availability FROM volunteers WHERE user_id = ?', [userId]);
+        user.volunteer = volRows[0] || {};
+    }
+    return user;
 };
 
 const updateProfile = async (userId, updateData) => {

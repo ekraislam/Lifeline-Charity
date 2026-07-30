@@ -8,7 +8,9 @@ const registerSchema = Joi.object({
     phone: Joi.string().optional(),
     address: Joi.string().optional(),
     org_name: Joi.string().when('role', { is: 'ngo', then: Joi.required(), otherwise: Joi.optional() }),
-    registration_number: Joi.string().when('role', { is: 'ngo', then: Joi.required(), otherwise: Joi.optional() })
+    registration_number: Joi.string().when('role', { is: 'ngo', then: Joi.required(), otherwise: Joi.optional() }),
+    skills: Joi.string().when('role', { is: 'volunteer', then: Joi.required(), otherwise: Joi.optional() }),
+    availability: Joi.string().when('role', { is: 'volunteer', then: Joi.required(), otherwise: Joi.optional() })
 });
 
 const loginSchema = Joi.object({

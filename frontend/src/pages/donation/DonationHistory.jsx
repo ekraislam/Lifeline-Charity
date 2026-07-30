@@ -67,15 +67,15 @@ const DonationHistory = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">My Donation History</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">My Donation History</h1>
 
             {donations.length === 0 ? (
-                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center text-gray-500 dark:text-gray-400">
                     You haven't made any donations yet.
                 </div>
             ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                    <ul className="divide-y divide-gray-200">
+                <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                         {donations.map((donation) => (
                             <li key={donation.id}>
                                 <div className="px-4 py-4 sm:px-6">
@@ -91,11 +91,11 @@ const DonationHistory = () => {
                                     </div>
                                     <div className="mt-2 sm:flex sm:justify-between">
                                         <div className="sm:flex">
-                                            <p className="flex items-center text-sm text-gray-500">
-                                                Amount: <span className="font-bold text-gray-900 ml-1">${donation.amount}</span>
+                                            <p className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                                Amount: <span className="font-bold text-gray-900 dark:text-white ml-1">${donation.amount}</span>
                                             </p>
                                         </div>
-                                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                        <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0 sm:ml-6">
                                             <p>
                                                 Donated on {format(new Date(donation.created_at), 'MMM dd, yyyy')}
                                             </p>

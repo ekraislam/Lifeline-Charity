@@ -22,9 +22,10 @@ const createUser = async (userData) => {
         const userId = result.insertId;
 
         if (role === 'ngo') {
+            const { documents } = userData;
             await connection.query(
-                'INSERT INTO ngo_profiles (user_id, org_name, registration_number) VALUES (?, ?, ?)',
-                [userId, org_name, registration_number]
+                'INSERT INTO ngo_profiles (user_id, org_name, registration_number, documents) VALUES (?, ?, ?, ?)',
+                [userId, org_name, registration_number, documents ? JSON.stringify(documents) : null]
             );
         } else if (role === 'volunteer') {
             const { skills, availability } = userData;

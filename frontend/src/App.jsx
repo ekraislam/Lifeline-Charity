@@ -41,11 +41,14 @@ import AdminSystemSettings from './pages/admin/AdminSystemSettings';
 import AdminContactMessages from './pages/admin/AdminContactMessages';
 import ErrorBoundary from './components/ErrorBoundary';
 
+import { ThemeProvider } from './context/ThemeContext';
+
 const Unauthorized = () => <div className="p-8 text-red-500 text-center">Unauthorized — You do not have permission to view this page.</div>;
 
 function App() {
   return (
-    <AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
       <Router>
         <ErrorBoundary>
           <MainLayout>
@@ -104,7 +107,8 @@ function App() {
           </MainLayout>
         </ErrorBoundary>
       </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

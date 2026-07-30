@@ -87,7 +87,7 @@ const Profile = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Account Settings</h1>
 
             {status.message && (
                 <div className={`mb-6 p-4 rounded-md ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -95,11 +95,11 @@ const Profile = () => {
                 </div>
             )}
 
-            <div className="bg-white shadow rounded-lg mb-8">
-                <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">Profile Picture</h2>
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">Profile Picture</h2>
                     <div className="mt-4 flex items-center">
-                        <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 border border-gray-300">
+                        <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600">
                             {photoPreview ? (
                                 <img src={photoPreview} alt="Profile" className="h-full w-full object-cover" />
                             ) : (
@@ -109,7 +109,7 @@ const Profile = () => {
                             )}
                         </div>
                         <div className="ml-5">
-                            <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <label className="cursor-pointer bg-white dark:bg-gray-800 py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                                 <span>Change</span>
                                 <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
                             </label>
@@ -118,29 +118,29 @@ const Profile = () => {
                 </div>
 
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h2>
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Personal Information</h2>
                     <form onSubmit={handleSubmit(onUpdateProfile)} className="space-y-4">
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Username</label>
-                                <input type="text" {...register('name', { required: 'Username is required' })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
+                                <input type="text" {...register('name', { required: 'Username is required' })} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
                                 {errors.name && <span className="text-xs text-red-500">{errors.name.message}</span>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" {...register('email', { required: 'Email is required' })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
+                                <input type="email" {...register('email', { required: 'Email is required' })} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
                                 {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                                <input type="text" {...register('phone')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Phone Number</label>
+                                <input type="text" {...register('phone')} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Address</label>
-                                <input type="text" {...register('address')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Address</label>
+                                <input type="text" {...register('address')} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
                             </div>
                         </div>
 
@@ -153,18 +153,18 @@ const Profile = () => {
                 </div>
             </div>
 
-            <div className="bg-white shadow rounded-lg">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
                 <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">Change Password</h2>
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Password</h2>
                     <form onSubmit={handlePasswordSubmit(onChangePassword)} className="space-y-4 max-w-md">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Current Password</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Current Password</label>
                             <div className="relative mt-1">
-                                <input type={showOldPassword ? 'text' : 'password'} {...registerPassword('oldPassword', { required: 'Required' })} className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <input type={showOldPassword ? 'text' : 'password'} {...registerPassword('oldPassword', { required: 'Required' })} className="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
                                 <button
                                     type="button"
                                     onClick={() => setShowOldPassword(!showOldPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-primary-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
                                 >
                                     {showOldPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
@@ -172,13 +172,13 @@ const Profile = () => {
                             {passwordErrors.oldPassword && <span className="text-xs text-red-500">{passwordErrors.oldPassword.message}</span>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">New Password</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">New Password</label>
                             <div className="relative mt-1">
-                                <input type={showNewPassword ? 'text' : 'password'} {...registerPassword('newPassword', { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } })} className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
+                                <input type={showNewPassword ? 'text' : 'password'} {...registerPassword('newPassword', { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } })} className="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
                                 <button
                                     type="button"
                                     onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-primary-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
                                 >
                                     {showNewPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
@@ -186,7 +186,7 @@ const Profile = () => {
                             {passwordErrors.newPassword && <span className="text-xs text-red-500">{passwordErrors.newPassword.message}</span>}
                         </div>
                         <div className="pt-2">
-                            <button type="submit" className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <button type="submit" className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                                 Update Password
                             </button>
                         </div>

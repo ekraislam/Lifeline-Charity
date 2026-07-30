@@ -5,6 +5,12 @@ const path = require('path');
 const getEvents = async (filters = {}) => {
     let query = `
         SELECT e.*, c.name as category_name, u.name as organizer_name,
+        CASE 
+           WHEN e.status = 'cancelled' THEN 'cancelled'
+           WHEN NOW() < e.event_date THEN 'upcoming'
+           WHEN NOW() > e.end_date THEN 'completed'
+           ELSE 'ongoing'
+        END as computed_status,
         (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id AND er.role = 'volunteer') as registered_volunteers
         FROM events e
         LEFT JOIN categories c ON e.category_id = c.id
@@ -22,8 +28,15 @@ const getEvents = async (filters = {}) => {
         params.push(filters.category_id);
     }
     if (filters.status) {
-        query += ` AND e.status = ?`;
-        params.push(filters.status);
+        if (filters.status === 'upcoming') {
+            query += ` AND NOW() < e.event_date AND e.status != 'cancelled'`;
+        } else if (filters.status === 'ongoing') {
+            query += ` AND NOW() >= e.event_date AND NOW() <= e.end_date AND e.status != 'cancelled'`;
+        } else if (filters.status === 'completed') {
+            query += ` AND NOW() > e.end_date AND e.status != 'cancelled'`;
+        } else if (filters.status === 'cancelled') {
+            query += ` AND e.status = 'cancelled'`;
+        }
     }
     if (filters.organizer_id) {
         query += ` AND e.organizer_id = ?`;
@@ -33,27 +46,39 @@ const getEvents = async (filters = {}) => {
     query += ` ORDER BY e.event_date ASC`;
 
     const [rows] = await db.query(query, params);
-    return rows;
+    // Replace the DB status with the computed_status for consistency in the frontend
+    const processedRows = rows.map(row => ({ ...row, status: row.computed_status }));
+    return processedRows;
 };
 
 const getEventById = async (id) => {
     const [rows] = await db.query(`
         SELECT e.*, c.name as category_name, u.name as organizer_name,
+        CASE 
+           WHEN e.status = 'cancelled' THEN 'cancelled'
+           WHEN NOW() < e.event_date THEN 'upcoming'
+           WHEN NOW() > e.end_date THEN 'completed'
+           ELSE 'ongoing'
+        END as computed_status,
         (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id AND er.role = 'volunteer') as registered_volunteers
         FROM events e
         LEFT JOIN categories c ON e.category_id = c.id
         LEFT JOIN users u ON e.organizer_id = u.id
         WHERE e.id = ?
     `, [id]);
+    
+    if (rows[0]) {
+        rows[0].status = rows[0].computed_status;
+    }
     return rows[0];
 };
 
 const createEvent = async (data, organizerId) => {
-    const { title, description, category_id, location, event_date, max_volunteers, registration_deadline, status, cover_image } = data;
+    const { title, description, category_id, location, event_date, end_date, max_volunteers, registration_deadline, cover_image } = data;
     const [result] = await db.query(`
-        INSERT INTO events (title, description, category_id, location, event_date, max_volunteers, registration_deadline, status, cover_image, organizer_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [title, description, category_id || null, location, event_date, max_volunteers || 0, registration_deadline || null, status || 'upcoming', cover_image || null, organizerId]);
+        INSERT INTO events (title, description, category_id, location, event_date, end_date, max_volunteers, registration_deadline, status, cover_image, organizer_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'upcoming', ?, ?)
+    `, [title, description, category_id || null, location, event_date, end_date, max_volunteers || 0, registration_deadline || null, cover_image || null, organizerId]);
     return result.insertId;
 };
 
@@ -66,10 +91,10 @@ const updateEvent = async (id, data, userId, userRole) => {
         throw new Error('Unauthorized to edit this event');
     }
 
-    const { title, description, category_id, location, event_date, max_volunteers, registration_deadline, status, cover_image } = data;
+    const { title, description, category_id, location, event_date, end_date, max_volunteers, registration_deadline, cover_image } = data;
     
-    let query = `UPDATE events SET title=?, description=?, category_id=?, location=?, event_date=?, max_volunteers=?, registration_deadline=?, status=?`;
-    const params = [title, description, category_id || null, location, event_date, max_volunteers || 0, registration_deadline || null, status];
+    let query = `UPDATE events SET title=?, description=?, category_id=?, location=?, event_date=?, end_date=?, max_volunteers=?, registration_deadline=?`;
+    const params = [title, description, category_id || null, location, event_date, end_date, max_volunteers || 0, registration_deadline || null];
     
     if (cover_image) {
         query += `, cover_image=?`;
@@ -175,7 +200,7 @@ const updateVolunteerApplicationStatus = async (eventId, userId, status, updater
         throw new Error('Unauthorized to update volunteer status for this event');
     }
 
-    if (!['pending', 'approved', 'rejected'].includes(status)) {
+    if (!['pending', 'approved', 'rejected', 'attended', 'absent'].includes(status)) {
         throw new Error('Invalid status');
     }
 

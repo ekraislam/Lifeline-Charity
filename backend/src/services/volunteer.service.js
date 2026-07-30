@@ -48,12 +48,23 @@ const getStats = async (userId) => {
     if (!vol) return { total_hours: 0, events_assigned: 0 };
 
     const [[hoursRow]] = await db.query('SELECT SUM(hours_logged) as total FROM volunteer_assignments WHERE volunteer_id = ?', [vol.id]);
+    
+    // Calculate total hours from attended events (end_date - event_date)
+    const [[eventHoursRow]] = await db.query(`
+        SELECT SUM(TIMESTAMPDIFF(MINUTE, e.event_date, e.end_date) / 60.0) as event_total
+        FROM event_registrations er
+        JOIN events e ON er.event_id = e.id
+        WHERE er.user_id = ? AND er.role = 'volunteer' AND er.attendance_status = 'attended'
+    `, [userId]);
+
     const [[eventsRow]] = await db.query('SELECT COUNT(*) as total FROM event_registrations WHERE user_id = ? AND role = "volunteer"', [userId]);
+    const [[attendedRow]] = await db.query('SELECT COUNT(*) as total FROM event_registrations WHERE user_id = ? AND role = "volunteer" AND attendance_status = "attended"', [userId]);
     
     return {
-        total_hours: hoursRow?.total || 0,
+        total_hours: (parseFloat(hoursRow?.total) || 0) + (parseFloat(eventHoursRow?.event_total) || 0),
         events_assigned: eventsRow?.total || 0,
-        tasks_completed: eventsRow?.total || 0 // Mock tasks completed for UI compatibility
+        tasks_completed: eventsRow?.total || 0, // Mock tasks completed for UI compatibility
+        participated_events: attendedRow?.total || 0
     };
 };
 

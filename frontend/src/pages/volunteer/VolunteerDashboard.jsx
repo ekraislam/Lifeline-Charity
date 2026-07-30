@@ -17,6 +17,8 @@ const VolunteerDashboard = () => {
     const [profileSuccess, setProfileSuccess] = useState('');
     const [profileError, setProfileError] = useState('');
     const { register, handleSubmit, setValue } = useForm();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -119,6 +121,7 @@ const VolunteerDashboard = () => {
         doc.setFontSize(16);
         doc.setTextColor(212, 175, 55); // gold
         doc.text(`Total Volunteered Hours: ${stats?.total_hours || 0}`, 148, 155, { align: 'center' });
+        doc.text(`Participated Events: ${stats?.participated_events || 0}`, 148, 163, { align: 'center' });
         
         // Load Signatures
         try {
@@ -155,23 +158,23 @@ const VolunteerDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Volunteer Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Volunteer Dashboard</h1>
 
             {/* Stats */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Total Hours</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{stats?.total_hours || 0}</dd>
+                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Hours</dt>
+                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{stats?.total_hours || 0}</dd>
                     </div>
                 </div>
-                <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Events Assigned</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{stats?.events_assigned || 0}</dd>
+                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Events Assigned</dt>
+                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{stats?.events_assigned || 0}</dd>
                     </div>
                 </div>
-                <div className="bg-white overflow-hidden shadow rounded-lg flex items-center justify-center p-6">
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg flex items-center justify-center p-6">
                     <button
                         onClick={downloadCertificate}
                         className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -181,32 +184,32 @@ const VolunteerDashboard = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* Volunteer Profile Form */}
-                <div className="lg:col-span-1 bg-white shadow sm:rounded-lg overflow-hidden">
-                    <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900">Volunteer Profile</h3>
-                        <p className="mt-1 max-w-2xl text-sm text-gray-500">Update your skills and availability.</p>
+                <div className="lg:col-span-1 bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+                    <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Volunteer Profile</h3>
+                        <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Update your skills and availability.</p>
                     </div>
                     <div className="px-4 py-5 sm:p-6">
                         {profileSuccess && <div className="mb-4 p-2 bg-green-50 text-green-700 text-sm rounded">{profileSuccess}</div>}
                         {profileError && <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded">{profileError}</div>}
                         <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Skills</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Skills</label>
                                 <textarea
                                     {...register('skills')}
                                     rows="3"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                                     placeholder="e.g. First Aid, Teaching, Event Management"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Availability</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Availability</label>
                                 <textarea
                                     {...register('availability')}
                                     rows="3"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                                     placeholder="e.g. Weekends only, Monday mornings"
                                 />
                             </div>
@@ -220,45 +223,91 @@ const VolunteerDashboard = () => {
                         </form>
                     </div>
                 </div>
+            </div>
 
-                {/* Assigned Events / My Applications */}
-                <div className="lg:col-span-2">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">My Applications</h2>
-                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                        {events.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500 bg-gray-50">
-                                <div className="text-4xl mb-3">📅</div>
-                                You have not applied to any events yet.
-                            </div>
-                        ) : (
-                            <ul className="divide-y divide-gray-200">
-                                {events.map((ev) => (
-                                    <li key={ev.registration_id}>
-                                        <div className="px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:px-6 justify-between gap-4">
-                                            <div>
-                                                <p className="text-lg font-bold text-primary-700">{ev.title}</p>
-                                                <p className="mt-1 text-sm text-gray-600 line-clamp-2">
-                                                    {ev.description}
-                                                </p>
-                                                <div className="mt-2 flex flex-wrap items-center text-xs text-gray-500 gap-4">
-                                                    <span>📍 {ev.location}</span>
-                                                    <span>🕒 {new Date(ev.event_date).toLocaleString()}</span>
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0 flex items-center justify-center">
-                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider
-                                                    ${ev.attendance_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                                      ev.attendance_status === 'approved' ? 'bg-green-100 text-green-800' : 
-                                                      'bg-red-100 text-red-800'}`}>
-                                                    {ev.attendance_status}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+            {/* My Events Table */}
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden mb-8 border border-gray-100 dark:border-gray-700">
+                <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">My Events</h3>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Events you are assigned to or have participated in.</p>
                     </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            placeholder="Search events..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="block w-full sm:w-64 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
+                        />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="block w-full sm:w-auto rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        >
+                            <option value="All">All Statuses</option>
+                            <option value="approved">Approved</option>
+                            <option value="pending">Pending</option>
+                            <option value="attended">Attended</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-900">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Event Name</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Location</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            {events
+                                .filter(ev => {
+                                    const matchSearch = ev.title.toLowerCase().includes(searchTerm.toLowerCase()) || (ev.description && ev.description.toLowerCase().includes(searchTerm.toLowerCase()));
+                                    const actualStatus = ev.attendance_status || 'pending';
+                                    const matchStatus = statusFilter === 'All' || actualStatus.toLowerCase() === statusFilter.toLowerCase();
+                                    return matchSearch && matchStatus;
+                                })
+                                .map((ev) => {
+                                    const actualStatus = ev.attendance_status || 'pending';
+                                    return (
+                                <tr key={ev.registration_id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-gray-900 dark:text-white">{ev.title}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                        {ev.location}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                        {new Date(ev.event_date).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            ${actualStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                                              actualStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                              'bg-gray-100 text-gray-800'}`}>
+                                            {actualStatus}
+                                        </span>
+                                    </td>
+                                </tr>
+                            )})}
+                            {events.filter(ev => {
+                                    const matchSearch = ev.title.toLowerCase().includes(searchTerm.toLowerCase()) || (ev.description && ev.description.toLowerCase().includes(searchTerm.toLowerCase()));
+                                    const actualStatus = ev.attendance_status || 'pending';
+                                    const matchStatus = statusFilter === 'All' || actualStatus.toLowerCase() === statusFilter.toLowerCase();
+                                    return matchSearch && matchStatus;
+                                }).length === 0 && (
+                                <tr>
+                                    <td colSpan="4" className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        No events found matching your criteria.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

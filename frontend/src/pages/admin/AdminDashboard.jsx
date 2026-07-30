@@ -6,11 +6,11 @@ import { Bar, Pie } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
-const StatCard = ({ label, value, color = 'text-gray-900', icon }) => (
-    <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+const StatCard = ({ label, value, color = 'text-gray-900 dark:text-white', icon }) => (
+    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
         <div className="px-4 py-5 sm:p-6 flex items-center justify-between">
             <div>
-                <dt className="text-sm font-medium text-gray-500 truncate">{label}</dt>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{label}</dt>
                 <dd className={`mt-1 text-3xl font-bold ${color}`}>{value ?? '—'}</dd>
             </div>
             <div className="text-3xl opacity-20">{icon}</div>
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <div className="p-12 text-center text-gray-500">Loading Admin Dashboard...</div>;
+    if (loading) return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading Admin Dashboard...</div>;
     if (error) return <div className="p-12 text-center text-red-500">{error}</div>;
 
     const barData = {
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">System Overview</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">System Overview</h1>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
                 <StatCard label="Total Users" value={stats?.total_users} icon="👤" />
@@ -74,8 +74,8 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Donation Trends (Last 6 Months)</h2>
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Donation Trends (Last 6 Months)</h2>
                     <div className="h-64">
                         {(stats?.donationTrendData||[]).every(v=>v===0) ? (
                             <div className="h-full flex flex-col items-center justify-center text-gray-400">
@@ -87,22 +87,22 @@ const AdminDashboard = () => {
                         )}
                     </div>
                 </div>
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">User Demographics</h2>
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">User Demographics</h2>
                     <div className="h-64 flex justify-center">
                         <Pie data={pieData} options={{ maintainAspectRatio: false }} />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h2>
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     {quickLinks.map(link => (
                         <Link key={link.href} to={link.href}
-                            className="flex flex-col items-center p-4 bg-gray-50 rounded-lg text-center hover:bg-blue-50 hover:text-blue-700 transition-colors group">
+                            className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg text-center hover:bg-blue-50 hover:text-blue-700 transition-colors group">
                             <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">{link.icon}</span>
-                            <span className="text-xs font-medium text-gray-700 group-hover:text-blue-700">{link.label}</span>
+                            <span className="text-xs font-medium text-gray-700 dark:text-gray-200 group-hover:text-blue-700">{link.label}</span>
                         </Link>
                     ))}
                 </div>

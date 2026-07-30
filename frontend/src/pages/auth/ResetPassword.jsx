@@ -33,10 +33,10 @@ const ResetPassword = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100">
                 <div>
-                    <h2 className="text-center text-3xl font-extrabold text-gray-900">Create New Password</h2>
+                    <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">Create New Password</h2>
                 </div>
                 
                 {status.message && (
@@ -48,26 +48,26 @@ const ResetPassword = () => {
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">New Password</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">New Password</label>
                             <input
                                 type="password"
                                 {...register('password', { 
                                     required: 'Password is required',
                                     minLength: { value: 6, message: 'Password must be at least 6 characters' }
                                 })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
                             />
                             {errors.password && <span className="text-xs text-red-500">{errors.password.message}</span>}
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Confirm Password</label>
                             <input
                                 type="password"
                                 {...register('confirmPassword', { 
                                     validate: value => value === password || 'Passwords do not match'
                                 })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
                             />
                             {errors.confirmPassword && <span className="text-xs text-red-500">{errors.confirmPassword.message}</span>}
                         </div>
