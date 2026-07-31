@@ -25,7 +25,22 @@ const getMessages = async (req, res) => {
     }
 };
 
+const deleteMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await contactService.deleteMessage(id);
+        if (!deleted) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+        res.json({ message: 'Message deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting contact message:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     submitContact,
-    getMessages
+    getMessages,
+    deleteMessage
 };

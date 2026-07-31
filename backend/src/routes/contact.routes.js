@@ -6,7 +6,8 @@ const router = express.Router();
 
 router.post('/', contactController.submitContact);
 
-// Admin route
+// Admin routes
 router.get('/', authMiddleware, roleMiddleware(['admin']), contactController.getMessages);
+router.delete('/:id', authMiddleware, roleMiddleware(['admin']), contactController.deleteMessage);
 
 module.exports = router;

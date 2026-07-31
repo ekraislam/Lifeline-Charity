@@ -21,5 +21,6 @@ router.get('/payment-callback', donationController.paymentCallback);
 // Protected routes
 router.use(authMiddleware);
 router.get('/history', donationController.getHistory);
+router.get('/:id/receipt', donationController.getReceipt);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api from '../../api/axios?v=1';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 
@@ -10,7 +10,7 @@ const DonationHistory = () => {
     useEffect(() => {
         const fetchDonations = async () => {
             try {
-                const response = await api.get('/donations');
+                const response = await api.get('/donations/history');
                 setDonations(response.data);
             } catch (error) {
                 console.error("Error fetching donations", error);
@@ -99,12 +99,15 @@ const DonationHistory = () => {
                                             <p>
                                                 Donated on {format(new Date(donation.created_at), 'MMM dd, yyyy')}
                                             </p>
-                                            {donation.status === 'completed' && (
+                                            {donation.status === 'success' && (
                                                 <button 
                                                     onClick={() => downloadReceipt(donation.id)}
-                                                    className="ml-4 text-primary-600 hover:text-primary-900 font-medium text-sm"
+                                                    className="ml-4 px-3.5 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-xs rounded-lg shadow-sm transition-all duration-150 inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                                                 >
-                                                    Download Receipt
+                                                    <svg className="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                    </svg>
+                                                    <span>Download Receipt</span>
                                                 </button>
                                             )}
                                         </div>

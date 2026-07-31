@@ -14,7 +14,13 @@ const getMessages = async () => {
     return rows;
 };
 
+const deleteMessage = async (id) => {
+    const [result] = await db.query('DELETE FROM contact_messages WHERE id = ?', [id]);
+    return result.affectedRows > 0;
+};
+
 module.exports = {
     saveMessage,
-    getMessages
+    getMessages,
+    deleteMessage
 };

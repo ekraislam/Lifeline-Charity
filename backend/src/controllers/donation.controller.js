@@ -10,7 +10,7 @@ const donate = async (req, res) => {
         const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
         const host = req.headers['x-forwarded-host'] || req.get('host');
         const defaultBackend = `${protocol}://${host}`;
-        const rawBackendUrl = process.env.API_URL || defaultBackend;
+        const rawBackendUrl = defaultBackend || process.env.API_URL;
         const backendUrl = rawBackendUrl.replace(/\/+$/, '');
         const returnUrl = `${backendUrl}/api/donations/payment-callback`;
         const paymentData = await paymentGateway.processPayment(req.body.amount, 'USD', donationId, returnUrl);
@@ -59,4 +59,20 @@ const getHistory = async (req, res) => {
     }
 };
 
-module.exports = { donate, paymentCallback, getHistory };
+const getReceipt = async (req, res) => {
+    try {
+        const receipt = await donationService.getDonationReceipt(req.params.id, req.user.id);
+        res.json(receipt);
+    } catch (error) {
+        console.error(error);
+        if (error.message === 'Donation not found') {
+            return res.status(404).json({ message: error.message });
+        }
+        if (error.message === 'Unauthorized') {
+            return res.status(403).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+module.exports = { donate, paymentCallback, getHistory, getReceipt };

@@ -28,20 +28,32 @@ const getSystemStats = async () => {
         if (stats.usersByRole[row.role] !== undefined) stats.usersByRole[row.role] = row.count;
     });
 
+    // Generate last 6 months in chronological order
+    const months = [];
+    const monthTotals = {};
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthLabel = d.toLocaleString('en-US', { month: 'short' });
+        months.push(monthLabel);
+        monthTotals[monthLabel] = 0;
+    }
+
     const [trendRows] = await db.query(`
-        SELECT DATE_FORMAT(created_at, '%b') as month, MONTH(created_at) as month_num, SUM(amount) as total
+        SELECT DATE_FORMAT(created_at, '%b') as month, SUM(amount) as total
         FROM donations
         WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-        GROUP BY month, month_num ORDER BY month_num ASC
+        GROUP BY DATE_FORMAT(created_at, '%b')
     `);
 
-    if (trendRows.length === 0) {
-        stats.donationTrendLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-        stats.donationTrendData = [0, 0, 0, 0, 0, 0];
-    } else {
-        stats.donationTrendLabels = trendRows.map(r => r.month);
-        stats.donationTrendData = trendRows.map(r => parseFloat(r.total) || 0);
-    }
+    trendRows.forEach(r => {
+        if (monthTotals[r.month] !== undefined) {
+            monthTotals[r.month] = parseFloat(r.total) || 0;
+        }
+    });
+
+    stats.donationTrendLabels = months;
+    stats.donationTrendData = months.map(m => monthTotals[m]);
 
     return stats;
 };
@@ -304,7 +316,7 @@ const generateDonationReport = async () => {
 };
 
 const generateUserReport = async () => {
-    const users = await getUsers();
+    const users = await getUsers(0);
     const [[statRow]] = await db.query('SELECT COUNT(*) as total FROM users WHERE is_active = 1');
     const summary = [
         ['Total Users', users.length],

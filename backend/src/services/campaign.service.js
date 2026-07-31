@@ -2,10 +2,13 @@ const db = require('../config/db');
 
 const getCampaigns = async () => {
     const [rows] = await db.query(`
-        SELECT c.*, (c.raised_amount / c.goal_amount) * 100 AS progress,
-        (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image
+        SELECT c.*, COALESCE((c.raised_amount / NULLIF(c.goal_amount, 0)) * 100, 0) AS progress,
+        (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image,
+        cat.name as category_name
         FROM campaigns c
-        WHERE c.status = 'approved' AND c.raised_amount < c.goal_amount
+        LEFT JOIN categories cat ON c.category_id = cat.id
+        WHERE c.status IN ('approved', 'pending')
+        ORDER BY c.created_at DESC
     `);
     return rows.map(row => ({
         ...row,
@@ -49,7 +52,7 @@ const createCampaign = async (campaignData, userId) => {
     }
 
     const [result] = await db.query(
-        'INSERT INTO campaigns (ngo_id, category_id, title, description, goal_amount, deadline, is_featured, help_request_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        "INSERT INTO campaigns (ngo_id, category_id, title, description, goal_amount, deadline, is_featured, help_request_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved')",
         [ngoId, category_id || null, title, description, goal_amount, deadline || null, is_featured || false, help_request_id || null]
     );
 

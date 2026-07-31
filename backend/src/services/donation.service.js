@@ -8,10 +8,15 @@ const createDonation = async (userId, donationData) => {
         throw new Error('Campaign not found');
     }
     const campaign = campaigns[0];
-    if (campaign.status !== 'approved') {
-        throw new Error('Donations are only allowed for approved campaigns');
+    
+    // Parse decimal strings from database to numbers for accurate comparison
+    const raisedAmount = parseFloat(campaign.raised_amount) || 0;
+    const goalAmount = parseFloat(campaign.goal_amount) || 0;
+    
+    if (campaign.status !== 'approved' && campaign.status !== 'pending') {
+        throw new Error('Donations are only allowed for active campaigns');
     }
-    if (campaign.raised_amount >= campaign.goal_amount && campaign.goal_amount > 0) {
+    if (raisedAmount >= goalAmount && goalAmount > 0) {
         throw new Error('This campaign has already reached its goal amount');
     }
 
@@ -84,8 +89,36 @@ const getDonationHistory = async (userId) => {
     return rows;
 };
 
+const getDonationReceipt = async (donationId, userId) => {
+    const [rows] = await db.query(`
+        SELECT d.id, d.amount, d.created_at AS date, COALESCE(u.name, 'Anonymous') AS donor_name, c.title AS campaign_title, d.user_id 
+        FROM donations d 
+        LEFT JOIN users u ON d.user_id = u.id 
+        JOIN campaigns c ON d.campaign_id = c.id 
+        WHERE d.id = ?
+    `, [donationId]);
+    
+    if (rows.length === 0) {
+        throw new Error('Donation not found');
+    }
+    
+    const donation = rows[0];
+    if (donation.user_id !== userId) {
+        throw new Error('Unauthorized');
+    }
+    
+    return {
+        receipt_url: `receipt-${donation.id}`,
+        date: donation.date,
+        donor_name: donation.donor_name,
+        campaign_title: donation.campaign_title,
+        amount: donation.amount
+    };
+};
+
 module.exports = {
     createDonation,
     updatePaymentStatus,
-    getDonationHistory
+    getDonationHistory,
+    getDonationReceipt
 };

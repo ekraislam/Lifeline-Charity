@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import api from '../../api/axios';
+import api from '../../api/axios?v=1';
 
 const Donate = () => {
     const { id } = useParams(); // Campaign ID
@@ -38,8 +38,14 @@ const Donate = () => {
             
             // If there's a payment URL (mock callback), trigger it to complete the payment
             if (res.data.payment_url) {
-                // We use fetch here because the payment_url is an absolute URL
-                await fetch(res.data.payment_url);
+                try {
+                    const parsedUrl = new URL(res.data.payment_url);
+                    // Ensure we use the correct path relative to the axios baseURL
+                    const path = parsedUrl.pathname.replace(/^\/?api/, '') + parsedUrl.search;
+                    await api.get(path);
+                } catch (e) {
+                    console.error("Failed to trigger payment webhook:", e);
+                }
             }
 
             setStatus({ type: 'success', message: 'Thank you for your donation!' });

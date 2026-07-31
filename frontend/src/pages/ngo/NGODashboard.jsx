@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../../api/axios';
+import api from '../../api/axios?v=1';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 
 const STATUS_BADGE = {
@@ -43,19 +43,24 @@ const NGODashboard = () => {
     const totalRaised = campaigns.reduce((sum, c) => sum + parseFloat(c.raised_amount || 0), 0);
 
     const generateReport = () => {
-        const doc = new jsPDF();
-        doc.setFontSize(20);
-        doc.text('NGO Progress Report', 14, 22);
-        doc.setFontSize(12);
-        doc.text(`Generated on: ${format(new Date(), 'MMMM dd, yyyy')}`, 14, 32);
-        doc.text(`Total Campaigns: ${campaigns.length}`, 14, 45);
-        doc.text(`Total Raised: $${totalRaised.toLocaleString()}`, 14, 52);
-        doc.text(`Assigned Beneficiaries: ${assignedBeneficiaries.length}`, 14, 59);
+        try {
+            const doc = new jsPDF();
+            doc.setFontSize(20);
+            doc.text('NGO Progress Report', 14, 22);
+            doc.setFontSize(12);
+            doc.text(`Generated on: ${format(new Date(), 'MMMM dd, yyyy')}`, 14, 32);
+            doc.text(`Total Campaigns: ${campaigns.length}`, 14, 45);
+            doc.text(`Total Raised: $${totalRaised.toLocaleString()}`, 14, 52);
+            doc.text(`Assigned Beneficiaries: ${assignedBeneficiaries.length}`, 14, 59);
 
-        const tableColumn = ["ID", "Title", "Goal ($)", "Raised ($)", "Status"];
-        const tableRows = campaigns.map(c => [c.id, c.title, c.goal_amount, c.raised_amount, c.status]);
-        doc.autoTable({ head: [tableColumn], body: tableRows, startY: 70 });
-        doc.save('NGO_Progress_Report.pdf');
+            const tableColumn = ["ID", "Title", "Goal ($)", "Raised ($)", "Status"];
+            const tableRows = campaigns.map(c => [c.id, c.title, c.goal_amount || 0, c.raised_amount || 0, c.status]);
+            autoTable(doc, { head: [tableColumn], body: tableRows, startY: 70 });
+            doc.save('NGO_Progress_Report.pdf');
+        } catch (err) {
+            console.error("Failed to generate PDF report", err);
+            alert("Could not generate report. Please try again.");
+        }
     };
 
     if (loading) return <div className="p-12 text-center">Loading dashboard...</div>;

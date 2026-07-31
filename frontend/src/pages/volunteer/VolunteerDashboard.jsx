@@ -120,8 +120,8 @@ const VolunteerDashboard = () => {
         doc.setFont("times", "bolditalic");
         doc.setFontSize(16);
         doc.setTextColor(212, 175, 55); // gold
-        doc.text(`Total Volunteered Hours: ${stats?.total_hours || 0}`, 148, 155, { align: 'center' });
-        doc.text(`Participated Events: ${stats?.participated_events || 0}`, 148, 163, { align: 'center' });
+        doc.text(`Total Volunteered Hours: ${parseFloat(stats?.total_hours || 0).toFixed(1)}`, 148, 155, { align: 'center' });
+        doc.text(`Events Assigned: ${Math.max(stats?.events_assigned || 0, stats?.participated_events || 0)}`, 148, 163, { align: 'center' });
         
         // Load Signatures
         try {
@@ -156,6 +156,10 @@ const VolunteerDashboard = () => {
 
     if (loading) return <div className="p-12 text-center">Loading dashboard...</div>;
 
+    const eventCount = Math.max(stats?.events_assigned || 0, stats?.participated_events || 0);
+    const totalHours = parseFloat(stats?.total_hours || 0);
+    const isEligible = totalHours >= 10 && eventCount >= 2;
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Volunteer Dashboard</h1>
@@ -165,7 +169,7 @@ const VolunteerDashboard = () => {
                 <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
                         <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Hours</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{stats?.total_hours || 0}</dd>
+                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{totalHours.toFixed(1)}</dd>
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
@@ -177,15 +181,15 @@ const VolunteerDashboard = () => {
                 <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg flex flex-col items-center justify-center p-6 text-center">
                     <button
                         onClick={downloadCertificate}
-                        disabled={stats?.total_hours < 15 || stats?.participated_events < 5}
-                        title={stats?.total_hours < 15 || stats?.participated_events < 5 ? "You need at least 15 total hours and 5 participated events to download the certificate." : ""}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!isEligible}
+                        title={!isEligible ? "You need at least 10 total hours and 2 events to download the certificate." : ""}
+                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         Download Certificate
                     </button>
-                    {(stats?.total_hours < 15 || stats?.participated_events < 5) && (
+                    {!isEligible && (
                         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            Requires 15 hours & 5 events
+                            Requires 10 hours & 2 events
                         </p>
                     )}
                 </div>
@@ -253,10 +257,9 @@ const VolunteerDashboard = () => {
                             className="block w-full sm:w-auto rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         >
                             <option value="All">All Statuses</option>
-                            <option value="approved">Approved</option>
-                            <option value="pending">Pending</option>
+                            <option value="pending">Registered</option>
                             <option value="attended">Attended</option>
-                            <option value="cancelled">Cancelled</option>
+                            <option value="absent">Absent</option>
                         </select>
                     </div>
                 </div>
@@ -293,10 +296,10 @@ const VolunteerDashboard = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            ${actualStatus === 'approved' ? 'bg-green-100 text-green-800' :
-                                              actualStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                              'bg-gray-100 text-gray-800'}`}>
-                                            {actualStatus}
+                                            ${actualStatus === 'attended' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                              actualStatus === 'absent' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                                              'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                            {actualStatus === 'pending' ? 'Registered' : actualStatus.charAt(0).toUpperCase() + actualStatus.slice(1)}
                                         </span>
                                     </td>
                                 </tr>
