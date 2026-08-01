@@ -1,0 +1,79 @@
+import React, { useEffect } from 'react';
+import { io } from 'socket.io-client';
+
+let socketInstance = null;
+
+const getSocket = () => {
+    if (!socketInstance) {
+        try {
+            const socketUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000');
+            socketInstance = io(socketUrl, {
+                transports: ['websocket', 'polling'],
+                withCredentials: true,
+                autoConnect: true
+            });
+        } catch (e) {
+            console.warn("Socket.io client initialization warning:", e);
+        }
+    }
+    return socketInstance;
+};
+
+export const broadcastLocalCampaignUpdate = (detailData) => {
+    try {
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('lifeline_campaign_updated', { detail: detailData }));
+        }
+    } catch (e) {
+        console.warn("Local broadcast warning:", e);
+    }
+};
+
+export const useCampaignRealtime = (onUpdate) => {
+    useEffect(() => {
+        if (typeof onUpdate !== 'function') return;
+
+        const handleCampaignUpdated = (data) => {
+            try { onUpdate({ type: 'campaign_updated', ...data }); } catch (e) {}
+        };
+
+        const handleDonationSuccess = (data) => {
+            try { onUpdate({ type: 'donation_success', ...data }); } catch (e) {}
+        };
+
+        const handleLocalCustomEvent = (event) => {
+            try { onUpdate({ type: 'local_custom_event', ...(event?.detail || {}) }); } catch (e) {}
+        };
+
+        // Attach socket listeners safely
+        try {
+            const socket = getSocket();
+            if (socket) {
+                socket.on('campaign_updated', handleCampaignUpdated);
+                socket.on('donation_success', handleDonationSuccess);
+            }
+        } catch (err) {
+            console.warn("Socket event binding warning:", err);
+        }
+
+        // Attach local window listener
+        if (typeof window !== 'undefined') {
+            window.addEventListener('lifeline_campaign_updated', handleLocalCustomEvent);
+        }
+
+        return () => {
+            try {
+                const socket = getSocket();
+                if (socket) {
+                    socket.off('campaign_updated', handleCampaignUpdated);
+                    socket.off('donation_success', handleDonationSuccess);
+                }
+            } catch (e) {}
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('lifeline_campaign_updated', handleLocalCustomEvent);
+            }
+        };
+    }, [onUpdate]);
+};
+
+export default useCampaignRealtime;

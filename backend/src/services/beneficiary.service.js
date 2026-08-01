@@ -13,11 +13,13 @@ const submitHelpRequest = async (userId, data) => {
         beneficiaryId = rows[0].id;
     }
     
-    const { title, description, required_amount } = data;
+    const { title, description, required_amount, payment_method, account_holder_name, account_number } = data;
     
     const [result] = await db.query(
-        'INSERT INTO help_requests (beneficiary_id, title, description, required_amount) VALUES (?, ?, ?, ?)',
-        [beneficiaryId, title, description, required_amount || 0]
+        `INSERT INTO help_requests 
+         (beneficiary_id, title, description, required_amount, payment_method, account_holder_name, account_number) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [beneficiaryId, title, description, required_amount || 0, payment_method || 'Bank Transfer', account_holder_name || '', account_number || '']
     );
 
     const requestId = result.insertId;

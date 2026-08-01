@@ -25,7 +25,7 @@ const Login = () => {
         try {
             const response = await api.post('/auth/login', data);
             login(response.data.user, response.data.accessToken);
-            navigate('/dashboard'); // generic redirect, can be handled by role later
+            navigate('/dashboard');
         } catch (error) {
             setApiError(error.response?.data?.message || 'Login failed. Please try again.');
         } finally {
@@ -34,71 +34,77 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100">
-                <div>
-                    <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">Welcome Back</h2>
-                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
-                        Sign in to your Lifeline account
+        <div className="min-h-[85vh] flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+            <div className="max-w-md w-full space-y-8 card-premium p-8 sm:p-10">
+                <div className="text-center">
+                    <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">Lifeline Authentication</span>
+                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1">Welcome Back</h2>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Sign in to access your donor, NGO, or volunteer portal
                     </p>
                 </div>
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                    {apiError && <div className="p-3 bg-red-50 text-red-500 text-sm rounded-md">{apiError}</div>}
-                    <div className="rounded-md shadow-sm space-y-4">
+                    {apiError && (
+                        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
+                            <span>⚠️</span>
+                            <span>{apiError}</span>
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email address</label>
+                            <label className="form-label">Email Address</label>
                             <input
                                 type="email"
                                 {...register('email', { required: 'Email is required' })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm mt-1"
-                                placeholder="Email address"
+                                className="w-full mt-1"
+                                placeholder="name@example.com"
                             />
-                            {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
+                            {errors.email && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.email.message}</span>}
                         </div>
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+                            <label className="form-label">Password</label>
                             <div className="relative mt-1">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     {...register('password', { required: 'Password is required' })}
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                                    placeholder="Password"
+                                    className="w-full pr-10"
+                                    placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer"
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
                             </div>
-                            {errors.password && <span className="text-xs text-red-500">{errors.password.message}</span>}
+                            {errors.password && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.password.message}</span>}
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm">
-                            <Link to="/forgot-password" className="font-medium text-primary-600 hover:text-primary-500">
-                                Forgot your password?
-                            </Link>
-                        </div>
+                    <div className="flex items-center justify-end">
+                        <Link to="/forgot-password" className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline">
+                            Forgot your password?
+                        </Link>
                     </div>
 
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                        >
-                            {loading ? 'Signing in...' : 'Sign in'}
-                        </button>
-                    </div>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full py-4 text-xs uppercase tracking-wider disabled:opacity-50"
+                    >
+                        {loading ? 'Signing in...' : 'Sign In'}
+                    </button>
                 </form>
-                <div className="text-center mt-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
+
+                <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         Don't have an account?{' '}
-                        <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-                            Sign up
+                        <Link to="/register" className="font-extrabold text-primary-600 dark:text-primary-400 hover:underline">
+                            Create Account
                         </Link>
                     </p>
                 </div>

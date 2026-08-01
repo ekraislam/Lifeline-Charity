@@ -12,12 +12,14 @@
   --color-primary-800: #075985;
   --color-primary-900: #0c4a6e;
   
+  --color-secondary-50: #ecfdf5;
+  --color-secondary-100: #d1fae5;
   --color-secondary-500: #10b981;
   --color-secondary-600: #059669;
 
   /* Typography scale */
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif;
 
   /* Font sizes with refined line heights */
   --text-xs:   0.75rem;
@@ -52,7 +54,7 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-800 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300;
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200;
     font-size: 1rem;
     line-height: 1.8;
     letter-spacing: -0.011em;
@@ -60,158 +62,181 @@
     padding: 0;
   }
 
-  /* Heading hierarchy with better spacing */
+  /* Headings hierarchy with display font */
   h1 {
-    @apply font-bold tracking-tight leading-tight mb-4;
-    font-size: clamp(2rem, 5vw, 2.5rem);
-    letter-spacing: -0.03em;
-    line-height: 1.2;
+    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif;
+    @apply font-extrabold tracking-tight leading-tight text-gray-900 dark:text-white mb-4;
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+    letter-spacing: -0.035em;
+    line-height: 1.15;
   }
   h2 {
-    @apply font-semibold tracking-tight mb-3;
-    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif;
+    @apply font-bold tracking-tight text-gray-900 dark:text-white mb-3;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
     letter-spacing: -0.025em;
-    line-height: 1.3;
+    line-height: 1.25;
   }
   h3 {
-    @apply font-semibold mb-2;
+    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif;
+    @apply font-bold text-gray-900 dark:text-white mb-2;
     font-size: clamp(1.25rem, 3vw, 1.75rem);
-    letter-spacing: -0.015em;
-    line-height: 1.35;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
   }
   h4 {
-    @apply font-semibold mb-2;
+    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif;
+    @apply font-semibold text-gray-900 dark:text-white mb-2;
     font-size: 1.125rem;
     letter-spacing: -0.01em;
     line-height: 1.4;
   }
   h5, h6 {
-    @apply font-medium mb-1;
+    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif;
+    @apply font-medium text-gray-800 dark:text-gray-200 mb-1;
     letter-spacing: -0.008em;
     line-height: 1.45;
   }
 
-  /* Paragraph spacing */
+  /* Paragraph spacing & contrast */
   p {
-    @apply text-gray-800 dark:text-gray-300 mb-4;
+    @apply text-gray-600 dark:text-gray-300 mb-4;
     line-height: 1.7;
   }
 
   /* Labels */
   label {
-    @apply font-medium;
-    letter-spacing: -0.005em;
+    @apply font-semibold text-gray-800 dark:text-gray-200 text-xs uppercase tracking-wider;
+    letter-spacing: 0.05em;
   }
 
-  /* Links – clear primary color and underline on hover */
+  /* Links */
   a {
-    @apply text-primary-600 underline transition-colors duration-150;
+    @apply text-primary-600 dark:text-primary-400 transition-colors duration-150;
   }
   a:hover {
-    @apply text-primary-700 no-underline;
+    @apply text-primary-700 dark:text-primary-300;
   }
 
-  /* Table text – higher contrast in light and dark mode */
+  /* Form Control Base */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="url"],
+  input[type="tel"],
+  input[type="file"],
+  select,
+  textarea {
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10 dark:focus:ring-primary-400/10 outline-none transition-all duration-200 shadow-2xs;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-400 dark:text-gray-500 opacity-100;
+  }
+
+  /* Table Base */
   table {
-    @apply text-gray-800 dark:text-gray-200;
+    @apply text-gray-900 dark:text-gray-100 w-full border-collapse;
   }
-  th, td {
-    @apply border border-gray-200 dark:border-gray-600;
-    @apply px-4 py-2;
-  }
-  /* Table row hover effect */
-  tbody tr:hover {
-    @apply bg-gray-100 dark:bg-gray-700;
-  }
-  /* Input placeholder color for readability */
-  input::placeholder, textarea::placeholder {
-    @apply text-gray-500 dark:text-gray-400;
-  }
-
-  /* Card hover – subtle elevation for better visual hierarchy */
-  .bg-white.dark\:bg-gray-800:hover {
-    @apply shadow-lg transition-shadow duration-200;
-  }
-
   th {
-    @apply font-semibold;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    @apply bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-xs text-gray-500 dark:text-gray-400 font-bold uppercase text-[11px] tracking-wider border-b border-gray-200 dark:border-gray-800 px-5 py-3.5 text-left sticky top-0 z-10;
   }
-
   td {
-    line-height: 1.5;
+    @apply border-b border-gray-100 dark:border-gray-800/60 px-5 py-4 text-sm text-gray-800 dark:text-gray-200;
+  }
+  tbody tr {
+    @apply transition-colors duration-150;
+  }
+  tbody tr:hover {
+    @apply bg-gray-50/80 dark:bg-gray-800/50;
   }
 
-  /* Button base */
+  /* Buttons */
   button {
     font-family: inherit;
     letter-spacing: -0.005em;
-    @apply font-medium;
-  }
-
-  /* Code */
-  code, pre {
-    font-feature-settings: normal;
-    letter-spacing: 0;
+    @apply font-bold transition-all duration-200 cursor-pointer;
   }
 
   /* Horizontal rule */
   hr {
-    @apply border-gray-200 dark:border-gray-700;
+    @apply border-gray-200 dark:border-gray-800;
   }
 }
 
-/* ─── Utility Layer ─── */
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* ─── UI Utility Design System Tokens ─── */
 @layer utilities {
-  /* Section spacing */
+  /* Glassmorphism Panels */
+  .glass-panel {
+    @apply backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border border-white/40 dark:border-gray-800/80 shadow-lg;
+  }
+  .glass-card {
+    @apply backdrop-blur-md bg-white/70 dark:bg-gray-800/70 border border-gray-100/80 dark:border-gray-700/60 shadow-xl;
+  }
+
+  /* Modern Card Elevation */
+  .card-premium {
+    @apply rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+  }
+
+  /* Button Presets */
+  .btn-primary {
+    @apply px-6 py-3.5 rounded-2xl font-black text-sm text-white bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20 hover:shadow-lg hover:shadow-primary-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2;
+  }
+  .btn-secondary {
+    @apply px-6 py-3.5 rounded-2xl font-bold text-sm text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2;
+  }
+  .btn-success {
+    @apply px-6 py-3.5 rounded-2xl font-black text-sm text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2;
+  }
+  .btn-danger {
+    @apply px-6 py-3.5 rounded-2xl font-bold text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/80 border border-rose-200 dark:border-rose-800 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2;
+  }
+
+  /* Skeleton Loading Pulse */
+  .skeleton-pulse {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-800 rounded-2xl;
+  }
+
+  /* Section Spacing */
   .section-gap {
     @apply py-16 sm:py-20 lg:py-24;
   }
-
   .section-gap-sm {
     @apply py-10 sm:py-14;
   }
-
-  /* Card spacing */
   .card-padding {
     @apply p-6 sm:p-8;
   }
-
-  /* Text balance for headings */
   .text-balance {
     text-wrap: balance;
   }
-
-  /* Stat number style */
   .stat-number {
-    @apply text-3xl font-bold tracking-tight tabular-nums;
+    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif;
+    @apply text-3xl font-black tracking-tight tabular-nums text-gray-900 dark:text-white;
     letter-spacing: -0.03em;
-  }
-
-  /* Caption / meta text */
-  .text-meta {
-    @apply text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
-    letter-spacing: 0.06em;
-  }
-
-  /* Form label style */
-  .form-label {
-    @apply block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5;
-    letter-spacing: -0.005em;
-  }
-
-  /* Smooth number transitions */
-  .tabular {
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
-  }
-
-  /* Prose fix for dark mode */
-  .prose-dark p,
-  .prose-dark li {
-    @apply text-gray-300;
   }
 
   /* Custom Animations */
@@ -221,22 +246,14 @@
     66% { transform: translate(-20px, 20px) scale(0.9); }
     100% { transform: translate(0px, 0px) scale(1); }
   }
-  
   @keyframes fade-in-up {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 
   .animate-blob {
     animation: blob 7s infinite;
   }
-  
   .animate-fade-in-up {
     animation: fade-in-up 0.8s ease-out forwards;
     opacity: 0;

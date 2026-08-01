@@ -60,7 +60,62 @@ const initDb = async () => {
             );
         `);
 
-        // Step 3: Ensure default categories exist
+        // Ensure help_requests payment columns exist
+        try {
+            await dbPool.query(`
+                ALTER TABLE help_requests 
+                ADD COLUMN IF NOT EXISTS payment_method ENUM('Bank Transfer', 'bKash', 'Nagad', 'Rocket') DEFAULT 'Bank Transfer',
+                ADD COLUMN IF NOT EXISTS account_holder_name VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS account_number VARCHAR(255);
+            `);
+        } catch (e) {
+            // Ignore if column existing check varies by MySQL version
+        }
+
+        // Ensure campaigns status ENUM supports target_reached, processing_payout
+        try {
+            await dbPool.query(`
+                ALTER TABLE campaigns 
+                MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'target_reached', 'processing_payout', 'completed', 'cancelled') DEFAULT 'pending';
+            `);
+        } catch (e) {}
+
+        // Ensure campaign_payouts table exists
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS campaign_payouts (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                campaign_id INT NOT NULL,
+                beneficiary_id INT NOT NULL,
+                ngo_id INT NOT NULL,
+                amount DECIMAL(15, 2) NOT NULL,
+                payment_method ENUM('Bank Transfer', 'bKash', 'Nagad', 'Rocket') NOT NULL,
+                account_holder_name VARCHAR(255) NOT NULL,
+                account_number VARCHAR(255) NOT NULL,
+                transaction_id VARCHAR(255) NULL,
+                payment_proof VARCHAR(255),
+                payment_date DATETIME,
+                beneficiary_confirmed TINYINT(1) DEFAULT 0,
+                beneficiary_confirmation_date DATETIME,
+                notes TEXT,
+                admin_notes TEXT,
+                status ENUM('Pending', 'Under Review', 'Approved', 'Rejected', 'Completed', 'Paid', 'Confirmed', 'Failed') DEFAULT 'Pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+                FOREIGN KEY (beneficiary_id) REFERENCES beneficiaries(id) ON DELETE CASCADE,
+                FOREIGN KEY (ngo_id) REFERENCES ngo_profiles(id) ON DELETE CASCADE
+            );
+        `);
+
+        // Ensure status column and transaction_id column modifications in existing table
+        try {
+            await dbPool.query(`
+                ALTER TABLE campaign_payouts 
+                MODIFY COLUMN status ENUM('Pending', 'Under Review', 'Approved', 'Rejected', 'Completed', 'Paid', 'Confirmed', 'Failed') DEFAULT 'Pending',
+                MODIFY COLUMN transaction_id VARCHAR(255) NULL,
+                ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+            `);
+        } catch (e) {}
         const [cats] = await dbPool.query("SELECT COUNT(*) as count FROM categories");
         if (cats[0].count === 0) {
             console.log("Seeding default categories...");

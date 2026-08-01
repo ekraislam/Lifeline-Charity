@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
 import { useDonation } from '../../context/DonationContext';
+import useCampaignRealtime from '../../hooks/useCampaignRealtime';
 
 const CampaignDetail = () => {
     const { id } = useParams();
@@ -11,119 +12,164 @@ const CampaignDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchCampaignAndRecommendations = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                
-                // Fetch the specific campaign details
-                const response = await api.get(`/campaigns/${id}`);
-                const campaignData = response.data;
-                setCampaign(campaignData);
+    const fetchCampaignAndRecommendations = useCallback(async () => {
+        try {
+            setError(null);
+            
+            // Fetch the specific campaign details
+            const response = await api.get(`/campaigns/${id}`);
+            const campaignData = response.data;
+            setCampaign(campaignData);
 
-                // Fetch recommendations of the same category
-                const allRes = await api.get('/campaigns');
-                const recommendedList = allRes.data
-                    .filter(c => c.id !== campaignData.id && c.category_id === campaignData.category_id)
-                    .slice(0, 3);
-                setRecommendations(recommendedList);
-            } catch (err) {
-                console.error("Error fetching campaign details", err);
-                setError(err.response?.data?.message || "Error fetching campaign details.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchCampaignAndRecommendations();
+            // Fetch recommendations of the same category
+            const allRes = await api.get('/campaigns');
+            const recommendedList = allRes.data
+                .filter(c => c.id !== campaignData.id && c.category_id === campaignData.category_id)
+                .slice(0, 3);
+            setRecommendations(recommendedList);
+        } catch (err) {
+            console.error("Error fetching campaign details", err);
+            setError(err.response?.data?.message || "Error fetching campaign details.");
+        } finally {
+            setLoading(false);
+        }
     }, [id]);
+
+    useEffect(() => {
+        setLoading(true);
+        fetchCampaignAndRecommendations();
+    }, [fetchCampaignAndRecommendations]);
+
+    const handleRealtimeDetailUpdate = useCallback((eventData) => {
+        if (!eventData) return;
+        const targetId = String(eventData.campaign_id || eventData.id || '');
+        if (!targetId || targetId === String(id)) {
+            fetchCampaignAndRecommendations();
+        }
+    }, [id, fetchCampaignAndRecommendations]);
+
+    // Real-time Socket.io & local updates
+    useCampaignRealtime(handleRealtimeDetailUpdate);
 
     if (loading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-12">
-                <div className="animate-pulse h-96 bg-gray-200 dark:bg-gray-700 rounded-md mb-8"></div>
+            <div className="max-w-7xl mx-auto px-4 py-12 space-y-8">
+                <div className="skeleton-pulse h-96 w-full"></div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
-                    <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
-                    <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                    <div className="skeleton-pulse h-48 w-full"></div>
+                    <div className="skeleton-pulse h-48 w-full"></div>
+                    <div className="skeleton-pulse h-48 w-full"></div>
                 </div>
             </div>
         );
     }
 
     if (error) {
-        return <div className="max-w-7xl mx-auto px-4 py-12 text-center text-red-500 font-medium">{error}</div>;
+        return <div className="max-w-7xl mx-auto px-4 py-12 text-center text-rose-500 font-extrabold">{error}</div>;
     }
 
     if (!campaign) {
-        return <div className="max-w-7xl mx-auto px-4 py-12 text-center">Campaign not found.</div>;
+        return <div className="max-w-7xl mx-auto px-4 py-12 text-center text-gray-500 font-bold">Campaign not found.</div>;
     }
 
-    const progress = Math.min(100, (parseFloat(campaign.raised_amount || 0) / parseFloat(campaign.goal_amount || 1)) * 100);
+    const raised = parseFloat(campaign.raised_amount || 0);
+    const goal = parseFloat(campaign.goal_amount || 1);
+    const progress = Math.min(100, (raised / goal) * 100);
+    const remainingAmount = Math.max(0, goal - raised);
+    const isCompleted = campaign.status === 'completed' || raised >= goal || (campaign.deadline && new Date(campaign.deadline) <= new Date());
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="lg:grid lg:grid-cols-2 lg:gap-8 mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+            <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
                 {/* Image Gallery */}
-                <div>
-                    <div className="w-full h-96 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md">
+                <div className="lg:col-span-7 space-y-4">
+                    <div className="w-full h-[420px] bg-gray-100 dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-800 relative">
                         {campaign.gallery && campaign.gallery[0] ? (
                             <img src={getMediaUrl(campaign.gallery[0])} alt={campaign.title} className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">No Image Available</div>
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">No Image Available</div>
                         )}
+                        <span className={`absolute top-4 right-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest backdrop-blur-md shadow-md border ${
+                            isCompleted ? 'bg-emerald-600/90 text-white border-emerald-400' : 'bg-primary-600/90 text-white border-primary-400'
+                        }`}>
+                            {isCompleted ? '🎉 Campaign Completed' : '📢 Active Campaign'}
+                        </span>
                     </div>
+
                     {campaign.gallery && campaign.gallery.length > 1 && (
-                        <div className="mt-4 grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-4 gap-3">
                             {campaign.gallery.slice(1).map((img, idx) => (
-                                <img key={idx} src={getMediaUrl(img)} className="h-20 w-full object-cover rounded-md" alt={`Gallery ${idx}`} />
+                                <div key={idx} className="h-24 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-2xs">
+                                    <img src={getMediaUrl(img)} className="h-full w-full object-cover hover:scale-105 transition-transform" alt={`Gallery ${idx}`} />
+                                </div>
                             ))}
                         </div>
                     )}
                 </div>
 
-                {/* Details */}
-                <div className="mt-8 lg:mt-0">
-                    <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">{campaign.title}</h1>
-                    <div className="mt-4 border-t border-b border-gray-200 dark:border-gray-700 py-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-3xl font-bold text-primary-600">${parseFloat(campaign.raised_amount || 0).toLocaleString()}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">raised of ${parseFloat(campaign.goal_amount || 0).toLocaleString()} goal</p>
+                {/* Campaign Detail Card */}
+                <div className="lg:col-span-5 mt-8 lg:mt-0 card-premium p-8 flex flex-col justify-between space-y-6">
+                    <div>
+                        {campaign.ngo_org_name && (
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs uppercase tracking-wider mb-3">
+                                🏢 {campaign.ngo_org_name}
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">{campaign.status}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+                        )}
+
+                        <h1 className="font-display text-2xl sm:text-3xl font-black text-gray-900 dark:text-white leading-tight">{campaign.title}</h1>
+                        
+                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-6">
+                            {/* Metric Grid */}
+                            <div className="grid grid-cols-3 gap-3 text-center">
+                                <div className="bg-emerald-50/60 dark:bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">${raised.toLocaleString()}</p>
+                                    <p className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300">Raised</p>
+                                </div>
+                                <div className="bg-gray-50 dark:bg-gray-900 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                    <p className="text-xl font-black text-gray-900 dark:text-white">${goal.toLocaleString()}</p>
+                                    <p className="text-[10px] uppercase font-bold text-gray-400">Goal</p>
+                                </div>
+                                <div className="bg-indigo-50/60 dark:bg-indigo-950/40 p-3.5 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                                    <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">${remainingAmount.toLocaleString()}</p>
+                                    <p className="text-[10px] uppercase font-bold text-indigo-800 dark:text-indigo-300">Needed</p>
+                                </div>
+                            </div>
+
+                            {/* Animated Progress Bar */}
+                            <div className="space-y-1.5">
+                                <div className="flex justify-between text-xs font-bold">
+                                    <span className="text-primary-600 dark:text-primary-400">{progress.toFixed(1)}% Goal Reached</span>
+                                    <span className="text-gray-400">{campaign.donor_count || 0} Donors</span>
+                                </div>
+                                <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
+                                    <div
+                                        className={`h-3 rounded-full transition-all duration-700 ${
+                                            isCompleted ? 'bg-emerald-500' : 'bg-gradient-to-r from-primary-500 to-indigo-600'
+                                        }`}
+                                        style={{ width: `${progress}%` }}
+                                    ></div>
+                                </div>
                             </div>
                         </div>
-                        <div className="mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                            <div className="bg-primary-600 h-3 rounded-full" style={{ width: `${progress}%` }}></div>
+
+                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">About this cause</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{campaign.description}</p>
                         </div>
                     </div>
 
-                    <div className="mt-6">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">About this campaign</h3>
-                        <div className="mt-2 prose prose-sm text-gray-500 dark:text-gray-400">
-                            <p>{campaign.description}</p>
-                        </div>
-                    </div>
-
-                    <div className="mt-8">
-                        {parseFloat(campaign.raised_amount) >= parseFloat(campaign.goal_amount) && parseFloat(campaign.goal_amount) > 0 ? (
-                            <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-md text-center font-medium">
-                                🎉 This campaign has reached its goal! Thank you to all donors.
+                    <div className="pt-4">
+                        {isCompleted ? (
+                            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-2xl text-center text-xs font-bold">
+                                🎉 Target reached or campaign completed. Donations are closed.
                             </div>
-                        ) : campaign.status === 'approved' ? (
+                        ) : (
                             <button
                                 onClick={() => openDonationModal(campaign)}
-                                className="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-2xl shadow-xl text-lg font-black text-white bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 focus:outline-none transition-all duration-200 transform hover:-translate-y-0.5"
+                                className="btn-primary w-full py-4 text-sm uppercase tracking-wider"
                             >
-                                Donate Now
+                                ❤️ Donate Now
                             </button>
-                        ) : (
-                            <div className="p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md text-center font-medium">
-                                This campaign is currently {campaign.status}. Donations are disabled.
-                            </div>
                         )}
                     </div>
                 </div>
@@ -131,34 +177,26 @@ const CampaignDetail = () => {
 
             {/* Recommendations Section */}
             {recommendations.length > 0 && (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-12">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Recommended Campaigns</h2>
+                <div className="border-t border-gray-100 dark:border-gray-800 pt-12 space-y-6">
+                    <h2 className="font-display text-2xl font-black text-gray-900 dark:text-white">Recommended Campaigns</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {recommendations.map(item => (
-                            <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:-translate-y-1 border border-gray-100">
-                                <div className="h-48 bg-gray-200 dark:bg-gray-700">
+                            <div key={item.id} className="card-premium overflow-hidden flex flex-col group">
+                                <div className="h-48 bg-gray-100 dark:bg-gray-800 relative">
                                     {item.gallery && item.gallery[0] ? (
-                                        <img src={`${import.meta.env.VITE_API_URL}${item.gallery[0]}`} alt={item.title} className="w-full h-full object-cover" />
+                                        <img src={getMediaUrl(item.gallery[0])} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-xs">No Image</div>
                                     )}
                                 </div>
-                                <div className="p-6 flex-grow flex flex-col">
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 truncate" title={item.title}>{item.title}</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{item.description}</p>
-                                    
-                                    <div className="mt-auto">
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="font-semibold text-primary-600">${parseFloat(item.raised_amount || 0).toLocaleString()} raised</span>
-                                            <span className="text-gray-500 dark:text-gray-400">Goal: ${parseFloat(item.goal_amount || 0).toLocaleString()}</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-4">
-                                            <div className="bg-primary-600 h-1.5 rounded-full" style={{ width: `${Math.min(100, (parseFloat(item.raised_amount || 0) / parseFloat(item.goal_amount || 1)) * 100)}%` }}></div>
-                                        </div>
-                                        <Link to={`/campaigns/${item.id}`} className="block w-full text-center bg-primary-50 border border-primary-500 text-primary-700 hover:bg-primary-100 font-medium py-1.5 rounded-md text-sm transition-colors">
-                                            View Details
-                                        </Link>
+                                <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                                    <div>
+                                        <h3 className="font-display text-base font-black text-gray-900 dark:text-white truncate" title={item.title}>{item.title}</h3>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{item.description}</p>
                                     </div>
+                                    <Link to={`/campaigns/${item.id}`} className="btn-secondary py-2.5 text-xs text-center">
+                                        View Details
+                                    </Link>
                                 </div>
                             </div>
                         ))}

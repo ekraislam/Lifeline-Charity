@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
     goal_amount DECIMAL(15, 2) NOT NULL,
     raised_amount DECIMAL(15, 2) DEFAULT 0.00,
     deadline DATETIME,
-    status ENUM('pending', 'approved', 'rejected', 'completed', 'cancelled') DEFAULT 'pending',
+    status ENUM('pending', 'approved', 'rejected', 'target_reached', 'processing_payout', 'completed', 'cancelled') DEFAULT 'pending',
     is_featured BOOLEAN DEFAULT FALSE,
     help_request_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -169,6 +169,9 @@ CREATE TABLE IF NOT EXISTS help_requests (
     admin_note TEXT,
     required_amount DECIMAL(15, 2),
     assigned_ngo_id INT,
+    payment_method ENUM('Bank Transfer', 'bKash', 'Nagad', 'Rocket') DEFAULT 'Bank Transfer',
+    account_holder_name VARCHAR(255),
+    account_number VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (beneficiary_id) REFERENCES beneficiaries(id) ON DELETE CASCADE,
@@ -298,5 +301,31 @@ CREATE TABLE IF NOT EXISTS ai_verification_reports (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (help_request_id) REFERENCES help_requests(id) ON DELETE CASCADE
 );
+
+-- 24. Campaign Payouts
+CREATE TABLE IF NOT EXISTS campaign_payouts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    campaign_id INT NOT NULL,
+    beneficiary_id INT NOT NULL,
+    ngo_id INT NOT NULL,
+    amount DECIMAL(15, 2) NOT NULL,
+    payment_method ENUM('Bank Transfer', 'bKash', 'Nagad', 'Rocket') NOT NULL,
+    account_holder_name VARCHAR(255) NOT NULL,
+    account_number VARCHAR(255) NOT NULL,
+    transaction_id VARCHAR(255) NULL,
+    payment_proof VARCHAR(255),
+    payment_date DATETIME,
+    beneficiary_confirmed TINYINT(1) DEFAULT 0,
+    beneficiary_confirmation_date DATETIME,
+    notes TEXT,
+    admin_notes TEXT,
+    status ENUM('Pending', 'Under Review', 'Approved', 'Rejected', 'Completed', 'Paid', 'Confirmed', 'Failed') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY (beneficiary_id) REFERENCES beneficiaries(id) ON DELETE CASCADE,
+    FOREIGN KEY (ngo_id) REFERENCES ngo_profiles(id) ON DELETE CASCADE
+);
+
 
 

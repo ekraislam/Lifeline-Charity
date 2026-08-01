@@ -41,7 +41,6 @@ const Profile = () => {
             await api.put('/profile', data);
             setStatus({ type: 'success', message: 'Profile updated successfully.' });
             
-            // Update user context with new name and email
             const updatedUser = { ...user, name: data.name, email: data.email };
             login(updatedUser, localStorage.getItem('token'));
         } catch (error) {
@@ -73,125 +72,136 @@ const Profile = () => {
             const response = await api.post('/profile/avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setStatus({ type: 'success', message: 'Profile photo updated.' });
+            setStatus({ type: 'success', message: 'Profile photo updated successfully.' });
             
-            // Optionally update user context if photo URL is stored there
             const updatedUser = { ...user, avatar: response.data.avatarUrl };
-            login(updatedUser, localStorage.getItem('token')); // refresh user data in context
+            login(updatedUser, localStorage.getItem('token'));
         } catch (error) {
             setStatus({ type: 'error', message: 'Failed to upload photo.' });
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Loading profile...</div>;
+    if (loading) return <div className="p-12 text-center text-gray-500 font-medium">Loading account settings...</div>;
 
     return (
-        <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Account Settings</h1>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+            <div>
+                <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">Account Preferences</span>
+                <h1 className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1">Profile & Security Settings</h1>
+            </div>
 
             {status.message && (
-                <div className={`mb-6 p-4 rounded-md ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                    {status.message}
+                <div className={`p-4 rounded-2xl border text-xs font-bold flex items-center gap-2 ${
+                    status.type === 'success'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                        : 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300'
+                }`}>
+                    <span>{status.type === 'success' ? '✓' : '⚠️'}</span>
+                    <span>{status.message}</span>
                 </div>
             )}
 
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">Profile Picture</h2>
-                    <div className="mt-4 flex items-center">
-                        <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600">
-                            {photoPreview ? (
-                                <img src={photoPreview} alt="Profile" className="h-full w-full object-cover" />
-                            ) : (
-                                <svg className="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                            )}
-                        </div>
-                        <div className="ml-5">
-                            <label className="cursor-pointer bg-white dark:bg-gray-800 py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                                <span>Change</span>
-                                <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
-                            </label>
-                        </div>
+            {/* Profile Avatar Card */}
+            <div className="card-premium p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                    <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-4 border-white dark:border-gray-800 shadow-md">
+                        {photoPreview ? (
+                            <img src={photoPreview} alt="Profile" className="h-full w-full object-cover" />
+                        ) : (
+                            <div className="h-full w-full bg-gradient-to-tr from-primary-600 to-indigo-600 text-white font-black flex items-center justify-center text-3xl">
+                                {(user?.name || 'U').charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <h2 className="font-display text-xl font-black text-gray-900 dark:text-white">{user?.name}</h2>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user?.email}</p>
+                        <span className="inline-flex items-center px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300 mt-2">
+                            {user?.role}
+                        </span>
                     </div>
                 </div>
 
-                <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Personal Information</h2>
-                    <form onSubmit={handleSubmit(onUpdateProfile)} className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
-                                <input type="text" {...register('name', { required: 'Username is required' })} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-                                {errors.name && <span className="text-xs text-red-500">{errors.name.message}</span>}
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
-                                <input type="email" {...register('email', { required: 'Email is required' })} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-                                {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Phone Number</label>
-                                <input type="text" {...register('phone')} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Address</label>
-                                <input type="text" {...register('address')} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-                            </div>
-                        </div>
-
-                        <div className="pt-4">
-                            <button type="submit" className="bg-primary-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                                Save Profile
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                <label className="btn-secondary py-2.5 px-4 text-xs cursor-pointer">
+                    <span>📷 Change Photo</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                </label>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-                <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Password</h2>
-                    <form onSubmit={handlePasswordSubmit(onChangePassword)} className="space-y-4 max-w-md">
+            {/* Personal Details Form */}
+            <div className="card-premium p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-black text-gray-900 dark:text-white">Personal Information</h2>
+                <form onSubmit={handleSubmit(onUpdateProfile)} className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Current Password</label>
-                            <div className="relative mt-1">
-                                <input type={showOldPassword ? 'text' : 'password'} {...registerPassword('oldPassword', { required: 'Required' })} className="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowOldPassword(!showOldPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
-                                >
-                                    {showOldPassword ? <FaEyeSlash /> : <FaEye />}
-                                </button>
-                            </div>
-                            {passwordErrors.oldPassword && <span className="text-xs text-red-500">{passwordErrors.oldPassword.message}</span>}
+                            <label className="form-label">Full Name</label>
+                            <input type="text" {...register('name', { required: 'Name is required' })} className="w-full mt-1" />
+                            {errors.name && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.name.message}</span>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">New Password</label>
-                            <div className="relative mt-1">
-                                <input type={showNewPassword ? 'text' : 'password'} {...registerPassword('newPassword', { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } })} className="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
-                                >
-                                    {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-                                </button>
-                            </div>
-                            {passwordErrors.newPassword && <span className="text-xs text-red-500">{passwordErrors.newPassword.message}</span>}
+                            <label className="form-label">Email Address</label>
+                            <input type="email" {...register('email', { required: 'Email is required' })} className="w-full mt-1" />
+                            {errors.email && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.email.message}</span>}
                         </div>
-                        <div className="pt-2">
-                            <button type="submit" className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                                Update Password
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label className="form-label">Phone Number</label>
+                            <input type="text" {...register('phone')} className="w-full mt-1" placeholder="+1 (555) 000-0000" />
+                        </div>
+                        <div>
+                            <label className="form-label">Address</label>
+                            <input type="text" {...register('address')} className="w-full mt-1" placeholder="City, Country" />
+                        </div>
+                    </div>
+
+                    <div className="pt-2">
+                        <button type="submit" className="btn-primary py-3 px-6 text-xs uppercase tracking-wider">
+                            Save Profile Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {/* Password Change Form */}
+            <div className="card-premium p-6 sm:p-8 space-y-6">
+                <h2 className="font-display text-xl font-black text-gray-900 dark:text-white">Security & Password</h2>
+                <form onSubmit={handlePasswordSubmit(onChangePassword)} className="space-y-4 max-w-md">
+                    <div>
+                        <label className="form-label">Current Password</label>
+                        <div className="relative mt-1">
+                            <input type={showOldPassword ? 'text' : 'password'} {...registerPassword('oldPassword', { required: 'Required' })} className="w-full pr-10" />
+                            <button
+                                type="button"
+                                onClick={() => setShowOldPassword(!showOldPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer"
+                            >
+                                {showOldPassword ? <FaEyeSlash /> : <FaEye />}
                             </button>
                         </div>
-                    </form>
-                </div>
+                        {passwordErrors.oldPassword && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{passwordErrors.oldPassword.message}</span>}
+                    </div>
+                    <div>
+                        <label className="form-label">New Password</label>
+                        <div className="relative mt-1">
+                            <input type={showNewPassword ? 'text' : 'password'} {...registerPassword('newPassword', { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } })} className="w-full pr-10" />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer"
+                            >
+                                {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                        </div>
+                        {passwordErrors.newPassword && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{passwordErrors.newPassword.message}</span>}
+                    </div>
+                    <div className="pt-2">
+                        <button type="submit" className="btn-secondary py-3 px-6 text-xs uppercase tracking-wider">
+                            Update Password
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );

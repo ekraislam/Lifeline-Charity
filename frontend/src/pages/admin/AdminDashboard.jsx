@@ -4,14 +4,16 @@ import api from '../../api/axios';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 
+import { ThemeContext } from '../../context/ThemeContext';
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const StatCard = ({ label, value, color = 'text-gray-900 dark:text-white', icon }) => (
-    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all rounded-xl border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-xs hover:shadow-md transition-all rounded-2xl border border-gray-100 dark:border-gray-700">
         <div className="px-5 py-5 flex items-center justify-between">
             <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</dt>
-                <dd className={`mt-1 text-2xl font-bold ${color}`}>{value ?? '—'}</dd>
+                <dt className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</dt>
+                <dd className={`mt-1 text-2xl font-black ${color}`}>{value ?? '—'}</dd>
             </div>
             <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center text-2xl">
                 {icon}
@@ -34,6 +36,7 @@ const quickLinks = [
 ];
 
 const AdminDashboard = () => {
+    const { isDark } = React.useContext(ThemeContext);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -45,8 +48,8 @@ const AdminDashboard = () => {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading Admin Dashboard...</div>;
-    if (error) return <div className="p-12 text-center text-red-500">{error}</div>;
+    if (loading) return <div className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium">Loading Admin Dashboard...</div>;
+    if (error) return <div className="p-12 text-center text-rose-500 font-bold">{error}</div>;
 
     const barData = {
         labels: stats?.donationTrendLabels || ['Jan','Feb','Mar','Apr','May','Jun'],
@@ -69,7 +72,11 @@ const AdminDashboard = () => {
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                titleColor: isDark ? '#ffffff' : '#0f172a',
+                bodyColor: isDark ? '#cbd5e1' : '#334155',
+                borderColor: isDark ? '#334155' : '#e2e8f0',
+                borderWidth: 1,
                 titleFont: { family: 'Inter', size: 13, weight: '600' },
                 bodyFont: { family: 'Inter', size: 12 },
                 padding: 10,
@@ -82,12 +89,13 @@ const AdminDashboard = () => {
         scales: {
             x: {
                 grid: { display: false },
-                ticks: { font: { family: 'Inter', size: 12, weight: '500' } }
+                ticks: { color: isDark ? '#9ca3af' : '#4b5563', font: { family: 'Inter', size: 12, weight: '500' } }
             },
             y: {
-                grid: { color: 'rgba(226, 232, 240, 0.6)' },
+                grid: { color: isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)' },
                 beginAtZero: true,
                 ticks: {
+                    color: isDark ? '#9ca3af' : '#4b5563',
                     font: { family: 'Inter', size: 11 },
                     callback: (val) => `$${val}`
                 }

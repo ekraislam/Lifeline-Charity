@@ -7,20 +7,28 @@ const helmet = require('helmet');
 const app = express();
 const server = http.createServer(app);
 
-// Security & CORS Middlewares
+// Robust Top-Level CORS Middleware (Must be before helmet and body parsers)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Access-Control-Allow-Origin');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// Security Middlewares
 app.use(helmet({
   crossOriginResourcePolicy: false,
-}));
-
-const allowedOrigins = [
-  process.env.CORS_ORIGIN_1,
-  process.env.CORS_ORIGIN_2,
-  process.env.CORS_ORIGIN_3
-].filter(Boolean);
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  crossOriginEmbedderPolicy: false,
 }));
 
 // Trust proxy behind Cloudflare/Nginx

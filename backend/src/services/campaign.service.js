@@ -1,27 +1,89 @@
 const db = require('../config/db');
 
+/**
+ * Synchronize and auto-complete campaigns where goal is reached OR deadline passed
+ */
+const syncCampaignCompletionStatus = async (campaignId = null) => {
+    try {
+        let condition = "WHERE c.status NOT IN ('completed', 'cancelled')";
+        const params = [];
+        if (campaignId) {
+            condition = "WHERE c.id = ?";
+            params.push(campaignId);
+        }
+
+        const [rows] = await db.query(`
+            SELECT c.id, c.title, c.goal_amount, c.raised_amount, c.deadline, c.status
+            FROM campaigns c
+            ${condition}
+        `, params);
+
+        for (const camp of rows) {
+            const raised = parseFloat(camp.raised_amount || 0);
+            const goal = parseFloat(camp.goal_amount || 0);
+            const isGoalReached = goal > 0 && raised >= goal;
+            const isExpired = camp.deadline && new Date(camp.deadline) <= new Date();
+
+            if (isGoalReached || isExpired) {
+                // Update campaign status to 'completed'
+                await db.query('UPDATE campaigns SET status = "completed" WHERE id = ?', [camp.id]);
+                camp.status = 'completed';
+            }
+        }
+    } catch (err) {
+        console.error("syncCampaignCompletionStatus error:", err);
+    }
+};
+
 const getCampaigns = async () => {
+    await syncCampaignCompletionStatus();
+
     const [rows] = await db.query(`
-        SELECT c.*, COALESCE((c.raised_amount / NULLIF(c.goal_amount, 0)) * 100, 0) AS progress,
-        (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image,
-        cat.name as category_name
+        SELECT c.*,
+               COALESCE((c.raised_amount / NULLIF(c.goal_amount, 0)) * 100, 0) AS progress,
+               GREATEST(0, c.goal_amount - c.raised_amount) AS remaining_amount,
+               (SELECT COUNT(DISTINCT id) FROM donations d WHERE d.campaign_id = c.id AND d.status = 'success') AS donor_count,
+               (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image,
+               cat.name as category_name,
+               np.org_name as ngo_org_name
         FROM campaigns c
         LEFT JOIN categories cat ON c.category_id = cat.id
-        WHERE c.status IN ('approved', 'pending')
+        LEFT JOIN ngo_profiles np ON c.ngo_id = np.id
         ORDER BY c.created_at DESC
     `);
+
     return rows.map(row => ({
         ...row,
-        gallery: row.cover_image ? [row.cover_image] : []
+        gallery: row.cover_image ? [row.cover_image] : [],
+        is_completed: row.status === 'completed' || parseFloat(row.raised_amount || 0) >= parseFloat(row.goal_amount || 0)
     }));
 };
 
 const getCampaignById = async (id) => {
-    const [rows] = await db.query('SELECT *, (raised_amount / goal_amount) * 100 AS progress FROM campaigns WHERE id = ?', [id]);
+    await syncCampaignCompletionStatus(id);
+
+    const [rows] = await db.query(`
+        SELECT c.*,
+               COALESCE((c.raised_amount / NULLIF(c.goal_amount, 0)) * 100, 0) AS progress,
+               GREATEST(0, c.goal_amount - c.raised_amount) AS remaining_amount,
+               (SELECT COUNT(DISTINCT id) FROM donations d WHERE d.campaign_id = c.id AND d.status = 'success') AS donor_count,
+               cat.name as category_name,
+               np.org_name as ngo_org_name,
+               u.name as beneficiary_name, u.email as beneficiary_email
+        FROM campaigns c
+        LEFT JOIN categories cat ON c.category_id = cat.id
+        LEFT JOIN ngo_profiles np ON c.ngo_id = np.id
+        LEFT JOIN help_requests hr ON c.help_request_id = hr.id
+        LEFT JOIN beneficiaries b ON hr.beneficiary_id = b.id
+        LEFT JOIN users u ON b.user_id = u.id
+        WHERE c.id = ?
+    `, [id]);
+
     const campaign = rows[0];
     if (campaign) {
         const [gallery] = await db.query('SELECT image_url FROM campaign_gallery WHERE campaign_id = ?', [id]);
         campaign.gallery = gallery.map(g => g.image_url);
+        campaign.is_completed = campaign.status === 'completed' || parseFloat(campaign.raised_amount || 0) >= parseFloat(campaign.goal_amount || 0);
     }
     return campaign;
 };
@@ -38,13 +100,10 @@ const createCampaign = async (campaignData, userId) => {
 
     // If creating campaign for a beneficiary help request
     if (help_request_id) {
-        // Validate NGO is assigned to this request
         const [hrRows] = await db.query('SELECT status, assigned_ngo_id FROM help_requests WHERE id = ?', [help_request_id]);
         if (hrRows.length === 0) throw new Error('Help request not found');
         if (hrRows[0].assigned_ngo_id !== ngoId) throw new Error('You are not assigned to this beneficiary');
-        if (hrRows[0].status !== 'assigned') throw new Error('This request is not in the correct status for campaign creation');
 
-        // Check no active campaign exists for this request
         const [existingCampaigns] = await db.query(
             "SELECT id FROM campaigns WHERE help_request_id = ? AND status NOT IN ('cancelled','completed')", [help_request_id]
         );
@@ -56,7 +115,6 @@ const createCampaign = async (campaignData, userId) => {
         [ngoId, category_id || null, title, description, goal_amount, deadline || null, is_featured || false, help_request_id || null]
     );
 
-    // Update help request status to campaign_active
     if (help_request_id) {
         await db.query("UPDATE help_requests SET status = 'campaign_active' WHERE id = ?", [help_request_id]);
     }
@@ -79,6 +137,7 @@ const updateCampaign = async (id, updateData) => {
     values.push(id);
 
     await db.query(`UPDATE campaigns SET ${fields.join(', ')} WHERE id = ?`, values);
+    await syncCampaignCompletionStatus(id);
 };
 
 const deleteCampaign = async (id) => {
@@ -87,16 +146,17 @@ const deleteCampaign = async (id) => {
 
 const updateCampaignStatus = async (id, status) => {
     await db.query('UPDATE campaigns SET status = ? WHERE id = ?', [status, id]);
+    await syncCampaignCompletionStatus(id);
 };
 
 const addCampaignGallery = async (campaignId, imageUrls) => {
     if (!imageUrls || imageUrls.length === 0) return;
-    
     const values = imageUrls.map(url => [campaignId, url]);
     await db.query('INSERT INTO campaign_gallery (campaign_id, image_url) VALUES ?', [values]);
 };
 
 module.exports = {
+    syncCampaignCompletionStatus,
     getCampaigns,
     getCampaignById,
     createCampaign,

@@ -27,7 +27,6 @@ const Register = () => {
         setLoading(true);
         setApiError('');
         try {
-            // Adjust payload structure based on API
             const payload = {
                 name: data.username,
                 email: data.email,
@@ -68,117 +67,123 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100">
-                <div>
-                    <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">Create an Account</h2>
-                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
-                        Join Lifeline and start making an impact
+        <div className="min-h-[85vh] flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+            <div className="max-w-lg w-full space-y-8 card-premium p-8 sm:p-10">
+                <div className="text-center">
+                    <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">Join Lifeline</span>
+                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1">Create an Account</h2>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Join our transparent network of donors, NGOs, beneficiaries, and volunteers
                     </p>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                    {apiError && <div className="p-3 bg-red-50 text-red-500 text-sm rounded-md">{apiError}</div>}
+
+                <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
+                    {apiError && (
+                        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
+                            <span>⚠️</span>
+                            <span>{apiError}</span>
+                        </div>
+                    )}
                     
-                    <div className="rounded-md shadow-sm space-y-4">
+                    <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
+                            <label className="form-label">Full Name / Username</label>
                             <input
                                 type="text"
                                 {...register('username', { required: 'Username is required' })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                placeholder="Username"
+                                className="w-full mt-1"
+                                placeholder="Your full name"
                             />
-                            {errors.username && <span className="text-xs text-red-500">{errors.username.message}</span>}
+                            {errors.username && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.username.message}</span>}
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email address</label>
+                            <label className="form-label">Email Address</label>
                             <input
                                 type="email"
                                 {...register('email', { required: 'Email is required' })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                placeholder="Email address"
+                                className="w-full mt-1"
+                                placeholder="name@example.com"
                             />
-                            {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
+                            {errors.email && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.email.message}</span>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">I am a...</label>
+                            <label className="form-label">Select Your Role</label>
                             <select
                                 {...register('role', { required: 'Please select a role' })}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                className="w-full mt-1"
                             >
                                 <option value="">Select Role</option>
-                                <option value="donor">Donor</option>
-                                <option value="volunteer">Volunteer</option>
-                                <option value="beneficiary">Beneficiary</option>
-                                <option value="ngo">NGO</option>
+                                <option value="donor">Donor (Support Campaigns)</option>
+                                <option value="volunteer">Volunteer (Join Events & Tasks)</option>
+                                <option value="beneficiary">Beneficiary (Request Help)</option>
+                                <option value="ngo">NGO (Manage Campaigns)</option>
                             </select>
-                            {errors.role && <span className="text-xs text-red-500">{errors.role.message}</span>}
+                            {errors.role && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.role.message}</span>}
                         </div>
 
                         {selectedRole === 'ngo' && (
-                            <>
+                            <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800 space-y-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Organization Name</label>
+                                    <label className="form-label text-indigo-700 dark:text-indigo-300">Organization Name</label>
                                     <input
                                         type="text"
                                         {...register('org_name', { required: 'Organization Name is required for NGOs' })}
-                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                        placeholder="Organization Name"
+                                        className="w-full mt-1"
+                                        placeholder="Registered NGO Title"
                                     />
-                                    {errors.org_name && <span className="text-xs text-red-500">{errors.org_name.message}</span>}
+                                    {errors.org_name && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.org_name.message}</span>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Registration Number</label>
+                                    <label className="form-label text-indigo-700 dark:text-indigo-300">Registration Number</label>
                                     <input
                                         type="text"
                                         {...register('registration_number', { required: 'Registration Number is required for NGOs' })}
-                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                        placeholder="Registration Number"
+                                        className="w-full mt-1"
+                                        placeholder="Govt. Registration ID"
                                     />
-                                    {errors.registration_number && <span className="text-xs text-red-500">{errors.registration_number.message}</span>}
+                                    {errors.registration_number && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.registration_number.message}</span>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Proof Documents (Images)</label>
+                                    <label className="form-label text-indigo-700 dark:text-indigo-300">Proof Documents (Images)</label>
                                     <input
                                         type="file"
                                         multiple
                                         accept="image/*"
                                         {...register('documents', { required: 'Please upload at least one proof document' })}
-                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
+                                        className="w-full mt-1 text-xs"
                                     />
-                                    {errors.documents && <span className="text-xs text-red-500">{errors.documents.message}</span>}
-                                    <p className="mt-1 text-xs text-gray-500">You can select multiple images.</p>
+                                    {errors.documents && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.documents.message}</span>}
                                 </div>
-                            </>
+                            </div>
                         )}
 
                         {selectedRole === 'volunteer' && (
-                            <>
+                            <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800 space-y-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Skills</label>
+                                    <label className="form-label text-emerald-700 dark:text-emerald-300">Skills</label>
                                     <input
                                         type="text"
                                         {...register('skills')}
-                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                        placeholder="E.g., Medical, Teaching, Driving"
+                                        className="w-full mt-1"
+                                        placeholder="E.g., Medical Assistance, Teaching, Logistics"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Availability</label>
+                                    <label className="form-label text-emerald-700 dark:text-emerald-300">Availability</label>
                                     <input
                                         type="text"
                                         {...register('availability')}
-                                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm mt-1"
-                                        placeholder="E.g., Weekends, Full-time"
+                                        className="w-full mt-1"
+                                        placeholder="E.g., Weekends, Evenings"
                                     />
                                 </div>
-                            </>
+                            </div>
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+                            <label className="form-label">Password</label>
                             <div className="relative mt-1">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
@@ -186,58 +191,57 @@ const Register = () => {
                                         required: 'Password is required',
                                         minLength: { value: 6, message: 'Password must be at least 6 characters' }
                                     })}
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                    placeholder="Password"
+                                    className="w-full pr-10"
+                                    placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer"
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
                             </div>
-                            {errors.password && <span className="text-xs text-red-500">{errors.password.message}</span>}
+                            {errors.password && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.password.message}</span>}
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Confirm Password</label>
+                            <label className="form-label">Confirm Password</label>
                             <div className="relative mt-1">
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     {...register('confirmPassword', { 
                                         validate: value => value === password || 'Passwords do not match'
                                     })}
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                    placeholder="Confirm Password"
+                                    className="w-full pr-10"
+                                    placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 focus:outline-none focus:text-primary-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer"
                                 >
                                     {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
                             </div>
-                            {errors.confirmPassword && <span className="text-xs text-red-500">{errors.confirmPassword.message}</span>}
+                            {errors.confirmPassword && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.confirmPassword.message}</span>}
                         </div>
                     </div>
 
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                        >
-                            {loading ? 'Registering...' : 'Sign Up'}
-                        </button>
-                    </div>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full py-4 text-xs uppercase tracking-wider disabled:opacity-50"
+                    >
+                        {loading ? 'Creating Account...' : 'Create Account'}
+                    </button>
                 </form>
-                <div className="text-center mt-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
+
+                <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         Already have an account?{' '}
-                        <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-                            Log in
+                        <Link to="/login" className="font-extrabold text-primary-600 dark:text-primary-400 hover:underline">
+                            Log In
                         </Link>
                     </p>
                 </div>

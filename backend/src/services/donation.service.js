@@ -1,23 +1,27 @@
 const db = require('../config/db');
+const { syncCampaignCompletionStatus, getCampaignById } = require('./campaign.service');
 
 const createDonation = async (userId, donationData) => {
     const { campaign_id, amount, is_anonymous, is_recurring, recurring_frequency } = donationData;
 
-    const [campaigns] = await db.query('SELECT status, raised_amount, goal_amount FROM campaigns WHERE id = ?', [campaign_id]);
+    await syncCampaignCompletionStatus(campaign_id);
+
+    const [campaigns] = await db.query('SELECT status, raised_amount, goal_amount, deadline FROM campaigns WHERE id = ?', [campaign_id]);
     if (campaigns.length === 0) {
         throw new Error('Campaign not found');
     }
     const campaign = campaigns[0];
     
-    // Parse decimal strings from database to numbers for accurate comparison
     const raisedAmount = parseFloat(campaign.raised_amount) || 0;
     const goalAmount = parseFloat(campaign.goal_amount) || 0;
-    
-    if (campaign.status !== 'approved' && campaign.status !== 'pending') {
-        throw new Error('Donations are only allowed for active campaigns');
+    const isExpired = campaign.deadline && new Date(campaign.deadline) <= new Date();
+
+    if (campaign.status === 'completed' || isExpired || (goalAmount > 0 && raisedAmount >= goalAmount)) {
+        throw new Error('This campaign has been completed and is no longer accepting donations');
     }
-    if (raisedAmount >= goalAmount && goalAmount > 0) {
-        throw new Error('This campaign has already reached its goal amount');
+
+    if (campaign.status !== 'approved' && campaign.status !== 'pending' && campaign.status !== 'running') {
+        throw new Error('Donations are only allowed for active campaigns');
     }
 
     const connection = await db.getConnection();
@@ -33,7 +37,7 @@ const createDonation = async (userId, donationData) => {
         // Mock payment transaction entry
         await connection.query(
             'INSERT INTO payment_transactions (donation_id, gateway_name, status) VALUES (?, ?, ?)',
-            [donationId, 'mock_gateway', 'pending']
+            [donationId, 'stripe_checkout', 'pending']
         );
 
         await connection.commit();
@@ -48,6 +52,8 @@ const createDonation = async (userId, donationData) => {
 
 const updatePaymentStatus = async (donationId, status, transactionId, gatewayResponse) => {
     const connection = await db.getConnection();
+    let updatedCampaignId = null;
+
     try {
         await connection.beginTransaction();
 
@@ -65,7 +71,8 @@ const updatePaymentStatus = async (donationId, status, transactionId, gatewayRes
             // Update campaign raised amount
             const [donation] = await connection.query('SELECT campaign_id, amount FROM donations WHERE id = ?', [donationId]);
             if (donation.length > 0) {
-                await connection.query('UPDATE campaigns SET raised_amount = raised_amount + ? WHERE id = ?', [donation[0].amount, donation[0].campaign_id]);
+                updatedCampaignId = donation[0].campaign_id;
+                await connection.query('UPDATE campaigns SET raised_amount = raised_amount + ? WHERE id = ?', [donation[0].amount, updatedCampaignId]);
             }
         }
 
@@ -75,6 +82,34 @@ const updatePaymentStatus = async (donationId, status, transactionId, gatewayRes
         throw error;
     } finally {
         connection.release();
+    }
+
+    // Post-commit tasks: Sync campaign completion & broadcast real-time socket events
+    if (status === 'success' && updatedCampaignId) {
+        await syncCampaignCompletionStatus(updatedCampaignId);
+        const updatedCampaign = await getCampaignById(updatedCampaignId);
+
+        try {
+            const { getIo } = require('../sockets/socket');
+            const io = getIo();
+            io.emit('campaign_updated', {
+                campaign_id: updatedCampaignId,
+                raised_amount: updatedCampaign.raised_amount,
+                goal_amount: updatedCampaign.goal_amount,
+                status: updatedCampaign.status,
+                donor_count: updatedCampaign.donor_count,
+                progress: updatedCampaign.progress,
+                remaining_amount: updatedCampaign.remaining_amount,
+                is_completed: updatedCampaign.is_completed
+            });
+            io.emit('donation_success', {
+                donation_id: donationId,
+                campaign_id: updatedCampaignId,
+                amount: gatewayResponse?.amount || null
+            });
+        } catch (e) {
+            console.error("Socket emit error:", e.message);
+        }
     }
 };
 
@@ -91,7 +126,10 @@ const getDonationHistory = async (userId) => {
             d.status,
             d.created_at,
             c.title AS campaign_title,
-            COALESCE(pt.gateway_name, 'Credit Card') AS payment_method,
+            c.status AS campaign_status,
+            c.goal_amount,
+            c.raised_amount,
+            COALESCE(pt.gateway_name, 'Stripe Checkout') AS payment_method,
             COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
         FROM donations d 
         JOIN campaigns c ON d.campaign_id = c.id 
@@ -116,7 +154,7 @@ const getDonationReceipt = async (donationId, userId, userRole) => {
             u.email AS donor_email,
             c.title AS campaign_title, 
             d.user_id,
-            COALESCE(pt.gateway_name, 'Credit Card') AS payment_method,
+            COALESCE(pt.gateway_name, 'Stripe Checkout') AS payment_method,
             COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
         FROM donations d 
         LEFT JOIN users u ON d.user_id = u.id 

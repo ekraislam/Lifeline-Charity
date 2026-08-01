@@ -47,6 +47,9 @@ const HelpRequest = () => {
             formData.append('title', data.title);
             formData.append('description', data.description);
             formData.append('required_amount', data.required_amount || 0);
+            formData.append('payment_method', data.payment_method || 'Bank Transfer');
+            formData.append('account_holder_name', data.account_holder_name || '');
+            formData.append('account_number', data.account_number || '');
 
             if (files && files.length > 0) {
                 for (let i = 0; i < files.length; i++) {
@@ -130,6 +133,53 @@ const HelpRequest = () => {
                         onChange={handleFileChange}
                         className="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                     />
+                </div>
+
+                {/* Beneficiary Preferred Payment Information */}
+                <div className="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-4">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <span>💳</span> Preferred Payment & Disbursement Information
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Specify how you wish to receive raised funds once the campaign is complete.
+                    </p>
+
+                    <div>
+                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Payment Method <span className="text-red-500">*</span></label>
+                        <select
+                            {...register('payment_method', { required: 'Please select a payment method' })}
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-sm focus:ring-primary-500 bg-white dark:bg-gray-800"
+                        >
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="bKash">bKash</option>
+                            <option value="Nagad">Nagad</option>
+                            <option value="Rocket">Rocket</option>
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Account Holder Name <span className="text-red-500">*</span></label>
+                            <input
+                                type="text"
+                                {...register('account_holder_name', { required: 'Account holder name is required' })}
+                                placeholder="e.g. Md. Rahman"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-sm focus:ring-primary-500 bg-white dark:bg-gray-800"
+                            />
+                            {errors.account_holder_name && <span className="text-xs text-red-500">{errors.account_holder_name.message}</span>}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Account Number / Mobile No <span className="text-red-500">*</span></label>
+                            <input
+                                type="text"
+                                {...register('account_number', { required: 'Account or mobile number is required' })}
+                                placeholder="Bank AC / Mobile Wallet No"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-sm focus:ring-primary-500 bg-white dark:bg-gray-800"
+                            />
+                            {errors.account_number && <span className="text-xs text-red-500">{errors.account_number.message}</span>}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-700">

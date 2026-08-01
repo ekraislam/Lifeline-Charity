@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios';
+import api from '../../api/axios?v=1';
 import { format } from 'date-fns';
+import useCampaignRealtime from '../../hooks/useCampaignRealtime';
 
 const STATUS_CONFIG = {
     pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
@@ -17,101 +18,110 @@ const BeneficiaryDashboard = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchRequests = async () => {
-            try {
-                const response = await api.get('/beneficiaries/requests');
-                setRequests(response.data);
-            } catch (error) {
-                console.error("Error fetching requests", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchRequests();
+    const fetchData = useCallback(async () => {
+        try {
+            const reqRes = await api.get('/beneficiaries/requests');
+            setRequests(reqRes.data || []);
+        } catch (error) {
+            console.error("Error fetching beneficiary dashboard data", error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    if (loading) return <div className="p-12 text-center">Loading dashboard...</div>;
+    useEffect(() => {
+        setLoading(true);
+        fetchData();
+    }, [fetchData]);
+
+    // Socket Realtime sync
+    useCampaignRealtime(fetchData);
+
+    if (loading) return <div className="p-12 text-center text-gray-500 font-medium">Loading beneficiary portal...</div>;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex justify-between items-center mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+            <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Help Requests</h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">View the status of all your requests here</p>
+                    <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">My Beneficiary Portal</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track help requests, NGO assignments, and campaign statuses</p>
                 </div>
-                <Link to="/beneficiary/request" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
-                    + New Request
+                <Link to="/beneficiary/request" className="inline-flex items-center px-4 py-2.5 border border-transparent text-sm font-bold rounded-xl shadow-xs text-white bg-primary-600 hover:bg-primary-700">
+                    + New Help Request
                 </Link>
             </div>
 
-            {/* Status Guide */}
-            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-6 flex flex-wrap gap-3">
-                {Object.entries(STATUS_CONFIG).map(([key, val]) => (
-                    <span key={key} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${val.color}`}>
-                        {val.icon} {val.label}
-                    </span>
-                ))}
-            </div>
+            {/* Help Requests Section */}
+            <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">My Help Requests</h2>
 
-            {requests.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-                    <div className="text-5xl mb-4">📝</div>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">You haven't submitted any requests yet</p>
-                    <Link to="/beneficiary/request" className="mt-4 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700">
-                        Submit a Request
-                    </Link>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 mb-6 flex flex-wrap gap-3">
+                    {Object.entries(STATUS_CONFIG).map(([key, val]) => (
+                        <span key={key} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${val.color}`}>
+                            {val.icon} {val.label}
+                        </span>
+                    ))}
                 </div>
-            ) : (
-                <div className="space-y-4">
-                    {requests.map((request) => {
-                        const cfg = STATUS_CONFIG[request.status] || STATUS_CONFIG.pending;
-                        return (
-                            <div key={request.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                                <div className="px-6 py-5">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                                    {request.title}
-                                                </h3>
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.color}`}>
-                                                    {cfg.icon} {cfg.label}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{request.description}</p>
-                                            
-                                            <div className="flex flex-wrap gap-4 text-sm">
-                                                {request.required_amount > 0 && (
-                                                    <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
-                                                        <span className="font-medium">${parseFloat(request.required_amount).toLocaleString()}</span>
-                                                        <span className="text-gray-400">Required</span>
-                                                    </div>
-                                                )}
-                                                {request.assigned_ngo_org && (
-                                                    <div className="flex items-center gap-1 text-indigo-600">
-                                                        <span>🏢</span>
-                                                        <span className="font-medium">{request.assigned_ngo_org}</span>
-                                                    </div>
-                                                )}
-                                                <div className="text-gray-400">
-                                                    Submitted: {format(new Date(request.created_at), 'dd MMM yyyy')}
-                                                </div>
-                                            </div>
 
-                                            {request.admin_note && (
-                                                <div className="mt-3 bg-gray-50 dark:bg-gray-900 rounded-md px-3 py-2 text-sm text-gray-600 dark:text-gray-300 border-l-4 border-primary-400">
-                                                    <strong>Admin Note:</strong> {request.admin_note}
+                {requests.length === 0 ? (
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xs p-12 text-center border border-gray-100 dark:border-gray-700">
+                        <div className="text-5xl mb-4">📝</div>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">You haven't submitted any requests yet</p>
+                        <Link to="/beneficiary/request" className="mt-4 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-bold hover:bg-primary-700">
+                            Submit a Request
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {requests.map((request) => {
+                            const cfg = STATUS_CONFIG[request.status] || STATUS_CONFIG.pending;
+                            return (
+                                <div key={request.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+                                    <div className="px-6 py-5">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                                                        {request.title}
+                                                    </h3>
+                                                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.color}`}>
+                                                        {cfg.icon} {cfg.label}
+                                                    </span>
                                                 </div>
-                                            )}
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{request.description}</p>
+                                                
+                                                <div className="flex flex-wrap gap-4 text-sm">
+                                                    {request.required_amount > 0 && (
+                                                        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
+                                                            <span className="font-bold text-emerald-600">${parseFloat(request.required_amount).toLocaleString()}</span>
+                                                            <span className="text-gray-400">Required</span>
+                                                        </div>
+                                                    )}
+                                                    {request.assigned_ngo_org && (
+                                                        <div className="flex items-center gap-1 text-indigo-600 font-semibold">
+                                                            <span>🏢</span>
+                                                            <span>{request.assigned_ngo_org}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="text-gray-400 text-xs">
+                                                        Submitted: {format(new Date(request.created_at), 'dd MMM yyyy')}
+                                                    </div>
+                                                </div>
+
+                                                {request.admin_note && (
+                                                    <div className="mt-3 bg-gray-50 dark:bg-gray-900 rounded-xl px-3 py-2 text-xs text-gray-600 dark:text-gray-300 border-l-4 border-primary-400">
+                                                        <strong>Admin Note:</strong> {request.admin_note}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

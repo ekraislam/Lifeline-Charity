@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios?v=1';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
+import { broadcastLocalCampaignUpdate } from '../../hooks/useCampaignRealtime';
 
 const PRESET_AMOUNTS = [10, 25, 50, 100, 250];
 
@@ -31,10 +32,8 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
         if (typeof campaignProp === 'object' && campaignProp !== null && campaignProp.title) {
             setCampaign(campaignProp);
         } else if (campaignProp) {
-            // campaignProp is ID
             fetchCampaignDetails(campaignProp);
         } else {
-            // Fetch first available approved campaign if none passed
             fetchFirstCampaign();
         }
     }, [isOpen, campaignProp]);
@@ -93,7 +92,6 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
         setSubmitting(true);
         setErrorMessage('');
         try {
-            // 1. Create donation on backend
             const donateRes = await api.post('/donations', {
                 campaign_id: campaign.id,
                 amount: finalAmount,
@@ -105,7 +103,6 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
             const donationId = donateRes.data.donation_id;
             const checkoutUrl = donateRes.data.checkout_url || donateRes.data.payment_url;
 
-            // 2. Trigger Stripe payment callback (simulating Stripe Checkout redirect completion)
             if (checkoutUrl) {
                 try {
                     const parsedUrl = new URL(checkoutUrl);
@@ -116,7 +113,6 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                 }
             }
 
-            // 3. Fetch completed donation record
             const detailsRes = await api.get(`/donations/${donationId}`);
             setDonationResult(detailsRes.data || {
                 id: donationId,
@@ -127,6 +123,7 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                 created_at: new Date().toISOString()
             });
 
+            broadcastLocalCampaignUpdate({ campaign_id: campaign.id, amount: finalAmount });
             setStep('success');
         } catch (err) {
             console.error("Stripe Donation Execution Error:", err);
@@ -142,8 +139,7 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
         try {
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-            // Header Banner
-            doc.setFillColor(14, 165, 233); // Ocean Primary
+            doc.setFillColor(2, 132, 199);
             doc.rect(0, 0, 210, 42, 'F');
 
             doc.setFont('helvetica', 'bold');
@@ -163,7 +159,6 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
             doc.setFont('helvetica', 'normal');
             doc.text(`NO: LL-REC-${String(receiptData.id || 0).padStart(6, '0')}`, 140, 29);
 
-            // Receipt Box
             doc.setDrawColor(226, 232, 240);
             doc.setFillColor(248, 250, 252);
             doc.roundedRect(15, 50, 180, 20, 3, 3, 'FD');
@@ -177,7 +172,6 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
             doc.setTextColor(16, 185, 129);
             doc.text('STATUS: PAID VIA STRIPE', 125, 62);
 
-            // Details Section
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(30, 41, 59);
@@ -210,7 +204,6 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
             doc.setFont('helvetica', 'normal');
             doc.text(receiptData.transaction_id || `cs_test_${receiptData.id}`, 50, 122);
 
-            // Legal & Disclaimer
             doc.setFillColor(254, 243, 199);
             doc.setDrawColor(251, 191, 36);
             doc.roundedRect(15, 140, 180, 20, 2, 2, 'FD');
@@ -244,54 +237,47 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/65 backdrop-blur-md flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100 dark:border-gray-700 transition-all transform animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100 dark:border-gray-800 transition-all animate-fade-in-up">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-800 p-6 text-white relative">
+                <div className="bg-gradient-to-r from-primary-600 via-indigo-600 to-indigo-700 p-6 text-white relative">
                     <button
                         onClick={onClose}
-                        className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl font-bold transition-all"
+                        className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl font-bold transition-all cursor-pointer"
                         title="Close Modal"
                     >
                         &times;
                     </button>
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase bg-white/20 tracking-wider">
-                            <svg className="w-3.5 h-3.5 text-indigo-200" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C17.755.503 15.111 0 12.355 0 6.64 0 2.68 3.012 2.68 7.747c0 4.417 3.593 6.027 6.945 7.247 2.474.887 3.29 1.579 3.29 2.505 0 1.002-.857 1.523-2.316 1.523-2.42 0-5.326-1.127-7.228-2.227l-.946 5.674c2.03.996 5.093 1.631 8.043 1.631 6.027 0 10.057-2.859 10.057-7.859 0-4.634-3.69-6.14-6.549-7.097z" />
-                            </svg>
-                            Stripe Secure Donation
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-black uppercase bg-white/20 tracking-wider">
+                            💳 Stripe Secure Checkout
                         </span>
                     </div>
-                    <h2 className="text-2xl font-black tracking-tight">Make a Difference</h2>
+                    <h2 className="font-display text-2xl font-black tracking-tight">Make a Contribution</h2>
                     {loadingCampaign ? (
                         <div className="h-4 w-48 bg-white/30 rounded animate-pulse mt-2"></div>
                     ) : (
                         <p className="text-xs text-primary-100 mt-1 truncate">
-                            Supporting: <span className="font-bold underline decoration-indigo-300">{campaign?.title || 'Lifeline General Relief'}</span>
+                            Campaign: <span className="font-bold underline decoration-indigo-300">{campaign?.title || 'Lifeline General Fund'}</span>
                         </p>
                     )}
                 </div>
 
                 {/* Body Content based on Step */}
                 <div className="p-6">
-                    {/* Error Banner */}
                     {errorMessage && (
                         <div className="mb-5 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-3">
-                            <svg className="w-5 h-5 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <span className="text-lg">⚠️</span>
                             <span>{errorMessage}</span>
                         </div>
                     )}
 
-                    {/* STEP 1: INPUT AMOUNT & PREFERENCES */}
+                    {/* STEP 1: INPUT AMOUNT */}
                     {step === 'input' && (
                         <form onSubmit={handleInitiateStripe} className="space-y-6">
-                            {/* Preset Amount Grid */}
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                                    Select Amount (USD)
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                                    Select Contribution Amount (USD)
                                 </label>
                                 <div className="grid grid-cols-3 gap-2.5 mb-3">
                                     {PRESET_AMOUNTS.map((amt) => (
@@ -299,10 +285,10 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                                             key={amt}
                                             type="button"
                                             onClick={() => { setAmount(String(amt)); setCustomAmount(''); }}
-                                            className={`py-3 rounded-2xl text-sm font-black transition-all border ${
+                                            className={`py-3 rounded-2xl text-sm font-black transition-all border cursor-pointer ${
                                                 amount === String(amt) && !customAmount
                                                     ? 'bg-primary-600 text-white border-primary-600 shadow-md ring-2 ring-primary-400/50'
-                                                    : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                                    : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             }`}
                                         >
                                             ${amt}
@@ -310,8 +296,7 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                                     ))}
                                 </div>
 
-                                {/* Custom Amount Input */}
-                                <div className="relative rounded-2xl shadow-sm">
+                                <div className="relative rounded-2xl">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold">
                                         $
                                     </div>
@@ -322,18 +307,16 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                                         placeholder="Custom Amount (USD)"
                                         value={customAmount}
                                         onChange={(e) => { setCustomAmount(e.target.value); setAmount(''); }}
-                                        className="w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-900 transition-all"
+                                        className="w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 outline-none"
                                     />
                                 </div>
                             </div>
 
-                            {/* Preferences Options */}
-                            <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                                {/* Recurring Toggle */}
-                                <div className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
+                            <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                                <div className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700">
                                     <div>
                                         <span className="text-xs font-bold text-gray-900 dark:text-white block">Make this a Monthly Donation</span>
-                                        <span className="text-[11px] text-gray-500 dark:text-gray-400">Support this campaign on a recurring basis</span>
+                                        <span className="text-[11px] text-gray-500 dark:text-gray-400">Support this cause automatically every month</span>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -343,11 +326,10 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                                     />
                                 </div>
 
-                                {/* Anonymous Checkbox */}
-                                <div className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                <div className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700">
                                     <div>
                                         <span className="text-xs font-bold text-gray-900 dark:text-white block">Donate Anonymously</span>
-                                        <span className="text-[11px] text-gray-500 dark:text-gray-400">Hide your identity on public donor lists</span>
+                                        <span className="text-[11px] text-gray-500 dark:text-gray-400">Hide your name from public donor lists</span>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -358,93 +340,69 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                                 </div>
                             </div>
 
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                className="w-full py-4 px-6 rounded-2xl shadow-xl text-base font-black text-white bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                            >
+                            <button type="submit" className="btn-primary w-full py-4 text-sm uppercase tracking-wider">
                                 <span>Proceed to Stripe Checkout</span>
-                                <span className="px-2 py-0.5 rounded-full bg-white/20 text-xs">${finalAmount.toFixed(2)}</span>
+                                <span className="px-2 py-0.5 rounded-full bg-white/20 text-xs font-black">${finalAmount.toFixed(2)}</span>
                             </button>
 
-                            <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 font-semibold">
-                                <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                                <span>256-bit SSL Encrypted • Powered by Stripe</span>
+                            <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 font-bold">
+                                🔒 256-bit SSL Encrypted • Powered by Stripe Checkout
                             </div>
                         </form>
                     )}
 
-                    {/* STEP 2: STRIPE CHECKOUT SIMULATOR / CONFIRMATION */}
+                    {/* STEP 2: STRIPE CHECKOUT SIMULATOR */}
                     {step === 'stripe_checkout' && (
                         <div className="space-y-6 text-center py-2">
                             <div className="p-4 bg-indigo-50 dark:bg-indigo-950/60 rounded-2xl border border-indigo-200 dark:border-indigo-800">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-black text-indigo-700 dark:text-indigo-300 tracking-wider uppercase flex items-center gap-1.5">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-black text-indigo-700 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
                                         <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
                                         Stripe Checkout (Test Mode)
                                     </span>
-                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Total: ${finalAmount.toFixed(2)} USD</span>
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">${finalAmount.toFixed(2)} USD</span>
                                 </div>
                                 <p className="text-xs text-gray-600 dark:text-gray-300 text-left">
-                                    You are completing a test payment via Stripe Checkout for <strong>{campaign?.title}</strong>.
+                                    You are completing a test donation for <strong>{campaign?.title}</strong>.
                                 </p>
                             </div>
 
-                            {/* Simulated Stripe Card Input */}
-                            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 text-left space-y-3">
+                            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 text-left space-y-3">
                                 <div className="flex items-center justify-between">
                                     <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Test Card Number</label>
-                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Test Mode Enabled</span>
+                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Test Mode</span>
                                 </div>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value="4242 •••• •••• 4242"
-                                        className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl py-2.5 px-3 font-mono text-sm text-gray-900 dark:text-white"
-                                    />
-                                    <span className="absolute right-3 top-2.5 text-xs font-bold text-indigo-600 dark:text-indigo-400">STRIPE TEST</span>
-                                </div>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value="4242 •••• •••• 4242"
+                                    className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl py-2.5 px-3 font-mono text-sm text-gray-900 dark:text-white"
+                                />
                                 <div className="grid grid-cols-2 gap-3 text-xs">
                                     <div>
                                         <span className="text-gray-500 dark:text-gray-400">Expires</span>
-                                        <input type="text" readOnly value="12/28" className="w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl py-1.5 px-3 font-mono" />
+                                        <input type="text" readOnly value="12/28" className="w-full mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl py-1.5 px-3 font-mono text-gray-900 dark:text-white" />
                                     </div>
                                     <div>
                                         <span className="text-gray-500 dark:text-gray-400">CVC</span>
-                                        <input type="text" readOnly value="424" className="w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl py-1.5 px-3 font-mono" />
+                                        <input type="text" readOnly value="424" className="w-full mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl py-1.5 px-3 font-mono text-gray-900 dark:text-white" />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
                             <div className="space-y-3">
                                 <button
                                     onClick={() => handleExecuteStripePayment(false)}
                                     disabled={submitting}
-                                    className="w-full py-4 px-6 rounded-2xl shadow-xl text-base font-black text-white bg-emerald-600 hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="btn-success w-full py-4 text-sm uppercase tracking-wider disabled:opacity-50"
                                 >
-                                    {submitting ? (
-                                        <>
-                                            <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                            <span>Processing Stripe Payment...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                                            </svg>
-                                            <span>Pay ${finalAmount.toFixed(2)} with Stripe Test Card</span>
-                                        </>
-                                    )}
+                                    {submitting ? 'Processing Payment...' : `Confirm & Pay $${finalAmount.toFixed(2)}`}
                                 </button>
 
                                 <button
                                     onClick={() => handleExecuteStripePayment(true)}
                                     disabled={submitting}
-                                    className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-all"
+                                    className="btn-danger w-full py-2.5 text-xs uppercase tracking-wider"
                                 >
                                     Cancel Payment
                                 </button>
@@ -452,21 +410,21 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                         </div>
                     )}
 
-                    {/* STEP 3: SUCCESS SCREEN */}
+                    {/* STEP 3: SUCCESS */}
                     {step === 'success' && donationResult && (
                         <div className="text-center py-4 space-y-5">
-                            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/60 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl mx-auto shadow-inner animate-bounce">
+                            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/60 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl mx-auto shadow-inner">
                                 ✓
                             </div>
 
                             <div>
-                                <h3 className="text-2xl font-black text-gray-900 dark:text-white">Payment Successful!</h3>
+                                <h3 className="font-display text-2xl font-black text-gray-900 dark:text-white">Payment Successful!</h3>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Your donation of <strong className="text-emerald-600 dark:text-emerald-400 font-extrabold">${parseFloat(donationResult.amount || finalAmount).toFixed(2)} USD</strong> has been received and saved.
+                                    Your donation of <strong className="text-emerald-600 dark:text-emerald-400 font-extrabold">${parseFloat(donationResult.amount || finalAmount).toFixed(2)} USD</strong> has been received.
                                 </p>
                             </div>
 
-                            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 text-left space-y-2 text-xs">
+                            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 text-left space-y-2 text-xs">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500 dark:text-gray-400">Transaction ID:</span>
                                     <span className="font-mono font-bold text-primary-600 dark:text-primary-400">{donationResult.transaction_id || `cs_test_${donationResult.id}`}</span>
@@ -475,47 +433,28 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                                     <span className="text-gray-500 dark:text-gray-400">Campaign:</span>
                                     <span className="font-semibold text-gray-900 dark:text-white truncate max-w-[200px]">{donationResult.campaign_title || campaign?.title}</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500 dark:text-gray-400">Payment Gateway:</span>
-                                    <span className="font-semibold text-gray-900 dark:text-white">{donationResult.payment_method || 'Stripe Checkout'}</span>
-                                </div>
                             </div>
 
-                            {/* Action Buttons */}
-                            <div className="space-y-2.5 pt-2">
+                            <div className="space-y-3 pt-2">
                                 <button
                                     onClick={() => generatePDFReceipt(donationResult)}
                                     disabled={downloadingPDF}
-                                    className="w-full py-3.5 px-6 rounded-2xl shadow-lg text-sm font-extrabold text-white bg-primary-600 hover:bg-primary-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="btn-primary w-full py-3.5 text-xs uppercase tracking-wider disabled:opacity-50"
                                 >
-                                    {downloadingPDF ? (
-                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    )}
-                                    <span>Download Official PDF Receipt</span>
+                                    {downloadingPDF ? 'Generating Receipt...' : '📄 Download Official PDF Receipt'}
                                 </button>
 
                                 <button
                                     onClick={() => { onClose(); navigate('/donations/history'); }}
-                                    className="w-full py-3.5 px-6 rounded-2xl border border-gray-200 dark:border-gray-700 text-sm font-bold text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                                    className="btn-secondary w-full py-3.5 text-xs uppercase tracking-wider"
                                 >
-                                    View My Donations History
-                                </button>
-
-                                <button
-                                    onClick={onClose}
-                                    className="text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 pt-2 block w-full"
-                                >
-                                    Close Window
+                                    View Donation History
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* STEP 4: CANCELLED STATE */}
+                    {/* STEP 4: CANCELLED */}
                     {step === 'cancelled' && (
                         <div className="text-center py-6 space-y-4">
                             <div className="w-16 h-16 bg-rose-100 dark:bg-rose-950/60 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-400 text-2xl mx-auto">
@@ -523,23 +462,17 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Payment Cancelled</h3>
+                                <h3 className="font-display text-xl font-bold text-gray-900 dark:text-white">Payment Cancelled</h3>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Your donation transaction was cancelled or could not be completed. No funds were charged.
+                                    Transaction cancelled. No charges were processed.
                                 </p>
                             </div>
 
                             <div className="pt-4 flex gap-3">
-                                <button
-                                    onClick={() => setStep('input')}
-                                    className="flex-1 py-3 rounded-2xl font-bold text-xs text-white bg-primary-600 hover:bg-primary-700 transition-all"
-                                >
+                                <button onClick={() => setStep('input')} className="btn-primary flex-1 py-3 text-xs">
                                     Try Again
                                 </button>
-                                <button
-                                    onClick={onClose}
-                                    className="flex-1 py-3 rounded-2xl font-bold text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition-all"
-                                >
+                                <button onClick={onClose} className="btn-secondary flex-1 py-3 text-xs">
                                     Close
                                 </button>
                             </div>
