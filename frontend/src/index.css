@@ -106,7 +106,7 @@
 
   /* Labels */
   label {
-    @apply font-semibold text-gray-800 dark:text-gray-200 text-xs uppercase tracking-wider;
+    @apply font-extrabold text-gray-900 dark:text-gray-100 text-xs uppercase tracking-wider block mb-1.5;
     letter-spacing: 0.05em;
   }
 
@@ -207,10 +207,29 @@
 
   /* Form Labels & Inputs */
   .form-label {
-    @apply block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 mb-1.5;
+    @apply block text-xs font-black uppercase tracking-wider text-gray-900 dark:text-gray-100 mb-1.5;
   }
   .form-input {
-    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10 dark:focus:ring-primary-400/10 outline-none transition-all duration-200 shadow-2xs;
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-semibold focus:border-primary-500 dark:focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10 dark:focus:ring-primary-400/10 outline-none transition-all duration-200 shadow-2xs;
+  }
+
+  /* Browser Autofill Overrides */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: #111827 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark textarea:-webkit-autofill,
+  .dark select:-webkit-autofill {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0px 1000px #111827 inset !important;
   }
 
   /* Button Presets */
