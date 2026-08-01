@@ -32,6 +32,9 @@ router.get('/beneficiaries', c.getBeneficiaryRequests);
 router.get('/beneficiaries/:id', c.getBeneficiaryById);
 router.put('/beneficiaries/:id/status', c.updateBeneficiaryStatus);
 
+// Donations
+router.get('/donations', c.getDonations);
+
 // Excel Exports
 router.get('/export/campaigns', c.exportCampaigns);
 router.get('/export/donations', c.exportDonations);

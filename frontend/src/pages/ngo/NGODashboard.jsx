@@ -112,6 +112,10 @@ const NGODashboard = () => {
                             className="inline-flex items-center px-3 py-1.5 border border-blue-500 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100">
                             📅 Manage Events
                         </Link>
+                        <Link to="/donations/history"
+                            className="inline-flex items-center px-3 py-1.5 border border-emerald-500 text-sm font-medium rounded-md text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
+                            💳 My Donations
+                        </Link>
                     </div>
                 </div>
             </div>

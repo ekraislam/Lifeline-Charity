@@ -61,7 +61,7 @@ const getHistory = async (req, res) => {
 
 const getReceipt = async (req, res) => {
     try {
-        const receipt = await donationService.getDonationReceipt(req.params.id, req.user.id);
+        const receipt = await donationService.getDonationReceipt(req.params.id, req.user.id, req.user.role);
         res.json(receipt);
     } catch (error) {
         console.error(error);

@@ -342,6 +342,51 @@ const generateUserReport = async () => {
     return buildExcelReport('Lifeline — User Report', summary, columns, rows);
 };
 
+// ──────────────────────────────────────────────────────────────────
+// DONATIONS (ADMIN)
+// ──────────────────────────────────────────────────────────────────
+const getAdminDonations = async (status, search) => {
+    let query = `
+        SELECT 
+            d.id,
+            d.user_id,
+            COALESCE(u.name, 'Anonymous') AS donor_name,
+            u.email AS donor_email,
+            d.campaign_id,
+            c.title AS campaign_title,
+            d.amount,
+            d.is_anonymous,
+            d.is_recurring,
+            d.recurring_frequency,
+            d.status,
+            d.created_at,
+            COALESCE(pt.gateway_name, 'Credit Card') AS payment_method,
+            COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
+        FROM donations d
+        LEFT JOIN users u ON d.user_id = u.id
+        JOIN campaigns c ON d.campaign_id = c.id
+        LEFT JOIN payment_transactions pt ON pt.donation_id = d.id
+    `;
+    const params = [];
+    const conditions = [];
+
+    if (status && status !== 'all') {
+        conditions.push('d.status = ?');
+        params.push(status);
+    }
+    if (search) {
+        conditions.push('(c.title LIKE ? OR u.name LIKE ? OR pt.transaction_id LIKE ? OR CAST(d.id AS CHAR) LIKE ?)');
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    if (conditions.length > 0) {
+        query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY d.created_at DESC';
+    const [rows] = await db.query(query, params);
+    return rows;
+};
+
 module.exports = {
     getSystemStats,
     getCampaigns, editCampaign, deleteCampaign, updateCampaignStatus,
@@ -350,4 +395,5 @@ module.exports = {
     getVolunteers, updateVolunteerStatus,
     getBeneficiaryRequests, updateBeneficiaryStatus,
     generateCampaignReport, generateDonationReport, generateUserReport,
+    getAdminDonations
 };

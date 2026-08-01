@@ -101,6 +101,16 @@ const MainLayout = ({ children }) => {
                                                     </div>
                                                     <div className="py-2">
                                                         <Link
+                                                            to="/donations/history"
+                                                            onClick={() => setProfileDropdownOpen(false)}
+                                                            className="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                                                        >
+                                                            <svg className="mr-3 h-4 w-4 text-gray-400 group-hover:text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            My Donations
+                                                        </Link>
+                                                        <Link
                                                             to="/profile"
                                                             onClick={() => setProfileDropdownOpen(false)}
                                                             className="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 hover:text-primary-700 transition-colors"

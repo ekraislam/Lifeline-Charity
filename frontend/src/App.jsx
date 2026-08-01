@@ -37,6 +37,7 @@ import AdminVerifyBeneficiary from './pages/admin/AdminVerifyBeneficiary';
 import AdminExportReports from './pages/admin/AdminExportReports';
 import AdminManageVolunteers from './pages/admin/AdminManageVolunteers';
 import AdminManageEvents from './pages/admin/AdminManageEvents';
+import AdminManageDonations from './pages/admin/AdminManageDonations';
 import AdminSystemSettings from './pages/admin/AdminSystemSettings';
 import AdminContactMessages from './pages/admin/AdminContactMessages';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -90,6 +91,7 @@ function App() {
                 {/* Admin Routes */}
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/campaigns" element={<AdminManageCampaigns />} />
+                <Route path="/admin/donations" element={<AdminManageDonations />} />
                 <Route path="/admin/users" element={<AdminManageUsers />} />
                 <Route path="/admin/ngos" element={<AdminManageNGOs />} />
                 <Route path="/admin/volunteers" element={<AdminManageVolunteers />} />

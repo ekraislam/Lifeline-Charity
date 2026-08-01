@@ -119,6 +119,14 @@ const exportUsers = async (req, res) => {
     } catch (e) { console.error(e); res.status(500).json({ message: 'Export failed' }); }
 };
 
+// ── Donations ──────────────────────────────────────────────────────
+const getDonations = async (req, res) => {
+    try {
+        const donations = await adminService.getAdminDonations(req.query.status, req.query.search);
+        res.json(donations);
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+};
+
 module.exports = {
     getSystemStats,
     getCampaigns, editCampaign, deleteCampaign, updateCampaignStatus,
@@ -127,4 +135,5 @@ module.exports = {
     getVolunteers, updateVolunteerStatus,
     getBeneficiaryRequests, getBeneficiaryById, updateBeneficiaryStatus,
     exportCampaigns, exportDonations, exportUsers,
+    getDonations,
 };

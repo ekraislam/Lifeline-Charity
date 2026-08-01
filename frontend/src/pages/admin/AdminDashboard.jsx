@@ -22,6 +22,7 @@ const StatCard = ({ label, value, color = 'text-gray-900 dark:text-white', icon 
 
 const quickLinks = [
     { label: 'Manage Campaigns', href: '/admin/campaigns', icon: '📋' },
+    { label: 'Manage Donations', href: '/admin/donations', icon: '💳' },
     { label: 'Manage Events', href: '/admin/events', icon: '📅' },
     { label: 'Manage Users', href: '/admin/users', icon: '👥' },
     { label: 'Manage NGOs', href: '/admin/ngos', icon: '🏢' },

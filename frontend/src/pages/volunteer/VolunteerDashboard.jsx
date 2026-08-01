@@ -165,7 +165,7 @@ const VolunteerDashboard = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Volunteer Dashboard</h1>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
                 <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
                         <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Hours</dt>
@@ -176,6 +176,14 @@ const VolunteerDashboard = () => {
                     <div className="px-4 py-5 sm:p-6">
                         <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Events Assigned</dt>
                         <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{stats?.events_assigned || 0}</dd>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">My Contributions</dt>
+                        <a href="/donations/history" className="mt-2 inline-flex items-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                            💳 View Donation History &rarr;
+                        </a>
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg flex flex-col items-center justify-center p-6 text-center">

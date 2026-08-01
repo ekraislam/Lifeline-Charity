@@ -80,21 +80,48 @@ const updatePaymentStatus = async (donationId, status, transactionId, gatewayRes
 
 const getDonationHistory = async (userId) => {
     const [rows] = await db.query(`
-        SELECT d.*, c.title AS campaign_title 
+        SELECT 
+            d.id,
+            d.user_id,
+            d.campaign_id,
+            d.amount,
+            d.is_anonymous,
+            d.is_recurring,
+            d.recurring_frequency,
+            d.status,
+            d.created_at,
+            c.title AS campaign_title,
+            COALESCE(pt.gateway_name, 'Credit Card') AS payment_method,
+            COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
         FROM donations d 
         JOIN campaigns c ON d.campaign_id = c.id 
+        LEFT JOIN payment_transactions pt ON pt.donation_id = d.id
         WHERE d.user_id = ? 
         ORDER BY d.created_at DESC
     `, [userId]);
     return rows;
 };
 
-const getDonationReceipt = async (donationId, userId) => {
+const getDonationReceipt = async (donationId, userId, userRole) => {
     const [rows] = await db.query(`
-        SELECT d.id, d.amount, d.created_at AS date, COALESCE(u.name, 'Anonymous') AS donor_name, c.title AS campaign_title, d.user_id 
+        SELECT 
+            d.id, 
+            d.amount, 
+            d.created_at AS date, 
+            d.status,
+            d.is_anonymous,
+            d.is_recurring,
+            d.recurring_frequency,
+            COALESCE(u.name, 'Anonymous') AS donor_name, 
+            u.email AS donor_email,
+            c.title AS campaign_title, 
+            d.user_id,
+            COALESCE(pt.gateway_name, 'Credit Card') AS payment_method,
+            COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
         FROM donations d 
         LEFT JOIN users u ON d.user_id = u.id 
         JOIN campaigns c ON d.campaign_id = c.id 
+        LEFT JOIN payment_transactions pt ON pt.donation_id = d.id
         WHERE d.id = ?
     `, [donationId]);
     
@@ -103,16 +130,23 @@ const getDonationReceipt = async (donationId, userId) => {
     }
     
     const donation = rows[0];
-    if (donation.user_id !== userId) {
+    if (donation.user_id !== userId && userRole !== 'admin') {
         throw new Error('Unauthorized');
     }
     
     return {
         receipt_url: `receipt-${donation.id}`,
+        receipt_number: `LL-REC-${String(donation.id).padStart(6, '0')}`,
         date: donation.date,
-        donor_name: donation.donor_name,
+        donor_name: donation.is_anonymous ? 'Anonymous Donor' : donation.donor_name,
+        donor_email: donation.donor_email || 'N/A',
         campaign_title: donation.campaign_title,
-        amount: donation.amount
+        amount: donation.amount,
+        payment_method: donation.payment_method,
+        transaction_id: donation.transaction_id,
+        status: donation.status,
+        is_recurring: donation.is_recurring,
+        recurring_frequency: donation.recurring_frequency
     };
 };
 
