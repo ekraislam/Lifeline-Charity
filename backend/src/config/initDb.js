@@ -61,22 +61,26 @@ const initDb = async () => {
         `);
 
         // Ensure help_requests payment columns exist (compatible with all MySQL versions)
-        const dbName = database;
-        const paymentCols = [
-            { column: 'payment_method',      definition: "ENUM('Bank Transfer','bKash','Nagad','Rocket') DEFAULT 'Bank Transfer'" },
-            { column: 'account_holder_name', definition: 'VARCHAR(255)' },
-            { column: 'account_number',      definition: 'VARCHAR(255)' },
-        ];
-        for (const col of paymentCols) {
-            const [colRows] = await dbPool.query(
-                `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-                 WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'help_requests' AND COLUMN_NAME = ?`,
-                [dbName, col.column]
-            );
-            if (colRows.length === 0) {
-                await dbPool.query(`ALTER TABLE help_requests ADD COLUMN ${col.column} ${col.definition}`);
-                console.log(`Added column help_requests.${col.column}`);
+        try {
+            const dbName = database;
+            const paymentCols = [
+                { column: 'payment_method',      definition: "ENUM('Bank Transfer','bKash','Nagad','Rocket') DEFAULT 'Bank Transfer'" },
+                { column: 'account_holder_name', definition: 'VARCHAR(255)' },
+                { column: 'account_number',      definition: 'VARCHAR(255)' },
+            ];
+            for (const col of paymentCols) {
+                const [colRows] = await dbPool.query(
+                    `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                     WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'help_requests' AND COLUMN_NAME = ?`,
+                    [dbName, col.column]
+                );
+                if (colRows.length === 0) {
+                    await dbPool.query(`ALTER TABLE help_requests ADD COLUMN ${col.column} ${col.definition}`);
+                    console.log(`Added column help_requests.${col.column}`);
+                }
             }
+        } catch (colErr) {
+            console.warn("Payment columns check warning:", colErr.message);
         }
 
         // Ensure campaigns status ENUM supports target_reached, processing_payout
