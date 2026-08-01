@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 let socketInstance = null;
@@ -30,19 +30,35 @@ export const broadcastLocalCampaignUpdate = (detailData) => {
 };
 
 export const useCampaignRealtime = (onUpdate) => {
-    useEffect(() => {
-        if (typeof onUpdate !== 'function') return;
+    const onUpdateRef = useRef(onUpdate);
 
+    useEffect(() => {
+        onUpdateRef.current = onUpdate;
+    });
+
+    useEffect(() => {
         const handleCampaignUpdated = (data) => {
-            try { onUpdate({ type: 'campaign_updated', ...data }); } catch (e) {}
+            try {
+                if (typeof onUpdateRef.current === 'function') {
+                    onUpdateRef.current({ type: 'campaign_updated', ...data });
+                }
+            } catch (e) {}
         };
 
         const handleDonationSuccess = (data) => {
-            try { onUpdate({ type: 'donation_success', ...data }); } catch (e) {}
+            try {
+                if (typeof onUpdateRef.current === 'function') {
+                    onUpdateRef.current({ type: 'donation_success', ...data });
+                }
+            } catch (e) {}
         };
 
         const handleLocalCustomEvent = (event) => {
-            try { onUpdate({ type: 'local_custom_event', ...(event?.detail || {}) }); } catch (e) {}
+            try {
+                if (typeof onUpdateRef.current === 'function') {
+                    onUpdateRef.current({ type: 'local_custom_event', ...(event?.detail || {}) });
+                }
+            } catch (e) {}
         };
 
         // Attach socket listeners safely
@@ -73,7 +89,7 @@ export const useCampaignRealtime = (onUpdate) => {
                 window.removeEventListener('lifeline_campaign_updated', handleLocalCustomEvent);
             }
         };
-    }, [onUpdate]);
+    }, []);
 };
 
 export default useCampaignRealtime;

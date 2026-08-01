@@ -34,6 +34,16 @@ const createEvent = async (req, res) => {
             data.cover_image = '/uploads/events/' + req.file.filename;
         }
         const eventId = await eventService.createEvent(data, req.user.id);
+
+        // Trigger Admin Notification
+        const { createAdminNotification } = require('../services/notification.service');
+        await createAdminNotification({
+            title: 'New Community Event Created',
+            message: `Event "${data.title}" created for ${data.event_date ? new Date(data.event_date).toLocaleDateString() : 'upcoming date'}.`,
+            type: 'event_created',
+            priority: 'normal'
+        });
+
         res.status(201).json({ message: 'Event created successfully', eventId });
     } catch (error) {
         console.error(error);
@@ -70,6 +80,16 @@ const deleteEvent = async (req, res) => {
 const updateEventStatus = async (req, res) => {
     try {
         await eventService.updateEventStatus(req.params.id, req.body.status, req.user.id, req.user.role);
+
+        // Trigger Admin Notification
+        const { createAdminNotification } = require('../services/notification.service');
+        await createAdminNotification({
+            title: 'Event Status Updated',
+            message: `Event ID #${req.params.id} status changed to "${req.body.status}".`,
+            type: 'event_updated',
+            priority: 'low'
+        });
+
         res.json({ message: 'Event status updated' });
     } catch (error) {
         console.error(error);
@@ -81,6 +101,16 @@ const updateEventStatus = async (req, res) => {
 const registerVolunteer = async (req, res) => {
     try {
         await eventService.registerVolunteer(req.params.id, req.user.id);
+
+        // Trigger Admin Notification
+        const { createAdminNotification } = require('../services/notification.service');
+        await createAdminNotification({
+            title: 'Volunteer Joined Event',
+            message: `Volunteer "${req.user.name || 'Volunteer'}" registered for Event #${req.params.id}.`,
+            type: 'volunteer_joined_event',
+            priority: 'low'
+        });
+
         res.json({ message: 'Successfully registered for event' });
     } catch (error) {
         console.error(error);

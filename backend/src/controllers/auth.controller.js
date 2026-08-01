@@ -18,6 +18,31 @@ const register = async (req, res) => {
 
         const userId = await authService.createUser(req.body);
         
+        // Trigger Admin Notifications
+        const { createAdminNotification } = require('../services/notification.service');
+        if (req.body.role === 'ngo') {
+            await createAdminNotification({
+                title: 'New NGO Registration Request',
+                message: `NGO Organization "${req.body.org_name || req.body.name}" submitted a registration request awaiting verification.`,
+                type: 'ngo_register',
+                priority: 'high'
+            });
+        } else if (req.body.role === 'volunteer') {
+            await createAdminNotification({
+                title: 'New Volunteer Application',
+                message: `Volunteer "${req.body.name}" applied for registration.`,
+                type: 'volunteer_register',
+                priority: 'normal'
+            });
+        } else {
+            await createAdminNotification({
+                title: 'New User Registered',
+                message: `New ${req.body.role || 'user'} registered: ${req.body.name} (${req.body.email}).`,
+                type: 'user_register',
+                priority: 'low'
+            });
+        }
+
         // Mock email verification
         const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN_2 || process.env.CORS_ORIGIN_1 || 'http://localhost:5173';
         const verificationLink = `${frontendUrl}/verify?email=${req.body.email}`;

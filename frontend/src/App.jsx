@@ -24,6 +24,7 @@ import NGODashboard from './pages/ngo/NGODashboard';
 import NGOManageEvents from './pages/ngo/NGOManageEvents';
 import EventForm from './pages/ngo/EventForm';
 import NGOBeneficiaryRequests from './pages/ngo/NGOBeneficiaryRequests';
+import NGOBeneficiaryDetail from './pages/ngo/NGOBeneficiaryDetail';
 import DashboardRouter from './pages/dashboard/DashboardRouter';
 import DonorDashboard from './pages/donor/DonorDashboard';
 import MainLayout from './layouts/MainLayout';
@@ -88,6 +89,7 @@ function App() {
                 <Route path="/ngo/events/create" element={<EventForm />} />
                 <Route path="/ngo/events/edit/:id" element={<EventForm />} />
                 <Route path="/ngo/beneficiary-requests" element={<NGOBeneficiaryRequests />} />
+                <Route path="/ngo/beneficiary-requests/:id" element={<NGOBeneficiaryDetail />} />
                 <Route path="/donor/dashboard" element={<DonorDashboard />} />
 
                 {/* Admin Routes */}

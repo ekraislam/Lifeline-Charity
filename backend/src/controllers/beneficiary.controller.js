@@ -10,6 +10,15 @@ const submitHelpRequest = async (req, res) => {
             await beneficiaryService.uploadDocuments(requestId, documentUrls);
         }
         
+        // Trigger Admin Notification
+        const { createAdminNotification } = require('../services/notification.service');
+        await createAdminNotification({
+            title: 'New Beneficiary Help Request',
+            message: `Beneficiary "${req.user.name || 'User'}" submitted a help request: "${req.body.title}".`,
+            type: 'beneficiary_request',
+            priority: 'high'
+        });
+
         res.status(201).json({ message: 'Help request submitted successfully', requestId });
     } catch (error) {
         console.error(error);

@@ -28,6 +28,23 @@ const syncCampaignCompletionStatus = async (campaignId = null) => {
                 // Update campaign status to 'completed'
                 await db.query('UPDATE campaigns SET status = "completed" WHERE id = ?', [camp.id]);
                 camp.status = 'completed';
+
+                const { createAdminNotification } = require('./notification.service');
+                if (isGoalReached) {
+                    await createAdminNotification({
+                        title: '🎉 Campaign Goal Reached!',
+                        message: `Campaign "${camp.title}" successfully reached its target funding goal of $${goal.toLocaleString()}!`,
+                        type: 'campaign_completed',
+                        priority: 'high'
+                    });
+                } else if (isExpired) {
+                    await createAdminNotification({
+                        title: '⏰ Campaign Ended Automatically',
+                        message: `Campaign "${camp.title}" reached its deadline date and has ended automatically. Total raised: $${raised.toLocaleString()}.`,
+                        type: 'campaign_expired',
+                        priority: 'normal'
+                    });
+                }
             }
         }
     } catch (err) {

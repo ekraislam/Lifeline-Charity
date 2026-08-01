@@ -4,6 +4,8 @@ import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { getMediaUrl } from '../api/axios?v=1';
 import logo from '../assets/fogo.png';
+import AdminNotificationBell from '../components/admin/AdminNotificationBell';
+import NGONotificationBell from '../components/ngo/NGONotificationBell';
 
 const MainLayout = ({ children }) => {
     const { user, logout } = useContext(AuthContext);
@@ -85,6 +87,10 @@ const MainLayout = ({ children }) => {
                                         </svg>
                                         Dashboard
                                     </Link>
+
+                                    {/* Admin & NGO Notification Bells */}
+                                    <AdminNotificationBell />
+                                    <NGONotificationBell />
 
                                     {/* User Avatar Menu */}
                                     <div className="relative">

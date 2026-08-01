@@ -17,6 +17,25 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         await profileService.updateProfile(req.user.id, req.body);
+
+        // Notify admin when beneficiary or NGO updates their profile
+        const { createAdminNotification } = require('../services/notification.service');
+        if (req.user.role === 'beneficiary') {
+            await createAdminNotification({
+                title: 'Beneficiary Profile Updated',
+                message: `Beneficiary "${req.user.name || 'User'}" updated their profile information.`,
+                type: 'beneficiary_profile_update',
+                priority: 'low'
+            });
+        } else if (req.user.role === 'ngo') {
+            await createAdminNotification({
+                title: 'NGO Profile Updated',
+                message: `NGO "${req.user.name || 'Organization'}" updated their organization profile details.`,
+                type: 'ngo_profile_update',
+                priority: 'low'
+            });
+        }
+
         res.json({ message: 'Profile updated successfully' });
     } catch (error) {
         console.error(error);

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://backend-lifeline.smsakib.shop').replace(/\/+$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://backend-lifeline.millatsakib.com').replace(/\/+$/, '');
 const baseURL = `${API_BASE_URL}/api`;
 
 export const getMediaUrl = (path) => {

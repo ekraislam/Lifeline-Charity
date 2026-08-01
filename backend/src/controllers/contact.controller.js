@@ -8,6 +8,16 @@ const submitContact = async (req, res) => {
         }
         
         await contactService.saveMessage({ name, email, message });
+
+        // Trigger Admin Notification
+        const { createAdminNotification } = require('../services/notification.service');
+        await createAdminNotification({
+            title: 'New Support Contact Message',
+            message: `New message from ${name} (${email}): "${message.slice(0, 80)}${message.length > 80 ? '...' : ''}"`,
+            type: 'contact_message',
+            priority: 'normal'
+        });
+
         res.status(201).json({ message: 'Message sent successfully' });
     } catch (error) {
         console.error('Contact submission error:', error);

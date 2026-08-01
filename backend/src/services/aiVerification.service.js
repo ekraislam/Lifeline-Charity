@@ -299,6 +299,19 @@ Please return a JSON object with:
             reportData.recommendation
         ]);
 
+        // Notify admin that AI analysis completed
+        try {
+            const { createAdminNotification } = require('./notification.service');
+            await createAdminNotification({
+                title: '🤖 AI Document Analysis Completed',
+                message: `AI verification for Help Request #${helpRequestId} completed. Risk: ${risk_level}, Confidence: ${confidence_score}%.`,
+                type: 'ai_analysis',
+                priority: risk_level === 'High Risk' ? 'high' : 'normal'
+            });
+        } catch (notifErr) {
+            console.error('AI notification error:', notifErr.message);
+        }
+
         return {
             ...reportData,
             ocr_data,

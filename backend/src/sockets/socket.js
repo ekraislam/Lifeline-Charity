@@ -17,9 +17,25 @@ const initSocket = (server) => {
     io.on('connection', (socket) => {
         console.log('User connected:', socket.id);
         
-        socket.on('join', (userId) => {
-            socket.join(`user_${userId}`);
-            console.log(`User ${userId} joined room user_${userId}`);
+        socket.on('join', (data) => {
+            if (typeof data === 'object' && data !== null) {
+                if (data.userId) {
+                    socket.join(`user_${data.userId}`);
+                    console.log(`User ${data.userId} joined room user_${data.userId}`);
+                }
+                if (data.role === 'admin') {
+                    socket.join('admin');
+                    console.log(`Admin socket ${socket.id} joined admin room`);
+                }
+            } else if (data) {
+                socket.join(`user_${data}`);
+                console.log(`User ${data} joined room user_${data}`);
+            }
+        });
+
+        socket.on('joinAdmin', () => {
+            socket.join('admin');
+            console.log(`Admin joined admin room via joinAdmin`);
         });
 
         socket.on('disconnect', () => {

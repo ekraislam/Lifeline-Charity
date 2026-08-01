@@ -85,9 +85,72 @@ const updatePaymentStatus = async (donationId, status, transactionId, gatewayRes
     }
 
     // Post-commit tasks: Sync campaign completion & broadcast real-time socket events
+    const { createAdminNotification } = require('./notification.service');
+
     if (status === 'success' && updatedCampaignId) {
         await syncCampaignCompletionStatus(updatedCampaignId);
         const updatedCampaign = await getCampaignById(updatedCampaignId);
+
+        const [donData] = await db.query('SELECT amount FROM donations WHERE id = ?', [donationId]);
+        const donAmt = donData && donData[0] ? parseFloat(donData[0].amount) : 0;
+
+        if (donAmt >= 500) {
+            await createAdminNotification({
+                title: '💰 Large Donation Received!',
+                message: `Generous contribution of $${donAmt.toLocaleString()} received for campaign: "${updatedCampaign?.title || 'Campaign'}".`,
+                type: 'large_donation',
+                priority: 'high'
+            });
+        } else {
+            await createAdminNotification({
+                title: 'New Donation Received',
+                message: `Donation of $${donAmt.toLocaleString()} received for "${updatedCampaign?.title || 'Campaign'}".`,
+                type: 'donation_success',
+                priority: 'normal'
+            });
+        }
+
+        // ── NGO Notifications ──────────────────────────────────────────────────
+        try {
+            const { createNGONotification } = require('./notification.service');
+            // Get NGO user_id for this campaign
+            const [ngoRows] = await db.query(
+                `SELECT np.user_id FROM campaigns c
+                 JOIN ngo_profiles np ON np.id = c.ngo_id
+                 WHERE c.id = ?`, [updatedCampaignId]
+            );
+            if (ngoRows.length > 0) {
+                const ngoUserId = ngoRows[0].user_id;
+                const raised = parseFloat(updatedCampaign?.raised_amount || 0);
+                const goal = parseFloat(updatedCampaign?.goal_amount || 1);
+                const pct = goal > 0 ? Math.floor((raised / goal) * 100) : 0;
+
+                // New donation notification
+                await createNGONotification(ngoUserId, {
+                    title: '💳 New Donation Received',
+                    message: `$${donAmt.toLocaleString()} donated to your campaign "${updatedCampaign?.title || ''}". Total raised: $${raised.toLocaleString()}.`,
+                    type: 'donation_success',
+                    priority: donAmt >= 500 ? 'high' : 'normal'
+                });
+
+                // Milestone notifications (25%, 50%, 75%, 100%)
+                const milestones = [25, 50, 75, 100];
+                for (const milestone of milestones) {
+                    if (pct >= milestone && (pct - Math.floor((donAmt / goal) * 100)) < milestone) {
+                        await createNGONotification(ngoUserId, {
+                            title: milestone === 100 ? '🎉 Campaign Goal Reached!' : `🏆 ${milestone}% Milestone Reached!`,
+                            message: milestone === 100
+                                ? `Your campaign "${updatedCampaign?.title || ''}" has reached its full goal of $${goal.toLocaleString()}!`
+                                : `Your campaign "${updatedCampaign?.title || ''}" has reached ${milestone}% of its $${goal.toLocaleString()} goal.`,
+                            type: milestone === 100 ? 'campaign_completed' : 'campaign_milestone',
+                            priority: milestone >= 75 ? 'high' : 'normal'
+                        });
+                    }
+                }
+            }
+        } catch (ngoErr) {
+            console.error('NGO donation notification error:', ngoErr.message);
+        }
 
         try {
             const { getIo } = require('../sockets/socket');
@@ -110,6 +173,13 @@ const updatePaymentStatus = async (donationId, status, transactionId, gatewayRes
         } catch (e) {
             console.error("Socket emit error:", e.message);
         }
+    } else if (status === 'failed') {
+        await createAdminNotification({
+            title: '⚠️ Failed Payment Attempt',
+            message: `Donation transaction #${donationId} failed processing via Stripe gateway.`,
+            type: 'donation_failed',
+            priority: 'high'
+        });
     }
 };
 

@@ -113,16 +113,25 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                 }
             }
 
-            const detailsRes = await api.get(`/donations/${donationId}`);
-            setDonationResult(detailsRes.data || {
+            let donationData = {
                 id: donationId,
                 amount: finalAmount,
-                campaign_title: campaign.title,
+                campaign_title: campaign?.title,
                 transaction_id: donateRes.data.transaction_id || `cs_test_${Date.now()}`,
                 payment_method: 'Stripe Checkout',
                 created_at: new Date().toISOString()
-            });
+            };
 
+            try {
+                const detailsRes = await api.get(`/donations/${donationId}`);
+                if (detailsRes.data) {
+                    donationData = detailsRes.data;
+                }
+            } catch (detailsErr) {
+                console.warn("Could not fetch full donation details, using fallback:", detailsErr);
+            }
+
+            setDonationResult(donationData);
             broadcastLocalCampaignUpdate({ campaign_id: campaign.id, amount: finalAmount });
             setStep('success');
         } catch (err) {
@@ -445,10 +454,17 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
                                 </button>
 
                                 <button
-                                    onClick={() => { onClose(); navigate('/donations/history'); }}
+                                    onClick={() => {
+                                        onClose();
+                                        if (localStorage.getItem('token')) {
+                                            navigate('/donations/history');
+                                        } else {
+                                            navigate('/login');
+                                        }
+                                    }}
                                     className="btn-secondary w-full py-3.5 text-xs uppercase tracking-wider"
                                 >
-                                    View Donation History
+                                    {localStorage.getItem('token') ? 'View Donation History' : 'Log in to Track History'}
                                 </button>
                             </div>
                         </div>

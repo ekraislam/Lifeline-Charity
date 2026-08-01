@@ -135,7 +135,15 @@ const NGODashboard = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {assignedBeneficiaries.map(req => {
-                            const isCampaignCompleted = req.campaign_status === 'completed' || req.status === 'fulfilled';
+                            const campaignStatus = req.campaign_status;
+                            const raised = parseFloat(req.raised_amount || 0);
+                            const goal = parseFloat(req.goal_amount || 0);
+                            const goalReached = goal > 0 && raised >= goal;
+                            const isCampaignCompleted =
+                                req.status === 'fulfilled' ||
+                                campaignStatus === 'completed' ||
+                                campaignStatus === 'target_reached' ||
+                                goalReached;
 
                             return (
                                 <div key={req.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 p-5 flex flex-col justify-between">
@@ -154,6 +162,20 @@ const NGODashboard = () => {
                                         <h3 className="font-bold text-gray-900 dark:text-white mb-1 truncate">{req.title}</h3>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{req.beneficiary_name} · {req.beneficiary_email}</p>
                                         <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mb-3">${parseFloat(req.required_amount || 0).toLocaleString()} needed</p>
+                                        {req.campaign_id && goal > 0 && (
+                                            <div className="mt-1 mb-3">
+                                                <div className="flex justify-between text-[11px] text-gray-500 dark:text-gray-400 mb-1">
+                                                    <span>${raised.toLocaleString()} raised</span>
+                                                    <span>{Math.min(100, Math.round((raised / goal) * 100))}%</span>
+                                                </div>
+                                                <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-500 ${isCampaignCompleted ? 'bg-emerald-500' : 'bg-primary-500'}`}
+                                                        style={{ width: `${Math.min(100, (raised / goal) * 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     
                                     {req.status === 'assigned' && !req.has_campaign ? (
@@ -165,7 +187,7 @@ const NGODashboard = () => {
                                         </button>
                                     ) : isCampaignCompleted ? (
                                         <div className="text-center text-xs text-emerald-700 dark:text-emerald-300 font-bold py-2 bg-emerald-50 dark:bg-emerald-950/60 rounded-xl border border-emerald-200">
-                                            ✅ Campaign Completed
+                                            ✅ Campaign Completed — Goal Reached
                                         </div>
                                     ) : (
                                         <div className="text-center text-xs text-green-700 dark:text-green-300 font-bold py-2 bg-green-50 dark:bg-green-950/60 rounded-xl border border-green-200">

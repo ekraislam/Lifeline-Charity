@@ -15,7 +15,11 @@ const getCampaignById = async (req, res) => {
         const campaign = await campaignService.getCampaignById(req.params.id);
         if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
 
-        if (campaign.status !== 'approved') {
+        // Public statuses — anyone can view these campaigns
+        const publicStatuses = ['approved', 'completed', 'target_reached'];
+
+        if (!publicStatuses.includes(campaign.status)) {
+            // Non-public campaign — only admin or the NGO owner can view
             const authHeader = req.headers.authorization;
             let isAdminOrOwner = false;
             if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -45,6 +49,16 @@ const getCampaignById = async (req, res) => {
 const createCampaign = async (req, res) => {
     try {
         const campaignId = await campaignService.createCampaign(req.body, req.user.id);
+        
+        // Trigger Admin Notification
+        const { createAdminNotification } = require('../services/notification.service');
+        await createAdminNotification({
+            title: 'New Campaign Submitted',
+            message: `Campaign "${req.body.title}" was submitted for approval. Goal: $${req.body.goal_amount}.`,
+            type: 'campaign_approval',
+            priority: 'high'
+        });
+
         res.status(201).json({ message: 'Campaign created successfully', campaignId });
     } catch (error) {
         console.error(error);
@@ -78,6 +92,41 @@ const deleteCampaign = async (req, res) => {
 const approveRejectCampaign = async (req, res) => {
     try {
         await campaignService.updateCampaignStatus(req.params.id, req.body.status);
+
+        const { createAdminNotification, createNGONotification } = require('../services/notification.service');
+
+        // Notify admins
+        await createAdminNotification({
+            title: `Campaign ${req.body.status === 'approved' ? 'Approved ✅' : 'Rejected ❌'}`,
+            message: `Campaign ID #${req.params.id} has been marked as ${req.body.status}.`,
+            type: 'campaign_status',
+            priority: 'normal'
+        });
+
+        // Notify the NGO that owns this campaign
+        try {
+            const db = require('../config/db');
+            const [rows] = await db.query(
+                `SELECT np.user_id FROM campaigns c
+                 JOIN ngo_profiles np ON np.id = c.ngo_id
+                 WHERE c.id = ?`, [req.params.id]
+            );
+            if (rows.length > 0) {
+                const ngoUserId = rows[0].user_id;
+                const isApproved = req.body.status === 'approved';
+                await createNGONotification(ngoUserId, {
+                    title: isApproved ? '✅ Campaign Approved!' : '❌ Campaign Rejected',
+                    message: isApproved
+                        ? `Great news! Your campaign #${req.params.id} has been approved and is now live.`
+                        : `Your campaign #${req.params.id} was rejected. Please review and resubmit.`,
+                    type: isApproved ? 'campaign_approved' : 'campaign_rejected',
+                    priority: 'high'
+                });
+            }
+        } catch (ngoErr) {
+            console.error('NGO campaign notification error:', ngoErr.message);
+        }
+
         res.json({ message: `Campaign ${req.body.status} successfully` });
     } catch (error) {
         console.error(error);

@@ -17,11 +17,11 @@ const optionalAuth = (req, res, next) => {
 
 router.post('/', optionalAuth, validate(createDonationSchema), donationController.donate);
 router.get('/payment-callback', donationController.paymentCallback);
+router.get('/:id', optionalAuth, donationController.getDonationDetails);
 
 // Protected routes
 router.use(authMiddleware);
 router.get('/history', donationController.getHistory);
 router.get('/:id/receipt', donationController.getReceipt);
-router.get('/:id', donationController.getDonationDetails);
 
 module.exports = router;

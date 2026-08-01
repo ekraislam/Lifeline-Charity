@@ -82,11 +82,17 @@ const getHelpRequests = async (filters = {}) => {
 // NGOs see only waiting_for_ngo requests
 const getWaitingRequests = async () => {
     const [rows] = await db.query(`
-        SELECT hr.id, hr.title, hr.description, hr.status, hr.required_amount, hr.created_at,
-               u.name as beneficiary_name, u.email as beneficiary_email
+        SELECT hr.id, hr.title, hr.description, hr.status, hr.required_amount,
+               hr.payment_method, hr.created_at,
+               u.name as beneficiary_name, u.email as beneficiary_email,
+               COALESCE(air.confidence_score, 0) as ai_confidence_score,
+               COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level,
+               COALESCE(air.recommendation, '') as ai_recommendation,
+               (SELECT COUNT(*) FROM help_request_documents hrd WHERE hrd.help_request_id = hr.id) as document_count
         FROM help_requests hr
         JOIN beneficiaries b ON hr.beneficiary_id = b.id
         JOIN users u ON b.user_id = u.id
+        LEFT JOIN ai_verification_reports air ON air.help_request_id = hr.id
         WHERE hr.status = 'waiting_for_ngo'
         ORDER BY hr.created_at DESC
     `);
@@ -136,11 +142,16 @@ const getMyAssignedBeneficiaries = async (ngoUserId) => {
     const [rows] = await db.query(`
         SELECT hr.id, hr.title, hr.description, hr.status, hr.required_amount, hr.created_at,
                u.name as beneficiary_name, u.email as beneficiary_email, u.phone as beneficiary_phone,
-               (SELECT COUNT(*) FROM campaigns c WHERE c.help_request_id = hr.id AND c.status != 'cancelled') as has_campaign
+               c.id as campaign_id,
+               c.status as campaign_status,
+               c.raised_amount,
+               c.goal_amount,
+               CASE WHEN c.id IS NOT NULL AND c.status != 'cancelled' THEN 1 ELSE 0 END as has_campaign
         FROM help_requests hr
         JOIN beneficiaries b ON hr.beneficiary_id = b.id
         JOIN users u ON b.user_id = u.id
         JOIN ngo_profiles np ON hr.assigned_ngo_id = np.id
+        LEFT JOIN campaigns c ON c.help_request_id = hr.id AND c.status != 'cancelled'
         WHERE np.user_id = ? AND hr.status IN ('assigned', 'campaign_active', 'fulfilled')
         ORDER BY hr.created_at DESC
     `, [ngoUserId]);
