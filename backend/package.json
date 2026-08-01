@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^2.15.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -25,7 +26,8 @@
     "mysql2": "^3.23.2",
     "nodemailer": "^9.0.3",
     "socket.io": "^4.8.3",
-    "stripe": "^22.4.0"
+    "stripe": "^22.4.0",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "morgan": "^1.11.0",

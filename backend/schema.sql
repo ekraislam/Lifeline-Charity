@@ -282,3 +282,21 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 23. AI Verification Reports (Beneficiary Document Verification)
+CREATE TABLE IF NOT EXISTS ai_verification_reports (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    help_request_id INT NOT NULL UNIQUE,
+    ocr_data JSON,
+    nid_analysis JSON,
+    medical_analysis JSON,
+    missing_info JSON,
+    suspicious_findings JSON,
+    confidence_score INT DEFAULT 0,
+    risk_level ENUM('Low Risk', 'Medium Risk', 'High Risk') DEFAULT 'Low Risk',
+    recommendation TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (help_request_id) REFERENCES help_requests(id) ON DELETE CASCADE
+);
+
+

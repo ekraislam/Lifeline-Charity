@@ -88,6 +88,14 @@ const updateBeneficiaryStatus = async (req, res) => {
     } catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
 
+const reAnalyzeBeneficiary = async (req, res) => {
+    try {
+        const aiVerificationService = require('../services/aiVerification.service');
+        const report = await aiVerificationService.analyzeHelpRequest(req.params.id);
+        res.json({ message: 'AI re-analysis completed successfully', report });
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Failed to run AI re-analysis' }); }
+};
+
 // ── Excel Exports ──────────────────────────────────────────────────
 const exportCampaigns = async (req, res) => {
     try {
@@ -133,7 +141,7 @@ module.exports = {
     getUsers, updateUserStatus,
     getNGOs, updateNGOStatus,
     getVolunteers, updateVolunteerStatus,
-    getBeneficiaryRequests, getBeneficiaryById, updateBeneficiaryStatus,
+    getBeneficiaryRequests, getBeneficiaryById, updateBeneficiaryStatus, reAnalyzeBeneficiary,
     exportCampaigns, exportDonations, exportUsers,
     getDonations,
 };

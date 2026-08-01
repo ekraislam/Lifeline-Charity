@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const aiVerificationService = require('./aiVerification.service');
 
 const submitHelpRequest = async (userId, data) => {
     let beneficiaryId;
@@ -18,13 +19,30 @@ const submitHelpRequest = async (userId, data) => {
         'INSERT INTO help_requests (beneficiary_id, title, description, required_amount) VALUES (?, ?, ?, ?)',
         [beneficiaryId, title, description, required_amount || 0]
     );
-    return result.insertId;
+
+    const requestId = result.insertId;
+
+    // Trigger automatic AI analysis
+    try {
+        await aiVerificationService.analyzeHelpRequest(requestId);
+    } catch (err) {
+        console.error("AI Auto Analysis Error:", err.message);
+    }
+
+    return requestId;
 };
 
 const uploadDocuments = async (helpRequestId, documentUrls) => {
     if (!documentUrls || documentUrls.length === 0) return;
     const values = documentUrls.map(url => [helpRequestId, url]);
     await db.query('INSERT INTO help_request_documents (help_request_id, document_url) VALUES ?', [values]);
+
+    // Re-analyze with newly uploaded documents
+    try {
+        await aiVerificationService.analyzeHelpRequest(helpRequestId);
+    } catch (err) {
+        console.error("AI Re-Analysis Error:", err.message);
+    }
 };
 
 const getHelpRequests = async (filters = {}) => {
@@ -32,12 +50,15 @@ const getHelpRequests = async (filters = {}) => {
         SELECT hr.id, hr.title, hr.description, hr.status, hr.required_amount,
                hr.admin_note, hr.assigned_ngo_id, hr.created_at,
                u.name as beneficiary_name, u.email as beneficiary_email,
-               ngo_u.name as assigned_ngo_name, np.org_name as assigned_ngo_org
+               ngo_u.name as assigned_ngo_name, np.org_name as assigned_ngo_org,
+               COALESCE(air.confidence_score, 0) as ai_confidence_score,
+               COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level
         FROM help_requests hr
         JOIN beneficiaries b ON hr.beneficiary_id = b.id
         JOIN users u ON b.user_id = u.id
         LEFT JOIN ngo_profiles np ON hr.assigned_ngo_id = np.id
         LEFT JOIN users ngo_u ON np.user_id = ngo_u.id
+        LEFT JOIN ai_verification_reports air ON air.help_request_id = hr.id
     `;
     const params = [];
     const conditions = [];
@@ -139,6 +160,13 @@ const getHelpRequestById = async (id) => {
     if (request) {
         const [docs] = await db.query('SELECT id, document_url FROM help_request_documents WHERE help_request_id = ?', [id]);
         request.documents = docs;
+
+        // Attach AI Verification Report
+        try {
+            request.ai_report = await aiVerificationService.getReportByRequestId(id);
+        } catch (err) {
+            console.error("Failed to load AI report for request #", id, err.message);
+        }
     }
     return request;
 };

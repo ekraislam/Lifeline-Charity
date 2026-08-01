@@ -171,11 +171,14 @@ const getBeneficiaryRequests = async (search) => {
         SELECT hr.id, hr.title, hr.description, hr.status, hr.admin_note, hr.required_amount,
                hr.assigned_ngo_id, hr.created_at,
                u.name as beneficiary_name, u.email as beneficiary_email,
-               np.org_name as assigned_ngo_org
+               np.org_name as assigned_ngo_org,
+               COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level,
+               COALESCE(air.confidence_score, 0) as ai_confidence_score
         FROM help_requests hr
         JOIN beneficiaries b ON hr.beneficiary_id = b.id
         JOIN users u ON b.user_id = u.id
         LEFT JOIN ngo_profiles np ON hr.assigned_ngo_id = np.id
+        LEFT JOIN ai_verification_reports air ON air.help_request_id = hr.id
     `;
     const params = [];
     if (search) {

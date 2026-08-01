@@ -31,6 +31,7 @@ router.put('/volunteers/:id/status', c.updateVolunteerStatus);
 router.get('/beneficiaries', c.getBeneficiaryRequests);
 router.get('/beneficiaries/:id', c.getBeneficiaryById);
 router.put('/beneficiaries/:id/status', c.updateBeneficiaryStatus);
+router.post('/beneficiaries/:id/re-analyze', c.reAnalyzeBeneficiary);
 
 // Donations
 router.get('/donations', c.getDonations);
