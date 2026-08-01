@@ -78,16 +78,19 @@ app.get('/', (req, res) => {
   res.send('Lifeline API is running...');
 });
 
-// Auto-initialize database schema if missing
+// Initialize Socket.io (Must be before server.listen)
+const { initSocket } = require('./src/sockets/socket');
+initSocket(server);
+
 const initDb = require('./src/config/initDb');
 
 // Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  await initDb();
+  try {
+    await initDb();
+  } catch (err) {
+    console.error("Database auto-initialization error:", err.message);
+  }
 });
-
-// Initialize Socket.io
-const { initSocket } = require('./src/sockets/socket');
-initSocket(server);
