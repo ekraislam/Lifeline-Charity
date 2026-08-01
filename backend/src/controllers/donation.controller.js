@@ -15,33 +15,48 @@ const donate = async (req, res) => {
         const returnUrl = `${backendUrl}/api/donations/payment-callback`;
         const paymentData = await paymentGateway.processPayment(req.body.amount, 'USD', donationId, returnUrl);
 
-        res.json({ message: 'Donation initiated', payment_url: paymentData.payment_url });
+        res.json({
+            message: 'Stripe donation initiated',
+            donation_id: donationId,
+            checkout_url: paymentData.payment_url,
+            payment_url: paymentData.payment_url,
+            transaction_id: paymentData.transaction_id
+        });
     } catch (error) {
         console.error(error);
         if (error.message === 'Campaign not found') {
             return res.status(404).json({ message: error.message });
         }
-        if (error.message === 'Donations are only allowed for approved campaigns') {
+        if (error.message === 'Donations are only allowed for approved campaigns' || error.message === 'Donations are only allowed for active campaigns') {
             return res.status(400).json({ message: error.message });
         }
         if (error.message === 'This campaign has already reached its goal amount') {
             return res.status(400).json({ message: error.message });
         }
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 };
 
 const paymentCallback = async (req, res) => {
     try {
         const { status, donation_id, transaction_id } = req.query;
-        // In real world, verify signature/webhook payload here
 
         if (status === 'success') {
-            await donationService.updatePaymentStatus(donation_id, 'success', transaction_id || `TXN_${Date.now()}`, req.query);
-            res.json({ message: 'Payment successful' });
+            const txnId = transaction_id || `cs_test_${Date.now()}`;
+            await donationService.updatePaymentStatus(donation_id, 'success', txnId, req.query);
+            res.json({
+                status: 'success',
+                message: 'Stripe payment successful',
+                donation_id,
+                transaction_id: txnId
+            });
         } else {
             await donationService.updatePaymentStatus(donation_id, 'failed', null, req.query);
-            res.json({ message: 'Payment failed' });
+            res.json({
+                status: 'cancelled',
+                message: 'Stripe payment was cancelled or failed',
+                donation_id
+            });
         }
     } catch (error) {
         console.error(error);
@@ -75,4 +90,15 @@ const getReceipt = async (req, res) => {
     }
 };
 
-module.exports = { donate, paymentCallback, getHistory, getReceipt };
+const getDonationDetails = async (req, res) => {
+    try {
+        const donation = await donationService.getDonationById(req.params.id);
+        if (!donation) return res.status(404).json({ message: 'Donation not found' });
+        res.json(donation);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+module.exports = { donate, paymentCallback, getHistory, getReceipt, getDonationDetails };

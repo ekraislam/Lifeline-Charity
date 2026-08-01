@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useDonation } from '../../context/DonationContext';
 
 const Home = () => {
+    const { openDonationModal } = useDonation();
     return (
         <div className="bg-white dark:bg-gray-900 overflow-x-hidden">
             {/* Hero Section */}
@@ -31,10 +33,13 @@ const Home = () => {
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-5 justify-center items-center w-full animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                        <Link to="/campaigns" className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center group">
+                        <button
+                            onClick={() => openDonationModal()}
+                            className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center group"
+                        >
                             Donate Now
                             <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                        </Link>
+                        </button>
                         <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex items-center justify-center">
                             Join Us
                         </Link>

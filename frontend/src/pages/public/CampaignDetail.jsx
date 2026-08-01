@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
+import { useDonation } from '../../context/DonationContext';
 
 const CampaignDetail = () => {
     const { id } = useParams();
+    const { openDonationModal } = useDonation();
     const [campaign, setCampaign] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -112,9 +114,12 @@ const CampaignDetail = () => {
                                 🎉 This campaign has reached its goal! Thank you to all donors.
                             </div>
                         ) : campaign.status === 'approved' ? (
-                            <Link to={`/campaigns/${campaign.id}/donate`} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <button
+                                onClick={() => openDonationModal(campaign)}
+                                className="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-2xl shadow-xl text-lg font-black text-white bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 focus:outline-none transition-all duration-200 transform hover:-translate-y-0.5"
+                            >
                                 Donate Now
-                            </Link>
+                            </button>
                         ) : (
                             <div className="p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md text-center font-medium">
                                 This campaign is currently {campaign.status}. Donations are disabled.

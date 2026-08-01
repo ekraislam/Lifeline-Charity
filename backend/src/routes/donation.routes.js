@@ -22,5 +22,6 @@ router.get('/payment-callback', donationController.paymentCallback);
 router.use(authMiddleware);
 router.get('/history', donationController.getHistory);
 router.get('/:id/receipt', donationController.getReceipt);
+router.get('/:id', donationController.getDonationDetails);
 
 module.exports = router;

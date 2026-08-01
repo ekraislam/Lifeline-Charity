@@ -150,9 +150,33 @@ const getDonationReceipt = async (donationId, userId, userRole) => {
     };
 };
 
+const getDonationById = async (donationId) => {
+    const [rows] = await db.query(`
+        SELECT 
+            d.id,
+            d.user_id,
+            d.campaign_id,
+            d.amount,
+            d.is_anonymous,
+            d.is_recurring,
+            d.recurring_frequency,
+            d.status,
+            d.created_at,
+            c.title AS campaign_title,
+            COALESCE(pt.gateway_name, 'Stripe Checkout') AS payment_method,
+            COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
+        FROM donations d 
+        JOIN campaigns c ON d.campaign_id = c.id 
+        LEFT JOIN payment_transactions pt ON pt.donation_id = d.id
+        WHERE d.id = ?
+    `, [donationId]);
+    return rows[0] || null;
+};
+
 module.exports = {
     createDonation,
     updatePaymentStatus,
     getDonationHistory,
-    getDonationReceipt
+    getDonationReceipt,
+    getDonationById
 };

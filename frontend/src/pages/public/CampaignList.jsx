@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
+import { useDonation } from '../../context/DonationContext';
 
 const CampaignList = () => {
+    const { openDonationModal } = useDonation();
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
@@ -70,9 +72,17 @@ const CampaignList = () => {
                                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
                                         <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${Math.min(100, (campaign.raised_amount / campaign.goal_amount) * 100)}%` }}></div>
                                     </div>
-                                    <Link to={`/campaigns/${campaign.id}`} className="block w-full text-center bg-primary-50 border border-primary-500 text-primary-700 hover:bg-primary-100 font-medium py-2 rounded-md transition-colors">
-                                        View Details
-                                    </Link>
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        <Link to={`/campaigns/${campaign.id}`} className="block text-center bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 font-bold py-2 rounded-xl text-xs transition-colors">
+                                            Details
+                                        </Link>
+                                        <button
+                                            onClick={() => openDonationModal(campaign)}
+                                            className="block w-full text-center bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 rounded-xl text-xs transition-colors shadow-sm"
+                                        >
+                                            Donate Now
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

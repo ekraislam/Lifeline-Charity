@@ -43,6 +43,7 @@ import AdminContactMessages from './pages/admin/AdminContactMessages';
 import ErrorBoundary from './components/ErrorBoundary';
 
 import { ThemeProvider } from './context/ThemeContext';
+import { DonationProvider } from './context/DonationContext';
 
 const Unauthorized = () => <div className="p-8 text-red-500 text-center">Unauthorized — You do not have permission to view this page.</div>;
 
@@ -51,8 +52,9 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
       <Router>
-        <ErrorBoundary>
-          <MainLayout>
+        <DonationProvider>
+          <ErrorBoundary>
+            <MainLayout>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
@@ -108,6 +110,7 @@ function App() {
             </Routes>
           </MainLayout>
         </ErrorBoundary>
+        </DonationProvider>
       </Router>
       </AuthProvider>
     </ThemeProvider>
