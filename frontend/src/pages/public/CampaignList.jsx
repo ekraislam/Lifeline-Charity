@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
 import { useDonation } from '../../context/DonationContext';
+import { useLanguage } from '../../context/LanguageContext';
 import useCampaignRealtime from '../../hooks/useCampaignRealtime';
 
 const CampaignList = () => {
     const { openDonationModal } = useDonation();
+    const { t } = useLanguage();
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
@@ -26,7 +28,6 @@ const CampaignList = () => {
         fetchCampaigns();
     }, [fetchCampaigns]);
 
-    // Real-time listener for Socket.io & CustomEvents
     useCampaignRealtime(fetchCampaigns);
 
     const filteredCampaigns = campaigns.filter(c => (c.title || '').toLowerCase().includes(filter.toLowerCase()));
@@ -34,10 +35,10 @@ const CampaignList = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
             <div className="text-center max-w-3xl mx-auto space-y-4">
-                <span className="text-xs font-black tracking-widest uppercase text-primary-600 dark:text-primary-400">Make an Impact Today</span>
-                <h1 className="font-display text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">Explore Urgent Campaigns</h1>
+                <span className="text-xs font-black tracking-widest uppercase text-primary-600 dark:text-primary-400">{t('campaigns.badge')}</span>
+                <h1 className="font-display text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">{t('campaigns.title')}</h1>
                 <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">
-                    Browse verified disaster relief, medical, and educational fundraising initiatives created by trusted NGOs.
+                    {t('campaigns.subtitle')}
                 </p>
             </div>
 
@@ -45,10 +46,11 @@ const CampaignList = () => {
             <div className="max-w-xl mx-auto relative">
                 <input
                     type="text"
-                    placeholder="🔍 Search campaigns by title or cause..."
+                    placeholder={t('campaigns.searchPlaceholder')}
                     className="w-full px-5 py-4 border border-gray-200 dark:border-gray-700 rounded-3xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-medium focus:ring-4 focus:ring-primary-500/10 outline-none shadow-sm transition-all"
                     value={filter}
                     onChange={e => setFilter(e.target.value)}
+                    id="campaign-search"
                 />
             </div>
 
@@ -61,7 +63,7 @@ const CampaignList = () => {
             ) : filteredCampaigns.length === 0 ? (
                 <div className="card-premium p-12 text-center text-gray-500 dark:text-gray-400 font-medium">
                     <div className="text-5xl mb-3">🔎</div>
-                    No campaigns found matching your query.
+                    {t('campaigns.noResults')}
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -77,14 +79,14 @@ const CampaignList = () => {
                                     {campaign.gallery && campaign.gallery[0] ? (
                                         <img src={getMediaUrl(campaign.gallery[0])} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-xs">No Image Preview</div>
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-xs">{t('campaigns.noImage')}</div>
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
                                     
                                     <span className={`absolute top-4 right-4 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md backdrop-blur-xs border ${
                                         isCompleted ? 'bg-emerald-500/90 text-white border-emerald-300' : 'bg-primary-600/90 text-white border-primary-300'
                                     }`}>
-                                        {isCompleted ? 'Completed' : 'Running'}
+                                        {isCompleted ? t('campaigns.completed') : t('campaigns.running')}
                                     </span>
                                 </div>
 
@@ -97,7 +99,7 @@ const CampaignList = () => {
                                     <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
                                         <div className="flex justify-between items-center text-xs">
                                             <span className="font-black text-primary-600 dark:text-primary-400 text-sm">${raised.toLocaleString()}</span>
-                                            <span className="text-gray-400 font-medium">Goal: ${goal.toLocaleString()}</span>
+                                            <span className="text-gray-400 font-medium">{t('campaigns.goal')}: ${goal.toLocaleString()}</span>
                                         </div>
 
                                         {/* Animated Progress Bar */}
@@ -111,16 +113,16 @@ const CampaignList = () => {
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-3 pt-1">
-                                            <Link to={`/campaigns/${campaign.id}`} className="btn-secondary py-2.5 text-xs">
-                                                Details
+                                            <Link to={`/campaigns/${campaign.id}`} className="btn-secondary py-2.5 text-xs" id={`campaign-detail-${campaign.id}`}>
+                                                {t('campaigns.details')}
                                             </Link>
                                             {isCompleted ? (
                                                 <button disabled className="btn-secondary py-2.5 text-xs opacity-50 cursor-not-allowed">
-                                                    Completed
+                                                    {t('campaigns.completed')}
                                                 </button>
                                             ) : (
-                                                <button onClick={() => openDonationModal(campaign)} className="btn-primary py-2.5 text-xs">
-                                                    Donate Now
+                                                <button onClick={() => openDonationModal(campaign)} className="btn-primary py-2.5 text-xs" id={`campaign-donate-${campaign.id}`}>
+                                                    {t('campaigns.donateNow')}
                                                 </button>
                                             )}
                                         </div>

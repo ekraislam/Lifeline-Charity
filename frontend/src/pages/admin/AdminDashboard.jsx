@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
-
 import { ThemeContext } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -22,21 +22,11 @@ const StatCard = ({ label, value, color = 'text-gray-900 dark:text-white', icon 
     </div>
 );
 
-const quickLinks = [
-    { label: 'Manage Campaigns', href: '/admin/campaigns', icon: '📋' },
-    { label: 'Manage Donations', href: '/admin/donations', icon: '💳' },
-    { label: 'Manage Events', href: '/admin/events', icon: '📅' },
-    { label: 'Manage Users', href: '/admin/users', icon: '👥' },
-    { label: 'Manage NGOs', href: '/admin/ngos', icon: '🏢' },
-    { label: 'Manage Volunteers', href: '/admin/volunteers', icon: '🙋' },
-    { label: 'Verify Beneficiaries', href: '/admin/beneficiaries', icon: '✅' },
-    { label: 'System Settings', href: '/admin/settings', icon: '⚙️' },
-    { label: 'Contact Messages', href: '/admin/contact-messages', icon: '✉️' },
-    { label: 'Export Reports', href: '/admin/reports', icon: '📊' },
-];
+// quickLinks built inside component so t() is available
 
 const AdminDashboard = () => {
     const { isDark } = React.useContext(ThemeContext);
+    const { t } = useLanguage();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -44,11 +34,24 @@ const AdminDashboard = () => {
     useEffect(() => {
         api.get('/admin/stats')
             .then(r => setStats(r.data))
-            .catch(e => { console.error(e); setError('Failed to load dashboard data.'); })
+            .catch(e => { console.error(e); setError(t('common.error')); })
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <div className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium">Loading Admin Dashboard...</div>;
+    const quickLinks = [
+        { label: t('admin.manageCampaigns'), href: '/admin/campaigns', icon: '📋' },
+        { label: t('admin.manageDonations'), href: '/admin/donations', icon: '💳' },
+        { label: t('admin.manageEvents'), href: '/admin/events', icon: '📅' },
+        { label: t('admin.manageUsers'), href: '/admin/users', icon: '👥' },
+        { label: t('admin.manageNGOs'), href: '/admin/ngos', icon: '🏢' },
+        { label: t('admin.manageVolunteers'), href: '/admin/volunteers', icon: '🙋' },
+        { label: t('admin.verifyBeneficiary'), href: '/admin/beneficiaries', icon: '✅' },
+        { label: t('admin.systemSettings'), href: '/admin/settings', icon: '⚙️' },
+        { label: t('admin.contactMessages'), href: '/admin/contact-messages', icon: '✉️' },
+        { label: t('admin.exportReports'), href: '/admin/reports', icon: '📊' },
+    ];
+
+    if (loading) return <div className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium">{t('common.loading')}</div>;
     if (error) return <div className="p-12 text-center text-rose-500 font-bold">{error}</div>;
 
     const barData = {
@@ -150,25 +153,25 @@ const AdminDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">System Overview</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{t('admin.dashboard')}</h1>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
-                <StatCard label="Total Users" value={stats?.total_users} icon="👤" />
-                <StatCard label="Total Campaigns" value={stats?.total_campaigns} icon="📋" />
-                <StatCard label="Total Donations" value={`$${parseFloat(stats?.total_donations||0).toFixed(2)}`} color="text-green-600 dark:text-green-400" icon="💰" />
-                <StatCard label="Active Volunteers" value={stats?.total_volunteers} icon="🙋" />
-                <StatCard label="Total NGOs" value={stats?.total_ngos} color="text-blue-600 dark:text-blue-400" icon="🏢" />
+                <StatCard label={t('admin.stats.totalUsers')} value={stats?.total_users} icon="👤" />
+                <StatCard label={t('admin.manageCampaigns')} value={stats?.total_campaigns} icon="📋" />
+                <StatCard label={t('admin.stats.totalAmount')} value={`$${parseFloat(stats?.total_donations||0).toFixed(2)}`} color="text-green-600 dark:text-green-400" icon="💰" />
+                <StatCard label={t('admin.manageVolunteers')} value={stats?.total_volunteers} icon="🙋" />
+                <StatCard label={t('admin.stats.totalNGOs')} value={stats?.total_ngos} color="text-blue-600 dark:text-blue-400" icon="🏢" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Donation Trends (Last 6 Months)</h2>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t('dashboard.recentActivity')}</h2>
                     <div className="h-72">
                         <Bar data={barData} options={barOptions} />
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">User Demographics</h2>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t('admin.manageUsers')}</h2>
                     <div className="h-72 flex items-center justify-center">
                         <Doughnut data={pieData} options={doughnutOptions} />
                     </div>
@@ -176,7 +179,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Quick Links</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t('footer.quickLinks')}</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                     {quickLinks.map(link => (
                         <Link key={link.href} to={link.href}

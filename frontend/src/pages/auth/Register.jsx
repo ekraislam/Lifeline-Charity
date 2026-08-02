@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import api from '../../api/axios';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Register = () => {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
     const { user } = React.useContext(AuthContext);
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [apiError, setApiError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -60,7 +62,7 @@ const Register = () => {
             await api.post('/auth/register', apiData, { headers });
             navigate('/login', { state: { message: 'Registration successful! Please login.' } });
         } catch (error) {
-            setApiError(error.response?.data?.message || 'Registration failed. Please try again.');
+            setApiError(error.response?.data?.message || t('common.failed'));
         } finally {
             setLoading(false);
         }
@@ -70,10 +72,10 @@ const Register = () => {
         <div className="min-h-[85vh] flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
             <div className="max-w-lg w-full space-y-8 card-premium p-8 sm:p-10">
                 <div className="text-center">
-                    <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">Join Lifeline</span>
-                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1">Create an Account</h2>
+                    <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{t('auth.registerTitle')}</span>
+                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1">{t('auth.createAccount')}</h2>
                     <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        Join our transparent network of donors, NGOs, beneficiaries, and volunteers
+                        {t('auth.registerSub')}
                     </p>
                 </div>
 
@@ -87,21 +89,21 @@ const Register = () => {
                     
                     <div className="space-y-4">
                         <div>
-                            <label className="form-label">Full Name / Username</label>
+                            <label className="form-label">{t('auth.fullName')}</label>
                             <input
                                 type="text"
-                                {...register('username', { required: 'Username is required' })}
+                                {...register('username', { required: t('auth.nameRequired') })}
                                 className="w-full mt-1"
-                                placeholder="Your full name"
+                                placeholder={t('auth.fullName')}
                             />
                             {errors.username && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.username.message}</span>}
                         </div>
                         
                         <div>
-                            <label className="form-label">Email Address</label>
+                            <label className="form-label">{t('auth.email')}</label>
                             <input
                                 type="email"
-                                {...register('email', { required: 'Email is required' })}
+                                {...register('email', { required: t('auth.emailRequired') })}
                                 className="w-full mt-1"
                                 placeholder="name@example.com"
                             />
@@ -109,16 +111,16 @@ const Register = () => {
                         </div>
 
                         <div>
-                            <label className="form-label">Select Your Role</label>
+                            <label className="form-label">{t('auth.selectRole')}</label>
                             <select
-                                {...register('role', { required: 'Please select a role' })}
+                                {...register('role', { required: t('auth.roleRequired') })}
                                 className="w-full mt-1"
                             >
-                                <option value="">Select Role</option>
-                                <option value="donor">Donor (Support Campaigns)</option>
-                                <option value="volunteer">Volunteer (Join Events & Tasks)</option>
-                                <option value="beneficiary">Beneficiary (Request Help)</option>
-                                <option value="ngo">NGO (Manage Campaigns)</option>
+                                <option value="">{t('auth.selectRole')}</option>
+                                <option value="donor">{t('auth.roleDonor')}</option>
+                                <option value="volunteer">{t('auth.roleVolunteer')}</option>
+                                <option value="beneficiary">{t('auth.roleBeneficiary')}</option>
+                                <option value="ngo">{t('auth.roleNGO')}</option>
                             </select>
                             {errors.role && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.role.message}</span>}
                         </div>
@@ -126,32 +128,32 @@ const Register = () => {
                         {selectedRole === 'ngo' && (
                             <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800 space-y-3">
                                 <div>
-                                    <label className="form-label text-indigo-700 dark:text-indigo-300">Organization Name</label>
+                                    <label className="form-label text-indigo-700 dark:text-indigo-300">{t('auth.orgName')}</label>
                                     <input
                                         type="text"
-                                        {...register('org_name', { required: 'Organization Name is required for NGOs' })}
+                                        {...register('org_name', { required: t('auth.orgNameRequired') })}
                                         className="w-full mt-1"
-                                        placeholder="Registered NGO Title"
+                                        placeholder={t('auth.orgName')}
                                     />
                                     {errors.org_name && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.org_name.message}</span>}
                                 </div>
                                 <div>
-                                    <label className="form-label text-indigo-700 dark:text-indigo-300">Registration Number</label>
+                                    <label className="form-label text-indigo-700 dark:text-indigo-300">{t('auth.regNumber')}</label>
                                     <input
                                         type="text"
-                                        {...register('registration_number', { required: 'Registration Number is required for NGOs' })}
+                                        {...register('registration_number', { required: t('auth.regNumberRequired') })}
                                         className="w-full mt-1"
-                                        placeholder="Govt. Registration ID"
+                                        placeholder={t('auth.regNumber')}
                                     />
                                     {errors.registration_number && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.registration_number.message}</span>}
                                 </div>
                                 <div>
-                                    <label className="form-label text-indigo-700 dark:text-indigo-300">Proof Documents (Images)</label>
+                                    <label className="form-label text-indigo-700 dark:text-indigo-300">{t('auth.documents')}</label>
                                     <input
                                         type="file"
                                         multiple
                                         accept="image/*"
-                                        {...register('documents', { required: 'Please upload at least one proof document' })}
+                                        {...register('documents', { required: t('auth.documents') })}
                                         className="w-full mt-1 text-xs"
                                     />
                                     {errors.documents && <span className="text-[11px] text-rose-500 font-bold mt-1 block">{errors.documents.message}</span>}
@@ -162,34 +164,34 @@ const Register = () => {
                         {selectedRole === 'volunteer' && (
                             <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800 space-y-3">
                                 <div>
-                                    <label className="form-label text-emerald-700 dark:text-emerald-300">Skills</label>
+                                    <label className="form-label text-emerald-700 dark:text-emerald-300">{t('auth.skills')}</label>
                                     <input
                                         type="text"
                                         {...register('skills')}
                                         className="w-full mt-1"
-                                        placeholder="E.g., Medical Assistance, Teaching, Logistics"
+                                        placeholder={t('auth.skills_placeholder')}
                                     />
                                 </div>
                                 <div>
-                                    <label className="form-label text-emerald-700 dark:text-emerald-300">Availability</label>
+                                    <label className="form-label text-emerald-700 dark:text-emerald-300">{t('auth.availability')}</label>
                                     <input
                                         type="text"
                                         {...register('availability')}
                                         className="w-full mt-1"
-                                        placeholder="E.g., Weekends, Evenings"
+                                        placeholder={t('auth.availability_options.weekdays')}
                                     />
                                 </div>
                             </div>
                         )}
 
                         <div>
-                            <label className="form-label">Password</label>
+                            <label className="form-label">{t('auth.password')}</label>
                             <div className="relative mt-1">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     {...register('password', { 
-                                        required: 'Password is required',
-                                        minLength: { value: 6, message: 'Password must be at least 6 characters' }
+                                        required: t('auth.passwordRequired'),
+                                        minLength: { value: 6, message: t('auth.passwordMin') }
                                     })}
                                     className="w-full pr-10"
                                     placeholder="••••••••"
@@ -206,12 +208,12 @@ const Register = () => {
                         </div>
                         
                         <div>
-                            <label className="form-label">Confirm Password</label>
+                            <label className="form-label">{t('auth.confirmPassword')}</label>
                             <div className="relative mt-1">
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     {...register('confirmPassword', { 
-                                        validate: value => value === password || 'Passwords do not match'
+                                        validate: value => value === password || t('auth.passwordMatch')
                                     })}
                                     className="w-full pr-10"
                                     placeholder="••••••••"
@@ -232,16 +234,17 @@ const Register = () => {
                         type="submit"
                         disabled={loading}
                         className="btn-primary w-full py-4 text-xs uppercase tracking-wider disabled:opacity-50"
+                        id="register-submit-btn"
                     >
-                        {loading ? 'Creating Account...' : 'Create Account'}
+                        {loading ? t('auth.creating') : t('auth.createBtn')}
                     </button>
                 </form>
 
                 <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-800">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                        Already have an account?{' '}
+                        {t('auth.haveAccount')}{' '}
                         <Link to="/login" className="font-extrabold text-primary-600 dark:text-primary-400 hover:underline">
-                            Log In
+                            {t('auth.signInLink')}
                         </Link>
                     </p>
                 </div>

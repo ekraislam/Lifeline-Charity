@@ -1,9 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDonation } from '../../context/DonationContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Home = () => {
     const { openDonationModal } = useDonation();
+    const { t } = useLanguage();
+
     return (
         <div className="bg-gray-50 dark:bg-gray-950 overflow-x-hidden transition-colors duration-200">
             {/* Hero Section */}
@@ -21,29 +24,33 @@ const Home = () => {
                         <span className="flex h-2.5 w-2.5 rounded-full bg-primary-600 relative">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
                         </span>
-                        Transparent • Direct Impact • Verified NGOs
+                        {t('home.badge')}
                     </div>
                     
                     <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-gray-900 dark:text-white tracking-tight mb-6 leading-[1.08] max-w-5xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                        Empower lives through <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-indigo-600 to-emerald-500 pb-2 inline-block">transparent giving</span>
+                        {t('home.hero').split('transparent giving')[0]}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-indigo-600 to-emerald-500 pb-2 inline-block">
+                            {t('home.hero').includes('transparent giving') ? 'transparent giving' : t('home.hero')}
+                        </span>
                     </h1>
                     
                     <p className="mt-4 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-10 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                        Lifeline connects verified beneficiaries, registered NGOs, passionate volunteers, and generous donors on a single, secure platform.
+                        {t('home.heroSub')}
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                         <button
                             onClick={() => openDonationModal()}
                             className="btn-primary w-full sm:w-auto py-4 px-8 text-sm uppercase tracking-wider group"
+                            id="home-donate-btn"
                         >
-                            ❤️ Donate Now
+                            {t('home.donateNow')}
                             <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
                         </button>
                         <Link to="/campaigns" className="btn-secondary w-full sm:w-auto py-4 px-8 text-sm uppercase tracking-wider">
-                            Explore Campaigns
+                            {t('home.exploreCampaigns')}
                         </Link>
                     </div>
 
@@ -51,19 +58,19 @@ const Home = () => {
                     <div className="mt-20 pt-10 border-t border-gray-200/60 dark:border-gray-800/80 grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-5xl animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
                         <div className="glass-card p-6 rounded-3xl text-center group hover:scale-105 transition-transform duration-300">
                             <h4 className="stat-number text-primary-600 dark:text-primary-400">500+</h4>
-                            <p className="text-meta mt-1">Verified NGOs</p>
+                            <p className="text-meta mt-1">{t('home.stats.ngos')}</p>
                         </div>
                         <div className="glass-card p-6 rounded-3xl text-center group hover:scale-105 transition-transform duration-300">
                             <h4 className="stat-number text-emerald-600 dark:text-emerald-400">$2.5M+</h4>
-                            <p className="text-meta mt-1">Funds Raised</p>
+                            <p className="text-meta mt-1">{t('home.stats.raised')}</p>
                         </div>
                         <div className="glass-card p-6 rounded-3xl text-center group hover:scale-105 transition-transform duration-300">
                             <h4 className="stat-number text-indigo-600 dark:text-indigo-400">12k+</h4>
-                            <p className="text-meta mt-1">Active Volunteers</p>
+                            <p className="text-meta mt-1">{t('home.stats.volunteers')}</p>
                         </div>
                         <div className="glass-card p-6 rounded-3xl text-center group hover:scale-105 transition-transform duration-300">
                             <h4 className="stat-number text-amber-600 dark:text-amber-400">100%</h4>
-                            <p className="text-meta mt-1">Verified Impact</p>
+                            <p className="text-meta mt-1">{t('home.stats.impact')}</p>
                         </div>
                     </div>
                 </div>
@@ -73,9 +80,9 @@ const Home = () => {
             <div className="py-24 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 relative z-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <span className="text-xs font-black tracking-widest text-primary-600 uppercase mb-2 block">Why Choose Lifeline</span>
+                        <span className="text-xs font-black tracking-widest text-primary-600 uppercase mb-2 block">{t('home.whyChoose')}</span>
                         <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-                            Designed for Maximum Impact & Transparency
+                            {t('home.maxImpact')}
                         </h2>
                     </div>
 
@@ -84,9 +91,9 @@ const Home = () => {
                             <div className="w-14 h-14 rounded-2xl bg-primary-50 dark:bg-primary-950/60 border border-primary-100 dark:border-primary-800 flex items-center justify-center text-3xl mb-6">
                                 🛡️
                             </div>
-                            <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">Verified Beneficiaries</h3>
+                            <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">{t('home.features.verifiedTitle')}</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                AI-assisted request verification and admin oversight ensure all help requests are authentic and urgently needed.
+                                {t('home.features.verifiedDesc')}
                             </p>
                         </div>
 
@@ -94,9 +101,9 @@ const Home = () => {
                             <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-3xl mb-6">
                                 📊
                             </div>
-                            <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">Real-Time Progress Tracking</h3>
+                            <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">{t('home.features.trackTitle')}</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                Donors can see immediate progress bar updates after every donation with live WebSockets technology.
+                                {t('home.features.trackDesc')}
                             </p>
                         </div>
 
@@ -104,9 +111,9 @@ const Home = () => {
                             <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-3xl mb-6">
                                 📄
                             </div>
-                            <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">Instant PDF Receipts</h3>
+                            <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">{t('home.features.receiptTitle')}</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                Download official tax-deductible PDF receipts for every donation directly from your user dashboard.
+                                {t('home.features.receiptDesc')}
                             </p>
                         </div>
                     </div>

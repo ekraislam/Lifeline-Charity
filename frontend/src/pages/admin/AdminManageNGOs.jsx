@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import api, { getMediaUrl } from '../../api/axios?v=1';
+import { useLanguage } from '../../context/LanguageContext';
 
 const STATUS_COLORS = {
     pending: 'bg-yellow-100 text-yellow-800',

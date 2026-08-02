@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import api from '../../api/axios';
 import { AuthContext } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { useForm } from 'react-hook-form';
 import logo from '../../assets/fogo.png';
 import sig1 from '../../assets/sig1.png';
@@ -10,6 +11,7 @@ import sig2 from '../../assets/sig2.png';
 
 const VolunteerDashboard = () => {
     const { user } = useContext(AuthContext);
+    const { t } = useLanguage();
     const [stats, setStats] = useState(null);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);

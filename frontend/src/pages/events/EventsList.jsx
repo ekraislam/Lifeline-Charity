@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
+import { useLanguage } from '../../context/LanguageContext';
 
 const EventsList = () => {
     const [events, setEvents] = useState([]);

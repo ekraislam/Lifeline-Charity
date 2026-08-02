@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AuthContext } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import api, { getMediaUrl } from '../../api/axios?v=1';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Profile = () => {
     const { user, login } = useContext(AuthContext);
+    const { t } = useLanguage();
     const { register, handleSubmit, setValue, formState: { errors } } = useForm();
     const { register: registerPassword, handleSubmit: handlePasswordSubmit, reset: resetPassword, formState: { errors: passwordErrors } } = useForm();
     

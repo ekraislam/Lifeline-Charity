@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getMediaUrl } from '../api/axios?v=1';
 import logo from '../assets/fogo.png';
 import AdminNotificationBell from '../components/admin/AdminNotificationBell';
@@ -10,10 +11,12 @@ import NGONotificationBell from '../components/ngo/NGONotificationBell';
 const MainLayout = ({ children }) => {
     const { user, logout } = useContext(AuthContext);
     const { theme, toggleTheme } = useContext(ThemeContext);
+    const { t, language, switchLanguage } = useLanguage();
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const [langMenuOpen, setLangMenuOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -21,11 +24,11 @@ const MainLayout = ({ children }) => {
     };
 
     const navigation = [
-        { name: 'Home', href: '/', current: location.pathname === '/' },
-        { name: 'Campaigns', href: '/campaigns', current: location.pathname.startsWith('/campaigns') },
-        { name: 'Events', href: '/events', current: location.pathname.startsWith('/events') },
-        { name: 'About Us', href: '/about', current: location.pathname === '/about' },
-        { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
+        { name: t('nav.home'), href: '/', current: location.pathname === '/' },
+        { name: t('nav.campaigns'), href: '/campaigns', current: location.pathname.startsWith('/campaigns') },
+        { name: t('nav.events'), href: '/events', current: location.pathname.startsWith('/events') },
+        { name: t('nav.about'), href: '/about', current: location.pathname === '/about' },
+        { name: t('nav.contact'), href: '/contact', current: location.pathname === '/contact' },
     ];
 
     return (
@@ -52,7 +55,7 @@ const MainLayout = ({ children }) => {
                             <nav className="hidden lg:flex items-center gap-1 bg-gray-100/70 dark:bg-gray-800/60 p-1.5 rounded-full border border-gray-200/50 dark:border-gray-700/50">
                                 {navigation.map((item) => (
                                     <Link
-                                        key={item.name}
+                                        key={item.href}
                                         to={item.href}
                                         className={`${item.current
                                                 ? 'bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-400 font-extrabold shadow-sm'
@@ -66,7 +69,7 @@ const MainLayout = ({ children }) => {
                         </div>
 
                         {/* Right Action Menu */}
-                        <div className="hidden sm:flex items-center gap-4">
+                        <div className="hidden sm:flex items-center gap-3">
                             {/* Theme Toggle Button */}
                             <button
                                 onClick={toggleTheme}
@@ -75,9 +78,47 @@ const MainLayout = ({ children }) => {
                                 aria-label="Toggle Light/Dark Theme"
                             >
                                 <span className="text-xs font-extrabold tracking-wider uppercase">
-                                    {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+                                    {theme === 'dark' ? t('nav.themeDark') : t('nav.themeLight')}
                                 </span>
                             </button>
+
+                            {/* Language Switcher */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setLangMenuOpen(!langMenuOpen)}
+                                    className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 cursor-pointer"
+                                    aria-label="Change Language"
+                                    id="lang-switcher-btn"
+                                >
+                                    <span className="text-base leading-none">🌐</span>
+                                    <span className="text-xs font-extrabold tracking-wider uppercase">
+                                        {language === 'en' ? 'EN' : 'বাং'}
+                                    </span>
+                                    <svg className={`w-3 h-3 transition-transform ${langMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {langMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-40 rounded-2xl shadow-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 z-50 overflow-hidden animate-fade-in-up">
+                                        <button
+                                            onClick={() => { switchLanguage('en'); setLangMenuOpen(false); }}
+                                            className={`flex items-center gap-3 w-full px-4 py-3 text-sm font-bold transition-colors ${language === 'en' ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                                            id="lang-en-btn"
+                                        >
+                                            <span className="text-base">🇬🇧</span> English
+                                            {language === 'en' && <span className="ml-auto text-primary-600 dark:text-primary-400">✓</span>}
+                                        </button>
+                                        <button
+                                            onClick={() => { switchLanguage('bn'); setLangMenuOpen(false); }}
+                                            className={`flex items-center gap-3 w-full px-4 py-3 text-sm font-bold transition-colors ${language === 'bn' ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                                            id="lang-bn-btn"
+                                        >
+                                            <span className="text-base">🇧🇩</span> বাংলা
+                                            {language === 'bn' && <span className="ml-auto text-primary-600 dark:text-primary-400">✓</span>}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
 
                             {user ? (
                                 <div className="flex items-center gap-3">
@@ -85,7 +126,7 @@ const MainLayout = ({ children }) => {
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                         </svg>
-                                        Dashboard
+                                        {t('nav.dashboard')}
                                     </Link>
 
                                     {/* Admin & NGO Notification Bells */}
@@ -126,14 +167,14 @@ const MainLayout = ({ children }) => {
                                                         onClick={() => setProfileDropdownOpen(false)}
                                                         className="flex items-center px-4 py-2.5 rounded-2xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                                     >
-                                                        💳 My Giving History & Receipts
+                                                        {t('nav.givingHistory')}
                                                     </Link>
                                                     <Link
                                                         to="/profile"
                                                         onClick={() => setProfileDropdownOpen(false)}
                                                         className="flex items-center px-4 py-2.5 rounded-2xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                                     >
-                                                        ⚙️ Account Settings
+                                                        {t('nav.accountSettings')}
                                                     </Link>
                                                     <button
                                                         onClick={() => {
@@ -142,7 +183,7 @@ const MainLayout = ({ children }) => {
                                                         }}
                                                         className="flex items-center w-full text-left px-4 py-2.5 rounded-2xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
                                                     >
-                                                        🚪 Sign Out
+                                                        🚪 {t('nav.signOut')}
                                                     </button>
                                                 </div>
                                             </div>
@@ -152,10 +193,10 @@ const MainLayout = ({ children }) => {
                             ) : (
                                 <div className="flex items-center gap-3">
                                     <Link to="/login" className="px-5 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all">
-                                        Log in
+                                        {t('nav.login')}
                                     </Link>
                                     <Link to="/register" className="btn-primary py-2.5 px-5 text-xs uppercase tracking-wider">
-                                        Sign up
+                                        {t('nav.signup')}
                                     </Link>
                                 </div>
                             )}
@@ -169,6 +210,14 @@ const MainLayout = ({ children }) => {
                                 aria-label="Toggle Dark Mode"
                             >
                                 {theme === 'dark' ? '🌙' : '☀️'}
+                            </button>
+                            {/* Mobile lang toggle */}
+                            <button
+                                onClick={() => switchLanguage(language === 'en' ? 'bn' : 'en')}
+                                className="p-2 rounded-full text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 text-xs font-bold"
+                                aria-label="Toggle Language"
+                            >
+                                {language === 'en' ? 'বাং' : 'EN'}
                             </button>
                             <button
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -186,7 +235,7 @@ const MainLayout = ({ children }) => {
                         <div className="space-y-1">
                             {navigation.map((item) => (
                                 <Link
-                                    key={item.name}
+                                    key={item.href}
                                     to={item.href}
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={`${item.current
@@ -201,16 +250,16 @@ const MainLayout = ({ children }) => {
                         {user ? (
                             <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
                                 <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="btn-primary w-full text-xs uppercase tracking-wider">
-                                    Dashboard
+                                    {t('nav.dashboard')}
                                 </Link>
                                 <button onClick={handleLogout} className="btn-danger w-full text-xs uppercase tracking-wider">
-                                    Sign Out
+                                    {t('nav.signOut')}
                                 </button>
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="btn-secondary text-center text-xs uppercase tracking-wider">Log in</Link>
-                                <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="btn-primary text-center text-xs uppercase tracking-wider">Sign up</Link>
+                                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="btn-secondary text-center text-xs uppercase tracking-wider">{t('nav.login')}</Link>
+                                <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="btn-primary text-center text-xs uppercase tracking-wider">{t('nav.signup')}</Link>
                             </div>
                         )}
                     </div>
@@ -232,30 +281,30 @@ const MainLayout = ({ children }) => {
                                 <span className="font-display text-2xl font-black text-gray-900 dark:text-white">Life<span className="text-primary-600 dark:text-primary-400">line</span></span>
                             </div>
                             <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-                                Connecting verified beneficiaries, approved NGOs, generous donors, and passionate volunteers to create transparent, high-impact charitable campaigns worldwide.
+                                {t('footer.tagline')}
                             </p>
                         </div>
                         <div>
-                            <h4 className="font-display text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-4">Quick Links</h4>
+                            <h4 className="font-display text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-4">{t('footer.quickLinks')}</h4>
                             <ul className="space-y-2 text-xs font-bold text-gray-500 dark:text-gray-400">
-                                <li><Link to="/campaigns" className="hover:text-primary-600 dark:hover:text-primary-400">Explore Campaigns</Link></li>
-                                <li><Link to="/events" className="hover:text-primary-600 dark:hover:text-primary-400">Community Events</Link></li>
-                                <li><Link to="/about" className="hover:text-primary-600 dark:hover:text-primary-400">About Lifeline</Link></li>
-                                <li><Link to="/contact" className="hover:text-primary-600 dark:hover:text-primary-400">Contact Support</Link></li>
+                                <li><Link to="/campaigns" className="hover:text-primary-600 dark:hover:text-primary-400">{t('footer.exploreCampaigns')}</Link></li>
+                                <li><Link to="/events" className="hover:text-primary-600 dark:hover:text-primary-400">{t('footer.communityEvents')}</Link></li>
+                                <li><Link to="/about" className="hover:text-primary-600 dark:hover:text-primary-400">{t('footer.aboutLifeline')}</Link></li>
+                                <li><Link to="/contact" className="hover:text-primary-600 dark:hover:text-primary-400">{t('footer.contactSupport')}</Link></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-display text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-4">Legal & Support</h4>
+                            <h4 className="font-display text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-4">{t('footer.legalSupport')}</h4>
                             <ul className="space-y-2 text-xs font-bold text-gray-500 dark:text-gray-400">
-                                <li><Link to="/privacy" className="hover:text-primary-600 dark:hover:text-primary-400">Privacy Policy</Link></li>
-                                <li><Link to="/terms" className="hover:text-primary-600 dark:hover:text-primary-400">Terms of Service</Link></li>
-                                <li><Link to="/faq" className="hover:text-primary-600 dark:hover:text-primary-400">Frequently Asked Questions</Link></li>
+                                <li><Link to="/privacy" className="hover:text-primary-600 dark:hover:text-primary-400">{t('footer.privacyPolicy')}</Link></li>
+                                <li><Link to="/terms" className="hover:text-primary-600 dark:hover:text-primary-400">{t('footer.termsOfService')}</Link></li>
+                                <li><Link to="/faq" className="hover:text-primary-600 dark:hover:text-primary-400">{t('footer.faq')}</Link></li>
                             </ul>
                         </div>
                     </div>
                     <div className="pt-8 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
-                        <p>&copy; {new Date().getFullYear()} Lifeline Charity System. All rights reserved.</p>
-                        <p className="mt-2 sm:mt-0 font-semibold">Transparent • Verified • Direct Impact</p>
+                        <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
+                        <p className="mt-2 sm:mt-0 font-semibold">{t('footer.slogan')}</p>
                     </div>
                 </div>
             </footer>

@@ -2,11 +2,13 @@ import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { AuthContext } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 
 const DonationHistory = () => {
     const { user } = useContext(AuthContext);
+    const { t } = useLanguage();
     const [donations, setDonations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -313,15 +315,15 @@ const DonationHistory = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-gray-200 dark:border-gray-700 gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
-                        <span>{user?.role === 'admin' ? 'All Platform Donations' : 'My Donation History'}</span>
+                        <span>{user?.role === 'admin' ? t('admin.manageDonations') : t('donor.donationHistory')}</span>
                         <span className="text-xs bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                            {filteredDonations.length} Records {user?.role === 'admin' ? '(ADMIN PANEL)' : ''}
+                            {filteredDonations.length} {user?.role === 'admin' ? t('admin.title') : t('donation.history')}
                         </span>
                     </h1>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {user?.role === 'admin' 
-                            ? 'Monitor all financial contributions across all campaigns and users.'
-                            : 'View your philanthropic impact, inspect details, and download official PDF tax receipts.'}
+                            ? t('admin.manageDonations')
+                            : t('donor.donationHistory')}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -330,7 +332,7 @@ const DonationHistory = () => {
                             to="/admin/donations"
                             className="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-md transition-all gap-2"
                         >
-                            📊 Manage Donations & Excel Export
+                            📊 {t('admin.manageDonations')}
                         </Link>
                     )}
                     <Link
@@ -340,7 +342,7 @@ const DonationHistory = () => {
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        Make New Donation
+                        {t('home.donateNow')}
                     </Link>
                 </div>
             </div>
@@ -349,7 +351,7 @@ const DonationHistory = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Contributed</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('donor.totalGiven')}</p>
                         <p className="text-2xl font-extrabold text-primary-600 dark:text-primary-400 mt-1">${stats.totalAmount.toFixed(2)}</p>
                     </div>
                     <div className="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-950/60 flex items-center justify-center text-primary-600 dark:text-primary-400 text-2xl">
@@ -359,7 +361,7 @@ const DonationHistory = () => {
 
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Donations</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('dashboard.totalDonations')}</p>
                         <p className="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{stats.totalCount}</p>
                     </div>
                     <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-2xl">
@@ -369,7 +371,7 @@ const DonationHistory = () => {
 
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Successful Payments</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('common.status.approved')}</p>
                         <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{stats.successCount}</p>
                     </div>
                     <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400 text-2xl">

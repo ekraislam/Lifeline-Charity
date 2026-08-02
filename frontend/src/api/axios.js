@@ -35,10 +35,12 @@ api.interceptors.request.use((config) => {
 // Interceptor for responses (e.g. handle 401 token expiry)
 api.interceptors.response.use((response) => response, (error) => {
     if (error.response && error.response.status === 401) {
-        // Clear token and redirect to login if not already there
+        // Clear token and redirect to login if not already on /login page
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+        }
     }
     return Promise.reject(error);
 });

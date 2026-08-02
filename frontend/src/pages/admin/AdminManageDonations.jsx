@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
+import { useLanguage } from '../../context/LanguageContext';
 
 const AdminManageDonations = () => {
     const [donations, setDonations] = useState([]);

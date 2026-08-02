@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import api from '../../api/axios';
+import { useLanguage } from '../../context/LanguageContext';
 
 const reports = [
     {

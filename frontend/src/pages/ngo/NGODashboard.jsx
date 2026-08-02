@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import useCampaignRealtime from '../../hooks/useCampaignRealtime';
+import { useLanguage } from '../../context/LanguageContext';
 
 const STATUS_BADGE = {
     assigned: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-200',
@@ -17,6 +18,7 @@ const STATUS_BADGE = {
 };
 
 const NGODashboard = () => {
+    const { t } = useLanguage();
     const [assignedBeneficiaries, setAssignedBeneficiaries] = useState([]);
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
 import { useDonation } from '../../context/DonationContext';
 import useCampaignRealtime from '../../hooks/useCampaignRealtime';
+import { useLanguage } from '../../context/LanguageContext';
 
 const CampaignDetail = () => {
     const { id } = useParams();

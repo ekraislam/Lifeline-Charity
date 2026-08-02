@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import api from '../../api/axios';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const About = () => (
     <div className="bg-white dark:bg-gray-800">

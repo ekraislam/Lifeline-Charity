@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const AdminSystemSettings = () => {
     const [saved, setSaved] = useState(false);

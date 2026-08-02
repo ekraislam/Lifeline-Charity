@@ -45,11 +45,13 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { DonationProvider } from './context/DonationContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 const Unauthorized = () => <div className="p-8 text-red-500 text-center">Unauthorized — You do not have permission to view this page.</div>;
 
 function App() {
   return (
+    <LanguageProvider>
     <ThemeProvider>
       <AuthProvider>
       <Router>
@@ -116,6 +118,7 @@ function App() {
       </Router>
       </AuthProvider>
     </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

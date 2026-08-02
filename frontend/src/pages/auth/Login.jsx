@@ -2,12 +2,14 @@ import React, { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import api from '../../api/axios';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const { login, user } = useContext(AuthContext);
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [apiError, setApiError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ const Login = () => {
             login(response.data.user, response.data.accessToken);
             navigate('/dashboard');
         } catch (error) {
-            setApiError(error.response?.data?.message || 'Login failed. Please try again.');
+            setApiError(error.response?.data?.message || t('auth.loginFailed'));
         } finally {
             setLoading(false);
         }
@@ -37,10 +39,10 @@ const Login = () => {
         <div className="min-h-[85vh] flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
             <div className="max-w-md w-full space-y-8 card-premium p-8 sm:p-10">
                 <div className="text-center">
-                    <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">Lifeline Authentication</span>
-                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1">Welcome Back</h2>
+                    <span className="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{t('auth.loginBadge')}</span>
+                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1">{t('auth.welcomeBack')}</h2>
                     <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        Sign in to access your donor, NGO, or volunteer portal
+                        {t('auth.loginSub')}
                     </p>
                 </div>
 
@@ -54,10 +56,10 @@ const Login = () => {
 
                     <div className="space-y-4">
                         <div>
-                            <label className="form-label">Email Address</label>
+                            <label className="form-label">{t('auth.email')}</label>
                             <input
                                 type="email"
-                                {...register('email', { required: 'Email is required' })}
+                                {...register('email', { required: t('auth.emailRequired') })}
                                 className="w-full mt-1"
                                 placeholder="name@example.com"
                             />
@@ -65,11 +67,11 @@ const Login = () => {
                         </div>
 
                         <div>
-                            <label className="form-label">Password</label>
+                            <label className="form-label">{t('auth.password')}</label>
                             <div className="relative mt-1">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
-                                    {...register('password', { required: 'Password is required' })}
+                                    {...register('password', { required: t('auth.passwordRequired') })}
                                     className="w-full pr-10"
                                     placeholder="••••••••"
                                 />
@@ -87,7 +89,7 @@ const Login = () => {
 
                     <div className="flex items-center justify-end">
                         <Link to="/forgot-password" className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline">
-                            Forgot your password?
+                            {t('auth.forgotPassword')}
                         </Link>
                     </div>
 
@@ -95,16 +97,17 @@ const Login = () => {
                         type="submit"
                         disabled={loading}
                         className="btn-primary w-full py-4 text-xs uppercase tracking-wider disabled:opacity-50"
+                        id="login-submit-btn"
                     >
-                        {loading ? 'Signing in...' : 'Sign In'}
+                        {loading ? t('auth.signingIn') : t('auth.signIn')}
                     </button>
                 </form>
 
                 <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-800">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                        Don't have an account?{' '}
+                        {t('auth.noAccount')}{' '}
                         <Link to="/register" className="font-extrabold text-primary-600 dark:text-primary-400 hover:underline">
-                            Create Account
+                            {t('auth.createAccount')}
                         </Link>
                     </p>
                 </div>

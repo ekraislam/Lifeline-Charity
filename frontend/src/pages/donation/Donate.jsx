@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios?v=1';
 import DonateModal from '../../components/donation/DonateModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Donate = () => {
     const { id } = useParams();
