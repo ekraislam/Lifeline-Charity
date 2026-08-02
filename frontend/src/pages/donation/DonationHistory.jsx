@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios?v=1';
+import api from '../../api/axios';
+import { AuthContext } from '../../context/AuthContext';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 
 const DonationHistory = () => {
+    const { user } = useContext(AuthContext);
     const [donations, setDonations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,12 +21,13 @@ const DonationHistory = () => {
 
     useEffect(() => {
         fetchDonations();
-    }, []);
+    }, [user]);
 
     const fetchDonations = async () => {
         setLoading(true);
         try {
-            const response = await api.get('/donations/history');
+            const endpoint = user?.role === 'admin' ? '/admin/donations' : '/donations/history';
+            const response = await api.get(endpoint);
             setDonations(response.data || []);
         } catch (error) {
             console.error("Error fetching donation history:", error);
@@ -310,16 +313,26 @@ const DonationHistory = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-gray-200 dark:border-gray-700 gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
-                        <span>My Donation History</span>
+                        <span>{user?.role === 'admin' ? 'All Platform Donations' : 'My Donation History'}</span>
                         <span className="text-xs bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                            {filteredDonations.length} Records
+                            {filteredDonations.length} Records {user?.role === 'admin' ? '(ADMIN PANEL)' : ''}
                         </span>
                     </h1>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        View your philanthropic impact, inspect details, and download official PDF tax receipts.
+                        {user?.role === 'admin' 
+                            ? 'Monitor all financial contributions across all campaigns and users.'
+                            : 'View your philanthropic impact, inspect details, and download official PDF tax receipts.'}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    {user?.role === 'admin' && (
+                        <Link
+                            to="/admin/donations"
+                            className="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-md transition-all gap-2"
+                        >
+                            📊 Manage Donations & Excel Export
+                        </Link>
+                    )}
                     <Link
                         to="/campaigns"
                         className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-full shadow-md text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 transition-all duration-200 transform hover:-translate-y-0.5"
@@ -479,6 +492,7 @@ const DonationHistory = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50/80 dark:bg-gray-900/60 border-b border-gray-100 dark:border-gray-700 text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                        {user?.role === 'admin' && <th className="py-4 px-4">Donor</th>}
                                         <th className="py-4 px-6">Campaign Name</th>
                                         <th className="py-4 px-4 text-right">Amount</th>
                                         <th className="py-4 px-4">Donation Date</th>
@@ -491,6 +505,12 @@ const DonationHistory = () => {
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60 text-sm">
                                     {paginatedDonations.map((donation) => (
                                         <tr key={donation.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-900/40 transition-colors">
+                                            {user?.role === 'admin' && (
+                                                <td className="py-4 px-4">
+                                                    <p className="font-semibold text-gray-900 dark:text-white">{donation.is_anonymous ? 'Anonymous' : (donation.donor_name || 'Anonymous')}</p>
+                                                    <p className="text-xs text-gray-400">{donation.donor_email || ''}</p>
+                                                </td>
+                                            )}
                                             {/* Campaign Name */}
                                             <td className="py-4 px-6 font-semibold text-gray-900 dark:text-white max-w-xs truncate">
                                                 <Link

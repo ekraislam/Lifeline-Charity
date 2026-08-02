@@ -195,15 +195,19 @@ const getDonationHistory = async (userId) => {
             d.recurring_frequency,
             d.status,
             d.created_at,
-            c.title AS campaign_title,
+            COALESCE(c.title, 'General Contribution') AS campaign_title,
             c.status AS campaign_status,
             c.goal_amount,
             c.raised_amount,
             COALESCE(pt.gateway_name, 'Stripe Checkout') AS payment_method,
             COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
         FROM donations d 
-        JOIN campaigns c ON d.campaign_id = c.id 
-        LEFT JOIN payment_transactions pt ON pt.donation_id = d.id
+        LEFT JOIN campaigns c ON d.campaign_id = c.id 
+        LEFT JOIN (
+            SELECT donation_id, gateway_name, transaction_id 
+            FROM payment_transactions 
+            WHERE id IN (SELECT MAX(id) FROM payment_transactions GROUP BY donation_id)
+        ) pt ON pt.donation_id = d.id
         WHERE d.user_id = ? 
         ORDER BY d.created_at DESC
     `, [userId]);

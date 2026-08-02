@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios?v=1';
+import api from '../../api/axios';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 

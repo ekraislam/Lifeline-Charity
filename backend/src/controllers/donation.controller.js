@@ -1,4 +1,5 @@
 const donationService = require('../services/donation.service');
+const adminService = require('../services/admin.service');
 const paymentGateway = require('../services/payment.gateway');
 
 const donate = async (req, res) => {
@@ -66,7 +67,12 @@ const paymentCallback = async (req, res) => {
 
 const getHistory = async (req, res) => {
     try {
-        const history = await donationService.getDonationHistory(req.user.id);
+        let history;
+        if (req.user && req.user.role === 'admin') {
+            history = await adminService.getAdminDonations();
+        } else {
+            history = await donationService.getDonationHistory(req.user.id);
+        }
         res.json(history);
     } catch (error) {
         console.error(error);

@@ -356,7 +356,7 @@ const getAdminDonations = async (status, search) => {
             COALESCE(u.name, 'Anonymous') AS donor_name,
             u.email AS donor_email,
             d.campaign_id,
-            c.title AS campaign_title,
+            COALESCE(c.title, 'General Contribution') AS campaign_title,
             d.amount,
             d.is_anonymous,
             d.is_recurring,
@@ -367,8 +367,12 @@ const getAdminDonations = async (status, search) => {
             COALESCE(pt.transaction_id, CONCAT('TXN_', d.id)) AS transaction_id
         FROM donations d
         LEFT JOIN users u ON d.user_id = u.id
-        JOIN campaigns c ON d.campaign_id = c.id
-        LEFT JOIN payment_transactions pt ON pt.donation_id = d.id
+        LEFT JOIN campaigns c ON d.campaign_id = c.id
+        LEFT JOIN (
+            SELECT donation_id, gateway_name, transaction_id 
+            FROM payment_transactions 
+            WHERE id IN (SELECT MAX(id) FROM payment_transactions GROUP BY donation_id)
+        ) pt ON pt.donation_id = d.id
     `;
     const params = [];
     const conditions = [];
