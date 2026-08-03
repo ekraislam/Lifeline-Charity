@@ -156,95 +156,136 @@ const VolunteerDashboard = () => {
         doc.save(`Lifeline_Certificate_${user?.name || 'Volunteer'}.pdf`);
     };
 
-    if (loading) return <div className="p-12 text-center">Loading dashboard...</div>;
+    if (loading) return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+                {[1, 2, 3, 4].map(n => <div key={n} className="skeleton-pulse h-28 w-full rounded-[22px]" />)}
+            </div>
+            <div className="skeleton-pulse h-64 w-full rounded-[22px]" />
+        </div>
+    );
 
     const eventCount = Math.max(stats?.events_assigned || 0, stats?.participated_events || 0);
     const totalHours = parseFloat(stats?.total_hours || 0);
     const isEligible = totalHours >= 10 && eventCount >= 2;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Volunteer Dashboard</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Hours</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{totalHours.toFixed(1)}</dd>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="font-display text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">Volunteer Portal</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track community service hours, event assignments, and certificates</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                        <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                        Active Volunteer
+                    </span>
+                </div>
+            </div>
+
+            {/* Summary Stat Cards */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="group relative overflow-hidden rounded-[22px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-violet-500">Total Hours</span>
+                            <div className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{totalHours.toFixed(1)}</div>
+                        </div>
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-violet-500 to-purple-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                            ⏱️
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Events Assigned</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{stats?.events_assigned || 0}</dd>
+
+                <div className="group relative overflow-hidden rounded-[22px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-sky-500">Events Assigned</span>
+                            <div className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{stats?.events_assigned || 0}</div>
+                        </div>
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                            📅
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">My Contributions</dt>
-                        <a href="/donations/history" className="mt-2 inline-flex items-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline">
-                            💳 View Donation History &rarr;
-                        </a>
+
+                <div className="group relative overflow-hidden rounded-[22px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-500">My Contributions</span>
+                            <a href="/donations/history" className="mt-1.5 inline-flex items-center text-xs font-extrabold text-emerald-600 dark:text-emerald-400 hover:underline">
+                                💳 Giving History &rarr;
+                            </a>
+                        </div>
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                            🎁
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg flex flex-col items-center justify-center p-6 text-center">
+
+                <div className="group relative overflow-hidden rounded-[22px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-md flex flex-col justify-between items-center text-center">
                     <button
                         onClick={downloadCertificate}
                         disabled={!isEligible}
                         title={!isEligible ? "You need at least 10 total hours and 2 events to download the certificate." : ""}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all"
                     >
-                        Download Certificate
+                        🎓 Download Certificate
                     </button>
                     {!isEligible && (
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            Requires 10 hours & 2 events
+                        <p className="mt-2 text-[10px] font-bold text-gray-400">
+                            Requires 10 hrs & 2 events
                         </p>
                     )}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                {/* Volunteer Profile Form */}
-                <div className="lg:col-span-1 bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
-                    <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Volunteer Profile</h3>
-                        <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Update your skills and availability.</p>
+            {/* Profile & Skills Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-white dark:bg-gray-900 rounded-[22px] p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-md">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                            <span>🧠</span> Skills & Availability Profile
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">Keep your profile updated so NGOs and administrators can invite you to relevant community events.</p>
                     </div>
-                    <div className="px-4 py-5 sm:p-6">
-                        {profileSuccess && <div className="mb-4 p-2 bg-green-50 text-green-700 text-sm rounded">{profileSuccess}</div>}
-                        {profileError && <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded">{profileError}</div>}
-                        <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Skills</label>
-                                <textarea
-                                    {...register('skills')}
-                                    rows="3"
-                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                    placeholder="e.g. First Aid, Teaching, Event Management"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Availability</label>
-                                <textarea
-                                    {...register('availability')}
-                                    rows="3"
-                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                    placeholder="e.g. Weekends only, Monday mornings"
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={profileLoading}
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
-                            >
-                                {profileLoading ? 'Saving...' : 'Save Profile Details'}
-                            </button>
-                        </form>
-                    </div>
+
+                    {profileSuccess && <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl">✓ {profileSuccess}</div>}
+                    {profileError && <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold rounded-xl">✕ {profileError}</div>}
+
+                    <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">Skills & Expertise</label>
+                            <textarea
+                                {...register('skills')}
+                                rows="3"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                                placeholder="e.g. First Aid, Teaching, Logistics, Public Relations"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">Weekly Availability</label>
+                            <textarea
+                                {...register('availability')}
+                                rows="3"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                                placeholder="e.g. Weekends, Monday mornings, Evening emergency calls"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={profileLoading}
+                            className="w-full py-3 px-4 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 shadow-md shadow-sky-500/20 disabled:opacity-50 cursor-pointer transition-all"
+                        >
+                            {profileLoading ? 'Saving Details...' : 'Save Profile Details'}
+                        </button>
+                    </form>
                 </div>
             </div>
+
 
             {/* My Events Table */}
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden mb-8 border border-gray-100 dark:border-gray-700">
