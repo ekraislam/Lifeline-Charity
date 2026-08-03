@@ -6,6 +6,8 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import useCampaignRealtime from '../../hooks/useCampaignRealtime';
 import { useLanguage } from '../../context/LanguageContext';
+import LiveActivityTimeline from '../../components/common/LiveActivityTimeline';
+
 
 const STATUS_BADGE = {
     assigned: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-200',
@@ -311,8 +313,38 @@ const NGODashboard = () => {
                     </div>
                 )}
             </div>
+
+            {/* Live Activity Stream */}
+            <LiveActivityTimeline
+
+                title="NGO Organization Live Activity"
+                onRefresh={fetchData}
+                activities={[
+                    ...assignedBeneficiaries.map((b, i) => ({
+                        id: `ngo-req-${i}`,
+                        icon: b.status === 'fulfilled' ? '✅' : '📋',
+                        type: b.status === 'fulfilled' ? 'success' : 'info',
+                        user: b.title || 'Assigned Beneficiary Request',
+                        role: 'Beneficiary',
+                        title: `Assigned request: "${b.title}"`,
+                        description: `Status: ${b.status} | Required: $${parseFloat(b.required_amount || 0).toLocaleString()}`,
+                        timestamp: b.created_at || new Date()
+                    })),
+                    ...campaigns.map((c, i) => ({
+                        id: `ngo-cmp-${i}`,
+                        icon: c.status === 'completed' ? '🎉' : '📢',
+                        type: c.status === 'completed' ? 'success' : 'warning',
+                        user: c.title || 'Organization Campaign',
+                        role: 'NGO',
+                        title: `Campaign "${c.title}"`,
+                        description: `Raised $${parseFloat(c.raised_amount || 0).toLocaleString()} of $${parseFloat(c.goal_amount || 0).toLocaleString()}`,
+                        timestamp: c.created_at || new Date()
+                    }))
+                ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))}
+            />
         </div>
     );
 };
+
 
 export default NGODashboard;

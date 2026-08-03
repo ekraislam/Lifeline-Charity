@@ -1,10 +1,22 @@
 const adminService = require('../services/admin.service');
 
-// ── Stats ──────────────────────────────────────────────────────────
+// ── Stats & Activity Logs ──────────────────────────────────────────
 const getSystemStats = async (req, res) => {
     try { res.json(await adminService.getSystemStats()); }
     catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
 };
+
+const getActivityLogs = async (req, res) => {
+    try {
+        const { getRecentActivities } = require('../services/activityLog.service');
+        const activities = await getRecentActivities(req.query.limit || 50);
+        res.json({ activities });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 
 // ── Campaigns ──────────────────────────────────────────────────────
 const getCampaigns = async (req, res) => {
@@ -137,7 +149,9 @@ const getDonations = async (req, res) => {
 
 module.exports = {
     getSystemStats,
+    getActivityLogs,
     getCampaigns, editCampaign, deleteCampaign, updateCampaignStatus,
+
     getUsers, updateUserStatus,
     getNGOs, updateNGOStatus,
     getVolunteers, updateVolunteerStatus,

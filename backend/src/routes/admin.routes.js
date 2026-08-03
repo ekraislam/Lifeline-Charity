@@ -6,8 +6,10 @@ const { authMiddleware, roleMiddleware } = require('../middlewares/auth.middlewa
 router.use(authMiddleware);
 router.use(roleMiddleware(['admin']));
 
-// Stats
+// Stats & Activities
 router.get('/stats', c.getSystemStats);
+router.get('/activities', c.getActivityLogs);
+
 
 // Campaigns
 router.get('/campaigns', c.getCampaigns);

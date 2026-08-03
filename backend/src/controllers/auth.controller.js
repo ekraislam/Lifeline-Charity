@@ -22,7 +22,18 @@ const register = async (req, res) => {
         const { createAdminNotification, createNotification } = require('../services/notification.service');
         await createNotification(userId, '👋 Welcome to Lifeline Charity!', `Welcome ${req.body.name}! Your account has been registered successfully.`, 'welcome');
 
+        const { logActivity } = require('../services/activityLog.service');
+
         if (req.body.role === 'ngo') {
+            await logActivity({
+                userId,
+                userName: req.body.org_name || req.body.name,
+                userRole: 'NGO',
+                activityType: 'ngo_registered',
+                activityTitle: 'New NGO Registered',
+                activityDescription: `NGO Organization "${req.body.org_name || req.body.name}" registered and pending verification.`,
+                relatedId: userId
+            });
             await createAdminNotification({
                 title: 'New NGO Registration Request',
                 message: `NGO Organization "${req.body.org_name || req.body.name}" submitted a registration request awaiting verification.`,
@@ -30,6 +41,15 @@ const register = async (req, res) => {
                 priority: 'high'
             });
         } else if (req.body.role === 'volunteer') {
+            await logActivity({
+                userId,
+                userName: req.body.name,
+                userRole: 'Volunteer',
+                activityType: 'volunteer_registered',
+                activityTitle: 'New Volunteer Application',
+                activityDescription: `Volunteer "${req.body.name}" submitted registration.`,
+                relatedId: userId
+            });
             await createAdminNotification({
                 title: 'New Volunteer Application',
                 message: `Volunteer "${req.body.name}" applied for registration.`,
@@ -37,6 +57,15 @@ const register = async (req, res) => {
                 priority: 'normal'
             });
         } else {
+            await logActivity({
+                userId,
+                userName: req.body.name,
+                userRole: req.body.role || 'User',
+                activityType: 'user_registered',
+                activityTitle: 'New User Registered',
+                activityDescription: `New ${req.body.role || 'user'} account created for ${req.body.name}.`,
+                relatedId: userId
+            });
             await createAdminNotification({
                 title: 'New User Registered',
                 message: `New ${req.body.role || 'user'} registered: ${req.body.name} (${req.body.email}).`,
@@ -106,7 +135,20 @@ const login = async (req, res) => {
 
         const tokens = generateTokens(user);
         const { password: _, ...userData } = user;
+
+        const { logActivity } = require('../services/activityLog.service');
+        await logActivity({
+            userId: user.id,
+            userName: user.name,
+            userRole: user.role,
+            activityType: 'user_login',
+            activityTitle: 'User Logged In',
+            activityDescription: `${user.name} (${user.role}) logged in successfully.`,
+            relatedId: user.id
+        });
+
         res.json({ message: 'Login successful', user: userData, ...tokens });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });

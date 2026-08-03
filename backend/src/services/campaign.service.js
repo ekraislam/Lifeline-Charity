@@ -169,6 +169,19 @@ const createCampaign = async (campaignData, userId) => {
 
     try {
         const { createAdminNotification, createNotification } = require('./notification.service');
+        const { logActivity } = require('./activityLog.service');
+        const [[ngoUsr]] = await db.query('SELECT np.org_name, u.id as user_id FROM ngo_profiles np JOIN users u ON np.user_id = u.id WHERE np.id = ?', [ngoId]);
+
+        await logActivity({
+            userId: ngoUsr?.user_id || null,
+            userName: ngoUsr?.org_name || 'NGO Partner',
+            userRole: 'NGO',
+            activityType: 'ngo_created_campaign',
+            activityTitle: 'NGO Created Campaign',
+            activityDescription: `Created campaign "${title}" with target goal $${parseFloat(goal_amount).toLocaleString()}.`,
+            relatedId: campaignId
+        });
+
         await createAdminNotification({
             title: '📢 New Campaign Created',
             message: `New campaign "${title}" (Goal: $${goal_amount}) was created.`,
@@ -211,6 +224,22 @@ const updateCampaign = async (id, updateData) => {
 
     await db.query(`UPDATE campaigns SET ${fields.join(', ')} WHERE id = ?`, values);
     await syncCampaignCompletionStatus(id);
+
+    try {
+        const { logActivity } = require('./activityLog.service');
+        const [[c]] = await db.query('SELECT title, ngo_id FROM campaigns WHERE id = ?', [id]);
+        await logActivity({
+            userId: null,
+            userName: 'Campaign Manager',
+            userRole: 'NGO',
+            activityType: 'campaign_updated',
+            activityTitle: 'Campaign Details Updated',
+            activityDescription: `Updated settings for campaign "${c?.title || id}".`,
+            relatedId: id
+        });
+    } catch (e) {
+        console.warn('Activity log error in updateCampaign:', e.message);
+    }
 };
 
 const deleteCampaign = async (id) => {
@@ -220,7 +249,27 @@ const deleteCampaign = async (id) => {
 const updateCampaignStatus = async (id, status) => {
     await db.query('UPDATE campaigns SET status = ? WHERE id = ?', [status, id]);
     await syncCampaignCompletionStatus(id);
+
+    try {
+        const { logActivity } = require('./activityLog.service');
+        const [[c]] = await db.query('SELECT title FROM campaigns WHERE id = ?', [id]);
+        const actType = status === 'approved' ? 'campaign_published' : status === 'completed' ? 'campaign_completed' : 'campaign_closed';
+        const actTitle = status === 'approved' ? 'Campaign Published' : status === 'completed' ? 'Campaign Completed' : 'Campaign Closed';
+
+        await logActivity({
+            userId: null,
+            userName: 'Platform Officer',
+            userRole: 'Admin',
+            activityType: actType,
+            activityTitle: actTitle,
+            activityDescription: `Campaign "${c?.title || id}" status set to ${status}.`,
+            relatedId: id
+        });
+    } catch (e) {
+        console.warn('Activity log error in updateCampaignStatus:', e.message);
+    }
 };
+
 
 const addCampaignGallery = async (campaignId, imageUrls) => {
     if (!imageUrls || imageUrls.length === 0) return;

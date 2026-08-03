@@ -110,6 +110,32 @@ const updatePaymentStatus = async (donationId, status, transactionId, gatewayRes
             });
         }
 
+        try {
+            const { logActivity } = require('./activityLog.service');
+            const [donFull] = await db.query(
+                `SELECT d.user_id, d.is_anonymous, u.name as donor_name, u.role as donor_role
+                 FROM donations d
+                 LEFT JOIN users u ON d.user_id = u.id
+                 WHERE d.id = ?`, [donationId]
+            );
+            const isAnon = donFull && donFull[0] && donFull[0].is_anonymous;
+            const donorName = isAnon ? 'Anonymous Supporter' : (donFull && donFull[0] && donFull[0].donor_name) || 'Kind Donor';
+            const donorRole = isAnon ? 'Anonymous' : (donFull && donFull[0] && donFull[0].donor_role) || 'Donor';
+
+            await logActivity({
+                userId: donFull && donFull[0] ? donFull[0].user_id : null,
+                userName: donorName,
+                userRole: donorRole,
+                activityType: isAnon ? 'anonymous_donation' : 'donation_success',
+                activityTitle: isAnon ? 'Anonymous Donation Received' : 'Donation Received',
+                activityDescription: `Donated $${donAmt.toLocaleString(undefined, {minimumFractionDigits: 2})} to "${updatedCampaign?.title || 'Campaign'}".`,
+                relatedId: updatedCampaignId
+            });
+        } catch (actErr) {
+            console.warn('Activity log error in donation success:', actErr.message);
+        }
+
+
         // ── NGO Notifications ──────────────────────────────────────────────────
         try {
             const { createNGONotification } = require('./notification.service');

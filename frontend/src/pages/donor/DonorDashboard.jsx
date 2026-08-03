@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import api from '../../api/axios?v=1';
+import LiveActivityTimeline from '../../components/common/LiveActivityTimeline';
 
 const DonorDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -10,19 +11,21 @@ const DonorDashboard = () => {
     const [donations, setDonations] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const fetchDonations = async () => {
+        try {
+            const res = await api.get('/donations/history');
+            setDonations(res.data || []);
+        } catch (err) {
+            console.error("Failed to fetch donor history:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchDonations = async () => {
-            try {
-                const res = await api.get('/donations/history');
-                setDonations(res.data || []);
-            } catch (err) {
-                console.error("Failed to fetch donor history:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchDonations();
     }, []);
+
 
     const totalDonated = donations.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
 
@@ -165,9 +168,29 @@ const DonorDashboard = () => {
                     </div>
                 )}
             </div>
+
+            {/* Live Activity Stream */}
+            <LiveActivityTimeline
+
+                title="Donor Giving Activity Stream"
+                onRefresh={fetchDonations}
+                activities={
+                    donations.map((d, i) => ({
+                        id: `donor-don-${i}`,
+                        icon: '💳',
+                        type: 'success',
+                        user: user?.name || 'Supporter',
+                        role: 'Donor',
+                        title: `Donated $${parseFloat(d.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+                        description: `Supported "${d.campaign_title || 'Community Campaign'}"`,
+                        timestamp: d.created_at || new Date()
+                    })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                }
+            />
         </div>
     );
 };
 
 export default DonorDashboard;
+
 

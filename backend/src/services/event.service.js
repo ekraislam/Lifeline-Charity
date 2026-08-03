@@ -92,6 +92,19 @@ const createEvent = async (data, organizerId) => {
 
     try {
         const { createAdminNotification } = require('./notification.service');
+        const { logActivity } = require('./activityLog.service');
+        const [[usr]] = await db.query('SELECT name, role FROM users WHERE id = ?', [organizerId]);
+
+        await logActivity({
+            userId: organizerId,
+            userName: usr?.name || 'Event Organizer',
+            userRole: usr?.role || 'NGO',
+            activityType: 'event_created',
+            activityTitle: 'Event Created',
+            activityDescription: `Created event "${title}" at ${location || 'location'}.`,
+            relatedId: eventId
+        });
+
         await createAdminNotification({
             title: '📅 New Event Created',
             message: `A new community event "${title}" was created by organizer #${organizerId}.`,
@@ -121,7 +134,6 @@ const updateEvent = async (id, data, userId, userRole) => {
     if (cover_image) {
         query += `, cover_image=?`;
         params.push(cover_image);
-        // Optional: delete old image if exists
         if (event.cover_image) {
             const oldPath = path.join(__dirname, '../../', event.cover_image);
             if (fs.existsSync(oldPath)) {
@@ -134,6 +146,21 @@ const updateEvent = async (id, data, userId, userRole) => {
     params.push(id);
 
     await db.query(query, params);
+
+    try {
+        const { logActivity } = require('./activityLog.service');
+        await logActivity({
+            userId,
+            userName: event.organizer_name || 'Organizer',
+            userRole: userRole || 'NGO',
+            activityType: 'event_updated',
+            activityTitle: 'Event Details Updated',
+            activityDescription: `Updated details for event "${title || event.title}".`,
+            relatedId: id
+        });
+    } catch (e) {
+        console.warn('Activity log error in updateEvent:', e.message);
+    }
 };
 
 const deleteEvent = async (id, userId, userRole) => {
@@ -144,7 +171,6 @@ const deleteEvent = async (id, userId, userRole) => {
         throw new Error('Unauthorized to delete this event');
     }
 
-    // Delete image if exists
     if (event.cover_image) {
         const oldPath = path.join(__dirname, '../../', event.cover_image);
         if (fs.existsSync(oldPath)) {
@@ -164,6 +190,23 @@ const updateEventStatus = async (id, status, userId, userRole) => {
     }
 
     await db.query(`UPDATE events SET status = ? WHERE id = ?`, [status, id]);
+
+    try {
+        const { logActivity } = require('./activityLog.service');
+        if (status === 'completed') {
+            await logActivity({
+                userId,
+                userName: event.organizer_name || 'Organizer',
+                userRole: userRole || 'NGO',
+                activityType: 'event_completed',
+                activityTitle: 'Event Completed',
+                activityDescription: `Event "${event.title}" marked as completed.`,
+                relatedId: id
+            });
+        }
+    } catch (e) {
+        console.warn('Activity log error in updateEventStatus:', e.message);
+    }
 };
 
 const registerVolunteer = async (eventId, userId) => {
@@ -182,15 +225,35 @@ const registerVolunteer = async (eventId, userId) => {
         throw new Error('Maximum volunteers capacity reached');
     }
 
-    const [[existing]] = await db.query(`SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ? AND role = 'volunteer'`, [eventId, userId]);
-    if (existing) {
-        throw new Error('You are already registered for this event');
+    const [existing] = await db.query(
+        "SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ? AND role = 'volunteer'",
+        [eventId, userId]
+    );
+
+    if (existing.length > 0) {
+        throw new Error('Already registered for this event');
     }
 
-    await db.query(`
-        INSERT INTO event_registrations (event_id, user_id, role, attendance_status)
-        VALUES (?, ?, 'volunteer', 'pending')
-    `, [eventId, userId]);
+    await db.query(
+        "INSERT INTO event_registrations (event_id, user_id, role, attendance_status) VALUES (?, ?, 'volunteer', 'pending')",
+        [eventId, userId]
+    );
+
+    try {
+        const { logActivity } = require('./activityLog.service');
+        const [[volUsr]] = await db.query('SELECT name FROM users WHERE id = ?', [userId]);
+        await logActivity({
+            userId,
+            userName: volUsr?.name || 'Volunteer',
+            userRole: 'Volunteer',
+            activityType: 'volunteer_assigned',
+            activityTitle: 'Volunteer Registered for Event',
+            activityDescription: `${volUsr?.name || 'Volunteer'} registered for event "${event.title}".`,
+            relatedId: eventId
+        });
+    } catch (e) {
+        console.warn('Activity log error in registerVolunteer:', e.message);
+    }
 
     try {
         const { createNotification } = require('./notification.service');
@@ -202,6 +265,7 @@ const registerVolunteer = async (eventId, userId) => {
         console.warn('Event registration notification error:', notifErr.message);
     }
 };
+
 
 const getEventVolunteers = async (eventId, userId, userRole) => {
     const event = await getEventById(eventId);

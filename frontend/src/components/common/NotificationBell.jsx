@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import api from '../../api/axios';
+import api, { API_BASE_URL } from '../../api/axios';
 import io from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Relative time formatter helper
 const formatRelativeTime = (dateStr) => {

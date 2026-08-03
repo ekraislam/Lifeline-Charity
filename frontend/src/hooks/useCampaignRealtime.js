@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { API_BASE_URL } from '../api/axios';
 
 let socketInstance = null;
 
 const getSocket = () => {
     if (!socketInstance) {
         try {
-            const socketUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000');
-            socketInstance = io(socketUrl, {
+            socketInstance = io(API_BASE_URL, {
                 transports: ['websocket', 'polling'],
                 withCredentials: true,
                 autoConnect: true
@@ -18,6 +18,7 @@ const getSocket = () => {
     }
     return socketInstance;
 };
+
 
 export const broadcastLocalCampaignUpdate = (detailData) => {
     try {

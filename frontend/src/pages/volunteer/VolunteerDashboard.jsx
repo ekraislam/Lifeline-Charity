@@ -5,6 +5,8 @@ import api from '../../api/axios';
 import { AuthContext } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useForm } from 'react-hook-form';
+import LiveActivityTimeline from '../../components/common/LiveActivityTimeline';
+
 import logo from '../../assets/fogo.png';
 import sig1 from '../../assets/sig1.png';
 import sig2 from '../../assets/sig2.png';
@@ -408,8 +410,28 @@ const VolunteerDashboard = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Live Activity Stream */}
+            <LiveActivityTimeline
+
+                title="Volunteer Activity Stream"
+                onRefresh={fetchData}
+                activities={
+                    events.map((ev, i) => ({
+                        id: `vol-ev-${i}`,
+                        icon: ev.attendance_status === 'attended' ? '✅' : '📅',
+                        type: ev.attendance_status === 'attended' ? 'success' : 'info',
+                        user: user?.name || 'Volunteer',
+                        role: 'Volunteer',
+                        title: `Assigned to event "${ev.title || 'Community Event'}"`,
+                        description: `Event date: ${ev.event_date ? format(new Date(ev.event_date), 'PPP') : 'TBD'} | Hours: ${ev.hours_logged || 0}`,
+                        timestamp: ev.created_at || ev.event_date || new Date()
+                    })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                }
+            />
         </div>
     );
 };
+
 
 export default VolunteerDashboard;

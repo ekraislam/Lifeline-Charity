@@ -373,6 +373,22 @@ Perform strict document audit and return a JSON object ONLY with:
             reportData.recommendation
         ]);
 
+        try {
+            const { logActivity } = require('./activityLog.service');
+            await logActivity({
+                userId: request.user_id || null,
+                userName: request.beneficiary_name || 'AI Audit Engine',
+                userRole: 'AI Agent',
+                activityType: 'ai_verification_completed',
+                activityTitle: 'AI Verification Completed',
+                activityDescription: `AI verified help request #${helpRequestId} with confidence score ${confidence_score}% (${risk_level}).`,
+                relatedId: helpRequestId
+            });
+        } catch (actErr) {
+            console.warn("Activity log error in AI verification:", actErr.message);
+        }
+
+
         // Notify admin & beneficiary that AI analysis completed
         try {
             const { createAdminNotification, createNotification } = require('./notification.service');

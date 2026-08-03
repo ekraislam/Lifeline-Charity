@@ -4,6 +4,8 @@ import api from '../../api/axios?v=1';
 import { format } from 'date-fns';
 import useCampaignRealtime from '../../hooks/useCampaignRealtime';
 import { useLanguage } from '../../context/LanguageContext';
+import LiveActivityTimeline from '../../components/common/LiveActivityTimeline';
+
 
 const STATUS_CONFIG = {
     pending: { labelKey: 'beneficiary.status.pending', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
@@ -133,9 +135,28 @@ const BeneficiaryDashboard = () => {
                     </div>
                 )}
             </div>
+
+            {/* Live Activity Stream */}
+            <LiveActivityTimeline
+
+                title="Beneficiary Request Activity Stream"
+                onRefresh={fetchData}
+                activities={
+                    requests.map((req, i) => ({
+                        id: `ben-req-${i}`,
+                        icon: req.status === 'fulfilled' ? '🎉' : req.status === 'rejected' ? '❌' : '📋',
+                        type: req.status === 'fulfilled' ? 'success' : req.status === 'rejected' ? 'critical' : 'warning',
+                        user: req.title || 'Help Request',
+                        role: 'Beneficiary',
+                        title: `Application "${req.title}"`,
+                        description: `Status: ${req.status} | Amount: $${parseFloat(req.required_amount || 0).toLocaleString()}`,
+                        timestamp: req.created_at || new Date()
+                    })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                }
+            />
         </div>
     );
 };
 
-
 export default BeneficiaryDashboard;
+

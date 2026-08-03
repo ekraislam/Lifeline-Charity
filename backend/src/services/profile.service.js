@@ -27,11 +27,43 @@ const updateProfile = async (userId, updateData) => {
 
     values.push(userId);
     await db.query(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, values);
+
+    try {
+        const { logActivity } = require('./activityLog.service');
+        const [[usr]] = await db.query('SELECT name, role FROM users WHERE id = ?', [userId]);
+        await logActivity({
+            userId,
+            userName: usr?.name || 'User',
+            userRole: usr?.role || 'User',
+            activityType: 'profile_updated',
+            activityTitle: 'Profile Updated',
+            activityDescription: `${usr?.name || 'User'} updated personal profile details.`,
+            relatedId: userId
+        });
+    } catch (e) {
+        console.warn('Activity log error in updateProfile:', e.message);
+    }
 };
 
 const updateAvatar = async (userId, avatarUrl) => {
     await db.query('UPDATE users SET avatar = ? WHERE id = ?', [avatarUrl, userId]);
+    try {
+        const { logActivity } = require('./activityLog.service');
+        const [[usr]] = await db.query('SELECT name, role FROM users WHERE id = ?', [userId]);
+        await logActivity({
+            userId,
+            userName: usr?.name || 'User',
+            userRole: usr?.role || 'User',
+            activityType: 'profile_updated',
+            activityTitle: 'Profile Picture Updated',
+            activityDescription: `${usr?.name || 'User'} uploaded a new avatar photo.`,
+            relatedId: userId
+        });
+    } catch (e) {
+        console.warn('Activity log error in updateAvatar:', e.message);
+    }
 };
+
 
 const getUserPassword = async (userId) => {
     const [rows] = await db.query('SELECT password FROM users WHERE id = ?', [userId]);

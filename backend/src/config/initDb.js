@@ -140,10 +140,37 @@ const initDb = async () => {
             await dbPool.query(`
                 ALTER TABLE campaign_payouts 
                 MODIFY COLUMN status ENUM('Pending', 'Under Review', 'Approved', 'Rejected', 'Completed', 'Paid', 'Confirmed', 'Failed') DEFAULT 'Pending',
-                MODIFY COLUMN transaction_id VARCHAR(255) NULL,
-                ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+                MODIFY COLUMN transaction_id VARCHAR(255) NULL;
             `);
         } catch (e) {}
+
+        try {
+            const [adminNoteCol] = await dbPool.query(
+                `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'campaign_payouts' AND COLUMN_NAME = 'admin_notes'`,
+                [database]
+            );
+            if (adminNoteCol.length === 0) {
+                await dbPool.query(`ALTER TABLE campaign_payouts ADD COLUMN admin_notes TEXT`);
+            }
+        } catch (e) {}
+
+        // Ensure activity_logs table exists
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS activity_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NULL,
+                user_name VARCHAR(255) DEFAULT 'System User',
+                user_role VARCHAR(50) DEFAULT 'User',
+                activity_type VARCHAR(100) NOT NULL,
+                activity_title VARCHAR(255) NOT NULL,
+                activity_description TEXT,
+                related_id INT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+
         const [cats] = await dbPool.query("SELECT COUNT(*) as count FROM categories");
         if (cats[0].count === 0) {
             console.log("Seeding default categories...");
@@ -158,6 +185,7 @@ const initDb = async () => {
             `);
             console.log("Default categories seeded successfully.");
         }
+
     } catch (error) {
         console.error("Auto database initialization warning/error:", error.message);
     }

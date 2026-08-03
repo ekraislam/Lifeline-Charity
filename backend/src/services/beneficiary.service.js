@@ -41,6 +41,18 @@ const submitHelpRequest = async (userId, data) => {
             type: 'help_request',
             priority: 'normal'
         });
+        // Log activity
+        const { logActivity } = require('./activityLog.service');
+        const [[usr]] = await db.query('SELECT name, role FROM users WHERE id = ?', [userId]);
+        await logActivity({
+            userId,
+            userName: usr?.name || 'Beneficiary User',
+            userRole: usr?.role || 'Beneficiary',
+            activityType: 'beneficiary_submitted',
+            activityTitle: 'Beneficiary Request Submitted',
+            activityDescription: `Submitted help request #${requestId} ("${title}") for $${parseFloat(required_amount || 0).toLocaleString()}.`,
+            relatedId: requestId
+        });
     } catch (notifErr) {
         console.warn('Notification error in submitHelpRequest:', notifErr.message);
     }
@@ -53,6 +65,30 @@ const uploadDocuments = async (helpRequestId, documentUrls) => {
     const values = documentUrls.map(url => [helpRequestId, url]);
     await db.query('INSERT INTO help_request_documents (help_request_id, document_url) VALUES ?', [values]);
 
+    try {
+        const { logActivity } = require('./activityLog.service');
+        const [[hr]] = await db.query(`
+            SELECT hr.title, u.id as user_id, u.name as user_name, u.role
+            FROM help_requests hr
+            JOIN beneficiaries b ON hr.beneficiary_id = b.id
+            JOIN users u ON b.user_id = u.id
+            WHERE hr.id = ?
+        `, [helpRequestId]);
+        if (hr) {
+            await logActivity({
+                userId: hr.user_id,
+                userName: hr.user_name,
+                userRole: hr.role || 'Beneficiary',
+                activityType: 'documents_uploaded',
+                activityTitle: 'Documents Uploaded',
+                activityDescription: `Uploaded ${documentUrls.length} document file(s) for help request #${helpRequestId} ("${hr.title}").`,
+                relatedId: helpRequestId
+            });
+        }
+    } catch (actErr) {
+        console.warn('Activity log error in uploadDocuments:', actErr.message);
+    }
+
     // Re-analyze with newly uploaded documents
     try {
         await aiVerificationService.analyzeHelpRequest(helpRequestId);
@@ -60,6 +96,7 @@ const uploadDocuments = async (helpRequestId, documentUrls) => {
         console.error("AI Re-Analysis Error:", err.message);
     }
 };
+
 
 const getHelpRequests = async (filters = {}) => {
     let query = `

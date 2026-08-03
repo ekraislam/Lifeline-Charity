@@ -269,8 +269,10 @@
     @apply text-3xl font-black tracking-tight tabular-nums text-gray-900 dark:text-white;
     letter-spacing: -0.03em;
   }
+}
 
-  /* Custom Animations */
+/* Custom Animations */
+
   @keyframes blob {
     0% { transform: translate(0px, 0px) scale(1); }
     33% { transform: translate(30px, -50px) scale(1.1); }
@@ -1196,7 +1198,7 @@
   .dark .dashboard-table th {
     background: rgba(15, 23, 42, 0.9);
   }
-}
+
 
 
 
