@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../api/axios?v=1';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -141,7 +141,7 @@ const DetailModal = ({ request, onClose, onStatusUpdate, onReportUpdate }) => {
                     {/* AI Document Analysis Report Header Card */}
                     <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                            <div>
+                            <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-[10px] font-black uppercase tracking-wider bg-white/10 px-2.5 py-0.5 rounded-full text-indigo-300">
                                         AI Document Analysis System
@@ -149,13 +149,22 @@ const DetailModal = ({ request, onClose, onStatusUpdate, onReportUpdate }) => {
                                     <span className={`px-3 py-0.5 rounded-full text-xs font-extrabold border ${RISK_BADGES[risk] || RISK_BADGES['Not Analyzed']}`}>
                                         {risk.toUpperCase()}
                                     </span>
+                                    <span className="text-xs font-bold bg-white/10 px-2.5 py-0.5 rounded-full text-emerald-300">
+                                        {aiReport?.confidence_score || 0}% Confidence Score
+                                    </span>
                                 </div>
                                 <h3 className="text-xl font-black">AI Document Analysis Report</h3>
-                                <p className="text-xs text-indigo-200 mt-1 max-w-xl">{aiReport?.recommendation || 'No AI document analysis generated yet.'}</p>
+                                <p className="text-xs text-indigo-200 mt-1.5 max-w-xl font-medium">{aiReport?.recommendation || 'No AI document analysis generated yet.'}</p>
+                                {aiReport?.reason_for_risk && (
+                                    <div className="mt-3 bg-white/10 p-3 rounded-xl border border-white/10 text-xs text-indigo-100 font-medium">
+                                        <strong className="text-amber-300 font-bold block mb-0.5">📌 Reason for Assigned Risk:</strong>
+                                        {aiReport.reason_for_risk}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Risk Assessment Indicator */}
-                            <div className="flex flex-col items-center justify-center bg-white/10 p-4 rounded-2xl border border-white/10 min-w-[160px]">
+                            <div className="flex flex-col items-center justify-center bg-white/10 p-4 rounded-2xl border border-white/10 min-w-[170px]">
                                 <span className={`text-lg font-black px-3 py-1 rounded-xl ${RISK_BADGES[risk] || RISK_BADGES['Not Analyzed']}`}>{risk.toUpperCase()}</span>
                                 <span className="text-[11px] font-bold text-gray-300 uppercase tracking-wider mt-2">AI Risk Assessment</span>
                                 <div className="w-full bg-white/20 rounded-full h-1.5 mt-2 overflow-hidden">

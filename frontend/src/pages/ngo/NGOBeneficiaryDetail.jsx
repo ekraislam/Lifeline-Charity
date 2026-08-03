@@ -76,8 +76,9 @@ const NGOBeneficiaryDetail = () => {
     const ai = request.ai_report || {};
     const riskColor =
         ai.risk_level === 'Low Risk' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200' :
+        ai.risk_level === 'Medium Risk' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200' :
         ai.risk_level === 'High Risk' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-200' :
-        'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200';
+        'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200';
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -193,11 +194,31 @@ const NGOBeneficiaryDetail = () => {
                                     </div>
                                 </div>
 
+                                 {/* Reason for Risk */}
+                                {ai.reason_for_risk && (
+                                    <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200">
+                                        <span className="font-black uppercase tracking-wider block mb-1">📌 Reason for Assigned Risk</span>
+                                        {ai.reason_for_risk}
+                                    </div>
+                                )}
+
                                 {/* Recommendation */}
                                 {ai.recommendation && (
                                     <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs text-blue-900 dark:text-blue-200">
                                         <span className="font-black uppercase tracking-wider block mb-1">AI Recommendation</span>
                                         {ai.recommendation}
+                                    </div>
+                                )}
+
+                                {/* Missing Information */}
+                                {ai.missing_info && Array.isArray(ai.missing_info) && ai.missing_info.length > 0 && (
+                                    <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                                        <span className="font-black uppercase tracking-wider block">📋 Missing Information / Documents</span>
+                                        <ul className="list-disc list-inside space-y-0.5">
+                                            {ai.missing_info.map((item, idx) => (
+                                                <li key={idx}>{typeof item === 'string' ? item : JSON.stringify(item)}</li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 )}
 

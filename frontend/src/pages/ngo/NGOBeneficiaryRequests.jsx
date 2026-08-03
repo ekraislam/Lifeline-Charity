@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useLanguage } from '../../context/LanguageContext';
@@ -153,9 +153,10 @@ const NGOBeneficiaryRequests = () => {
                         className="py-2 px-3 rounded-xl text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white outline-none cursor-pointer"
                     >
                         <option value="all">🤖 All AI Risk Levels</option>
-                        <option value="low">Low Risk</option>
-                        <option value="medium">Medium Risk</option>
-                        <option value="high">High Risk</option>
+                        <option value="low">🟢 Low Risk</option>
+                        <option value="medium">🟡 Medium Risk</option>
+                        <option value="high">🔴 High Risk</option>
+                        <option value="not analyzed">⚪ Not Analyzed</option>
                     </select>
 
                     {/* Amount Filter */}
@@ -224,8 +225,9 @@ const NGOBeneficiaryRequests = () => {
                         const riskLevel = req.ai_risk_level || 'Not Analyzed';
                         const riskBadge =
                             riskLevel === 'Low Risk' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200' :
+                            riskLevel === 'Medium Risk' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200' :
                             riskLevel === 'High Risk' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-200' :
-                            'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200';
+                            'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200';
 
                         return (
                             <div

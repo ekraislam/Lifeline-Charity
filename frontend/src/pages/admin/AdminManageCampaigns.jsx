@@ -149,7 +149,7 @@ const AdminManageCampaigns = () => {
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900">
                                 <tr>
-                                    {['Title','NGO','Category','Goal','Raised','Status','Created','Actions'].map(h => (
+                                    {['Title','NGO','AI Risk','Category','Goal','Raised','Status','Created','Actions'].map(h => (
                                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                                     ))}
                                 </tr>
@@ -161,6 +161,16 @@ const AdminManageCampaigns = () => {
                                             <p className="text-sm font-semibold text-gray-900 dark:text-white max-w-[180px] truncate" title={c.title}>{c.title}</p>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{c.ngo_name || c.ngo_user_name || '—'}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-extrabold border ${
+                                                c.ai_risk_level === 'Low Risk' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                                                c.ai_risk_level === 'Medium Risk' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                                c.ai_risk_level === 'High Risk' ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                                                'bg-gray-100 text-gray-700 border-gray-300'
+                                            }`}>
+                                                🤖 {c.ai_risk_level || 'Not Analyzed'}
+                                            </span>
+                                        </td>
                                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{c.category_name || '—'}</td>
                                         <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">${parseFloat(c.goal_amount||0).toLocaleString()}</td>
                                         <td className="px-4 py-3 text-sm font-medium text-green-700 whitespace-nowrap">${parseFloat(c.raised_amount||0).toLocaleString()}</td>

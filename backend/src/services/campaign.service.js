@@ -62,10 +62,13 @@ const getCampaigns = async () => {
                (SELECT COUNT(DISTINCT id) FROM donations d WHERE d.campaign_id = c.id AND d.status = 'success') AS donor_count,
                (SELECT image_url FROM campaign_gallery cg WHERE cg.campaign_id = c.id LIMIT 1) as cover_image,
                cat.name as category_name,
-               np.org_name as ngo_org_name
+               np.org_name as ngo_org_name,
+               COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level
         FROM campaigns c
         LEFT JOIN categories cat ON c.category_id = cat.id
         LEFT JOIN ngo_profiles np ON c.ngo_id = np.id
+        LEFT JOIN help_requests hr ON c.help_request_id = hr.id
+        LEFT JOIN ai_verification_reports air ON air.help_request_id = hr.id
         ORDER BY c.created_at DESC
     `);
 
@@ -86,13 +89,18 @@ const getCampaignById = async (id) => {
                (SELECT COUNT(DISTINCT id) FROM donations d WHERE d.campaign_id = c.id AND d.status = 'success') AS donor_count,
                cat.name as category_name,
                np.org_name as ngo_org_name,
-               u.name as beneficiary_name, u.email as beneficiary_email
+               u.name as beneficiary_name, u.email as beneficiary_email,
+               COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level,
+               COALESCE(air.confidence_score, 0) as ai_confidence_score,
+               air.reason_for_risk as ai_reason_for_risk,
+               air.recommendation as ai_recommendation
         FROM campaigns c
         LEFT JOIN categories cat ON c.category_id = cat.id
         LEFT JOIN ngo_profiles np ON c.ngo_id = np.id
         LEFT JOIN help_requests hr ON c.help_request_id = hr.id
         LEFT JOIN beneficiaries b ON hr.beneficiary_id = b.id
         LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN ai_verification_reports air ON air.help_request_id = hr.id
         WHERE c.id = ?
     `, [id]);
 
@@ -101,6 +109,13 @@ const getCampaignById = async (id) => {
         const [gallery] = await db.query('SELECT image_url FROM campaign_gallery WHERE campaign_id = ?', [id]);
         campaign.gallery = gallery.map(g => g.image_url);
         campaign.is_completed = campaign.status === 'completed' || parseFloat(campaign.raised_amount || 0) >= parseFloat(campaign.goal_amount || 0);
+
+        if (campaign.help_request_id) {
+            try {
+                const aiVerificationService = require('./aiVerification.service');
+                campaign.ai_report = await aiVerificationService.getReportByRequestId(campaign.help_request_id);
+            } catch (err) {}
+        }
     }
     return campaign;
 };

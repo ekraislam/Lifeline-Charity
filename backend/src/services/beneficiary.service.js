@@ -54,7 +54,9 @@ const getHelpRequests = async (filters = {}) => {
                u.name as beneficiary_name, u.email as beneficiary_email,
                ngo_u.name as assigned_ngo_name, np.org_name as assigned_ngo_org,
                COALESCE(air.confidence_score, 0) as ai_confidence_score,
-               COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level
+               COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level,
+               air.reason_for_risk, air.recommendation as ai_recommendation,
+               air.ocr_data, air.nid_analysis, air.medical_analysis, air.missing_info, air.suspicious_findings
         FROM help_requests hr
         JOIN beneficiaries b ON hr.beneficiary_id = b.id
         JOIN users u ON b.user_id = u.id
@@ -76,7 +78,31 @@ const getHelpRequests = async (filters = {}) => {
 
     query += ' ORDER BY hr.created_at DESC';
     const [rows] = await db.query(query, params);
-    return rows;
+
+    return rows.map(r => {
+        const ocr_data = typeof r.ocr_data === 'string' ? JSON.parse(r.ocr_data) : (r.ocr_data || {});
+        const nid_analysis = typeof r.nid_analysis === 'string' ? JSON.parse(r.nid_analysis) : (r.nid_analysis || {});
+        const medical_analysis = typeof r.medical_analysis === 'string' ? JSON.parse(r.medical_analysis) : (r.medical_analysis || {});
+        const missing_info = typeof r.missing_info === 'string' ? JSON.parse(r.missing_info) : (r.missing_info || []);
+        const suspicious_findings = typeof r.suspicious_findings === 'string' ? JSON.parse(r.suspicious_findings) : (r.suspicious_findings || []);
+
+        return {
+            ...r,
+            ai_risk_level: r.ai_risk_level || 'Not Analyzed',
+            ai_report: {
+                help_request_id: r.id,
+                risk_level: r.ai_risk_level || 'Not Analyzed',
+                confidence_score: r.ai_confidence_score || 0,
+                reason_for_risk: r.reason_for_risk || '',
+                recommendation: r.ai_recommendation || '',
+                ocr_data,
+                nid_analysis,
+                medical_analysis,
+                missing_info,
+                suspicious_findings
+            }
+        };
+    });
 };
 
 // NGOs see only waiting_for_ngo requests
@@ -87,7 +113,9 @@ const getWaitingRequests = async () => {
                u.name as beneficiary_name, u.email as beneficiary_email,
                COALESCE(air.confidence_score, 0) as ai_confidence_score,
                COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level,
+               COALESCE(air.reason_for_risk, '') as ai_reason_for_risk,
                COALESCE(air.recommendation, '') as ai_recommendation,
+               air.missing_info, air.suspicious_findings,
                (SELECT COUNT(*) FROM help_request_documents hrd WHERE hrd.help_request_id = hr.id) as document_count
         FROM help_requests hr
         JOIN beneficiaries b ON hr.beneficiary_id = b.id
@@ -96,7 +124,12 @@ const getWaitingRequests = async () => {
         WHERE hr.status = 'waiting_for_ngo'
         ORDER BY hr.created_at DESC
     `);
-    return rows;
+    return rows.map(r => ({
+        ...r,
+        ai_risk_level: r.ai_risk_level || 'Not Analyzed',
+        missing_info: typeof r.missing_info === 'string' ? JSON.parse(r.missing_info) : (r.missing_info || []),
+        suspicious_findings: typeof r.suspicious_findings === 'string' ? JSON.parse(r.suspicious_findings) : (r.suspicious_findings || [])
+    }));
 };
 
 // First-come-first-serve: NGO accepts a request

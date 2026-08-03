@@ -89,6 +89,14 @@ const BeneficiaryDashboard = () => {
                                                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.color}`}>
                                                         {cfg.icon} {t(cfg.labelKey)}
                                                     </span>
+                                                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                                                        request.ai_risk_level === 'Low Risk' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                                                        request.ai_risk_level === 'Medium Risk' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                                        request.ai_risk_level === 'High Risk' ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                                                        'bg-gray-100 text-gray-700 border-gray-300'
+                                                    }`}>
+                                                        🤖 AI Status: {request.ai_risk_level || 'Not Analyzed'}
+                                                    </span>
                                                 </div>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{request.description}</p>
                                                 

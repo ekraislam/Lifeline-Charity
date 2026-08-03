@@ -52,13 +52,30 @@ const initDb = async () => {
                 missing_info JSON,
                 suspicious_findings JSON,
                 confidence_score INT DEFAULT 0,
-                risk_level ENUM('Low Risk', 'Medium Risk', 'High Risk') DEFAULT 'Low Risk',
+                risk_level VARCHAR(50) DEFAULT 'Not Analyzed',
+                reason_for_risk TEXT,
                 recommendation TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (help_request_id) REFERENCES help_requests(id) ON DELETE CASCADE
             );
         `);
+
+        // Check and ensure columns risk_level and reason_for_risk exist and are updated
+        try {
+            await dbPool.query(`ALTER TABLE ai_verification_reports MODIFY COLUMN risk_level VARCHAR(50) DEFAULT 'Not Analyzed'`);
+        } catch (e) {}
+        try {
+            const [reasonCol] = await dbPool.query(
+                `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'ai_verification_reports' AND COLUMN_NAME = 'reason_for_risk'`,
+                [database]
+            );
+            if (reasonCol.length === 0) {
+                await dbPool.query(`ALTER TABLE ai_verification_reports ADD COLUMN reason_for_risk TEXT AFTER risk_level`);
+            }
+        } catch (e) {}
+
 
         // Ensure help_requests payment columns exist (compatible with all MySQL versions)
         try {

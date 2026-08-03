@@ -184,7 +184,9 @@ const getBeneficiaryRequests = async (search) => {
                u.name as beneficiary_name, u.email as beneficiary_email,
                np.org_name as assigned_ngo_org,
                COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level,
-               COALESCE(air.confidence_score, 0) as ai_confidence_score
+               COALESCE(air.confidence_score, 0) as ai_confidence_score,
+               air.ocr_data, air.nid_analysis, air.medical_analysis, air.missing_info,
+               air.suspicious_findings, air.reason_for_risk, air.recommendation
         FROM help_requests hr
         JOIN beneficiaries b ON hr.beneficiary_id = b.id
         JOIN users u ON b.user_id = u.id
@@ -198,7 +200,31 @@ const getBeneficiaryRequests = async (search) => {
     }
     query += ' ORDER BY hr.created_at DESC';
     const [rows] = await db.query(query, params);
-    return rows;
+
+    return rows.map(r => {
+        const ocr_data = typeof r.ocr_data === 'string' ? JSON.parse(r.ocr_data) : (r.ocr_data || {});
+        const nid_analysis = typeof r.nid_analysis === 'string' ? JSON.parse(r.nid_analysis) : (r.nid_analysis || {});
+        const medical_analysis = typeof r.medical_analysis === 'string' ? JSON.parse(r.medical_analysis) : (r.medical_analysis || {});
+        const missing_info = typeof r.missing_info === 'string' ? JSON.parse(r.missing_info) : (r.missing_info || []);
+        const suspicious_findings = typeof r.suspicious_findings === 'string' ? JSON.parse(r.suspicious_findings) : (r.suspicious_findings || []);
+
+        return {
+            ...r,
+            ai_risk_level: r.ai_risk_level || 'Not Analyzed',
+            ai_report: {
+                help_request_id: r.id,
+                risk_level: r.ai_risk_level || 'Not Analyzed',
+                confidence_score: r.ai_confidence_score || 0,
+                reason_for_risk: r.reason_for_risk || '',
+                recommendation: r.recommendation || '',
+                ocr_data,
+                nid_analysis,
+                medical_analysis,
+                missing_info,
+                suspicious_findings
+            }
+        };
+    });
 };
 
 const updateBeneficiaryStatus = async (id, status, adminNote) => {
