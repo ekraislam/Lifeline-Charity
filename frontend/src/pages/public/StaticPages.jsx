@@ -1,150 +1,189 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../api/axios';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const About = () => (
-    <div className="bg-white dark:bg-gray-800">
-        {/* Hero Section */}
-        <div className="bg-primary-50 dark:bg-gray-900 py-16 sm:py-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl tracking-tight mb-6">Our Story</h1>
-                <p className="mt-4 max-w-3xl mx-auto text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
+    <div className="bg-gray-50 dark:bg-gray-950 min-h-screen overflow-x-hidden transition-colors duration-200">
+        {/* ══════════════ HERO SECTION ══════════════ */}
+        <section className="relative py-20 lg:py-28 overflow-hidden">
+            {/* Background mesh */}
+            <div className="absolute inset-0 hero-bg-mesh pointer-events-none" aria-hidden="true" />
+            <div className="absolute inset-0 hero-grid-overlay pointer-events-none" aria-hidden="true" />
+
+            {/* Gradient Orbs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+                <div className="hero-orb hero-orb-1" />
+                <div className="hero-orb hero-orb-2" />
+            </div>
+
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20 mb-6 backdrop-blur-md animate-fade-in-up">
+                    <span>✨</span> Empowering Humanity & Transparent Giving
+                </div>
+
+                <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight mb-6 leading-tight">
+                    Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-indigo-500">Story</span>
+                </h1>
+
+                <p className="max-w-3xl mx-auto text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
                     Lifeline was founded on a simple yet profound belief: that everyone has the power to make a difference.
                     What started as a small community initiative has grown into a global platform bridging the gap between those who want to help and those who need it most.
                     We are dedicated to building a transparent, efficient, and compassionate ecosystem for philanthropy.
                 </p>
             </div>
-        </div>
+        </section>
 
-        {/* Mission & Vision */}
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="text-primary-600 text-4xl mb-4">🎯</div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Mission</h2>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                        To empower individuals, NGOs, and volunteers by providing a seamless, transparent platform that maximizes the impact of charitable giving. We strive to connect resources with real-world needs, ensuring that every act of kindness reaches its intended destination.
-                    </p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="text-primary-600 text-4xl mb-4">👁️</div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Vision</h2>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                        To create a world where geographical boundaries and logistical hurdles no longer stand in the way of human compassion. We envision a future where technology amplifies empathy, creating resilient communities and a fairer world for everyone.
-                    </p>
+        {/* ══════════════ MISSION & VISION ══════════════ */}
+        <section className="py-12 lg:py-16 relative z-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Mission */}
+                    <div className="group backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 p-8 sm:p-10 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-indigo-600 text-white flex items-center justify-center text-3xl shadow-lg mb-6 group-hover:scale-110 transition-transform">
+                            🎯
+                        </div>
+                        <h2 className="font-display text-2xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Our Mission</h2>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                            To empower individuals, NGOs, and volunteers by providing a seamless, transparent platform that maximizes the impact of charitable giving. We strive to connect resources with real-world needs, ensuring that every act of kindness reaches its intended destination.
+                        </p>
+                    </div>
+
+                    {/* Vision */}
+                    <div className="group backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 p-8 sm:p-10 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-3xl shadow-lg mb-6 group-hover:scale-110 transition-transform">
+                            👁️
+                        </div>
+                        <h2 className="font-display text-2xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Our Vision</h2>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                            To create a world where geographical boundaries and logistical hurdles no longer stand in the way of human compassion. We envision a future where technology amplifies empathy, creating resilient communities and a fairer world for everyone.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        {/* What We Do */}
-        <div className="bg-gray-50 dark:bg-gray-900 py-16">
+        {/* ══════════════ WHAT WE DO ══════════════ */}
+        <section className="py-16 lg:py-20 bg-gray-100/60 dark:bg-gray-900/40 border-y border-gray-200/60 dark:border-gray-800/60 relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">What We Do</h2>
-                    <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">A holistic approach to making a difference.</p>
+                <div className="text-center mb-14">
+                    <h2 className="font-display text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">What We Do</h2>
+                    <p className="mt-3 text-base sm:text-lg text-gray-500 dark:text-gray-400 font-medium">A holistic approach to making a real, lasting difference.</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="text-center p-6">
-                        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600 text-2xl mb-6">💝</div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Transparent Crowdfunding</h3>
-                        <p className="text-gray-600 dark:text-gray-300">We host vetted campaigns, allowing donors to fund causes with complete confidence and real-time tracking.</p>
+                    <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 p-8 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-500 text-3xl mb-6 shadow-xs">💝</div>
+                        <h3 className="font-display text-xl font-bold text-gray-900 dark:text-white mb-3">Transparent Crowdfunding</h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">We host vetted campaigns, allowing donors to fund causes with complete confidence and real-time tracking.</p>
                     </div>
-                    <div className="text-center p-6">
-                        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600 text-2xl mb-6">🤝</div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">NGO Partnerships</h3>
-                        <p className="text-gray-600 dark:text-gray-300">We provide non-profits with the digital tools they need to manage events, volunteers, and beneficiary requests efficiently.</p>
+
+                    <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 p-8 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-sky-500/10 text-sky-500 text-3xl mb-6 shadow-xs">🤝</div>
+                        <h3 className="font-display text-xl font-bold text-gray-900 dark:text-white mb-3">NGO Partnerships</h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">We provide non-profits with the digital tools they need to manage events, volunteers, and beneficiary requests efficiently.</p>
                     </div>
-                    <div className="text-center p-6">
-                        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600 text-2xl mb-6">🙋</div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Volunteer Mobilization</h3>
-                        <p className="text-gray-600 dark:text-gray-300">We connect passionate individuals with local community service events, tracking hours and awarding certificates.</p>
+
+                    <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 p-8 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-500 text-3xl mb-6 shadow-xs">🙋</div>
+                        <h3 className="font-display text-xl font-bold text-gray-900 dark:text-white mb-3">Volunteer Mobilization</h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">We connect passionate individuals with local community service events, tracking hours and awarding certificates.</p>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        {/* Core Values & Why Choose Us */}
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-                <div>
-                    <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8">Our Core Values</h2>
-                    <div className="space-y-6">
-                        <div className="flex">
-                            <div className="flex-shrink-0"><span className="text-green-500 text-xl">✓</span></div>
-                            <div className="ml-4">
-                                <h4 className="text-lg font-bold text-gray-900 dark:text-white">Transparency</h4>
-                                <p className="mt-1 text-gray-600 dark:text-gray-300">Every donation is tracked, and every NGO is heavily vetted to ensure your contributions make a real impact.</p>
+        {/* ══════════════ CORE VALUES & WHY CHOOSE US ══════════════ */}
+        <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+                {/* Core Values */}
+                <div className="space-y-8">
+                    <div>
+                        <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-2">Our Core Values</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Principles that guide our daily operations and decisions.</p>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex gap-4 p-5 rounded-2xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg shrink-0">✓</div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Transparency</h3>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">Every donation is tracked, and every NGO is heavily vetted to ensure your contributions make a real impact.</p>
                             </div>
                         </div>
-                        <div className="flex">
-                            <div className="flex-shrink-0"><span className="text-green-500 text-xl">✓</span></div>
-                            <div className="ml-4">
-                                <h4 className="text-lg font-bold text-gray-900 dark:text-white">Compassion</h4>
-                                <p className="mt-1 text-gray-600 dark:text-gray-300">Empathy drives everything we do. We put the needs of our beneficiaries first.</p>
+
+                        <div className="flex gap-4 p-5 rounded-2xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all">
+                            <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-black text-lg shrink-0">✓</div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Compassion</h3>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">Empathy drives everything we do. We put the needs of our beneficiaries first.</p>
                             </div>
                         </div>
-                        <div className="flex">
-                            <div className="flex-shrink-0"><span className="text-green-500 text-xl">✓</span></div>
-                            <div className="ml-4">
-                                <h4 className="text-lg font-bold text-gray-900 dark:text-white">Innovation</h4>
-                                <p className="mt-1 text-gray-600 dark:text-gray-300">We leverage modern technology to reduce overhead and maximize the efficiency of charitable work.</p>
+
+                        <div className="flex gap-4 p-5 rounded-2xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all">
+                            <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-black text-lg shrink-0">✓</div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Innovation</h3>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">We leverage modern technology to reduce overhead and maximize the efficiency of charitable work.</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div>
-                    <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8">Why Choose Lifeline?</h2>
-                    <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+
+                {/* Why Choose Lifeline? */}
+                <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 p-8 sm:p-10 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-xl space-y-6">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md">⭐</div>
+                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white tracking-tight">Why Choose Lifeline?</h2>
+                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                         Unlike traditional charities, Lifeline is an end-to-end ecosystem. We don't just collect donations; we actively manage the lifecycle of philanthropy. From the moment a beneficiary requests help, to an NGO adopting their case, to a volunteer dedicating their time, and a donor funding the initiative—everything happens in one unified, secure platform.
                     </p>
-                    <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                         We believe that when good intentions are backed by great technology, there is no limit to what we can achieve together.
                     </p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        {/* Our Impact */}
-        <div className="bg-primary-600 py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="text-3xl font-extrabold text-white mb-12">Our Impact So Far</h2>
+        {/* ══════════════ OUR IMPACT ══════════════ */}
+        <section className="relative py-16 lg:py-20 bg-gradient-to-r from-primary-600 to-indigo-600 text-white overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.15),transparent_50%)] pointer-events-none" />
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 className="font-display text-3xl sm:text-4xl font-black mb-12 tracking-tight">Our Impact So Far</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    <div>
-                        <div className="text-4xl font-extrabold text-white mb-2">500+</div>
-                        <div className="text-primary-100 font-medium">Verified NGOs</div>
+                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">500+</div>
+                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Verified NGOs</div>
                     </div>
-                    <div>
-                        <div className="text-4xl font-extrabold text-white mb-2">$2M+</div>
-                        <div className="text-primary-100 font-medium">Donations Raised</div>
+                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">$2M+</div>
+                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Donations Raised</div>
                     </div>
-                    <div>
-                        <div className="text-4xl font-extrabold text-white mb-2">10k+</div>
-                        <div className="text-primary-100 font-medium">Active Volunteers</div>
+                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">10k+</div>
+                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Active Volunteers</div>
                     </div>
-                    <div>
-                        <div className="text-4xl font-extrabold text-white mb-2">50k+</div>
-                        <div className="text-primary-100 font-medium">Lives Impacted</div>
+                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">50k+</div>
+                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Lives Impacted</div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        {/* CTA */}
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Ready to make a difference?</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+        {/* ══════════════ CTA ══════════════ */}
+        <section className="py-20 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="font-display text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-6 tracking-tight">Ready to make a difference?</h2>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
                 Join thousands of others who are already making a positive impact on the world.
                 Whether you want to donate, volunteer, or partner with us, there is a place for you here.
             </p>
-            <div className="flex justify-center gap-4">
-                <a href="/register" className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto">
+                <a href="/register" className="btn-primary justify-center shadow-lg shadow-primary-500/25">
                     Join Lifeline
                 </a>
-                <a href="/contact" className="inline-flex items-center justify-center px-8 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-900 transition shadow-sm">
+                <a href="/contact" className="btn-secondary justify-center">
                     Contact Us
                 </a>
             </div>
-        </div>
+        </section>
     </div>
 );
 
@@ -175,35 +214,216 @@ export const Contact = () => {
     };
 
     return (
-        <div className="min-h-[70vh] flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-100">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Contact Us</h1>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">We'd love to hear from you. Send us a message!</p>
+        <div className="bg-gray-50 dark:bg-gray-950 min-h-screen overflow-x-hidden transition-colors duration-200">
+            {/* ══════════════ HERO SECTION ══════════════ */}
+            <section className="relative py-16 lg:py-24 overflow-hidden">
+                <div className="absolute inset-0 hero-bg-mesh pointer-events-none" aria-hidden="true" />
+                <div className="absolute inset-0 hero-grid-overlay pointer-events-none" aria-hidden="true" />
+
+                <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+                    <div className="hero-orb hero-orb-1" />
+                    <div className="hero-orb hero-orb-2" />
                 </div>
-                {status && (
-                    <div className={`mb-6 p-4 rounded-lg text-sm font-medium ${status.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-                        {status.text}
+
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20 mb-6 backdrop-blur-md animate-fade-in-up">
+                        <span>📩</span> We'd Love To Hear From You
                     </div>
-                )}
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Name</label>
-                        <input type="text" id="name" name="name" required placeholder="Your name" className="w-full border border-gray-300 dark:border-gray-600 p-3 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" />
+                    <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight mb-6 leading-tight">
+                        Contact Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-indigo-500">Team</span>
+                    </h1>
+                    <p className="max-w-2xl mx-auto text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+                        Have a question, feedback, or need assistance? Reach out to our dedicated support team. We're here to help 24/7.
+                    </p>
+                </div>
+            </section>
+
+            {/* ══════════════ MAIN CONTENT (FORM & INFO) ══════════════ */}
+            <section className="py-12 lg:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+
+                    {/* LEFT: Contact Information & Highlights (5 Cols) */}
+                    <div className="lg:col-span-5 space-y-8">
+                        {/* Contact Info Card */}
+                        <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 p-8 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-xl space-y-6">
+                            <h2 className="font-display text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+                                <span>📍</span> Contact Information
+                            </h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Connect with us directly using any of the channels below.
+                            </p>
+
+                            <div className="space-y-5 pt-2">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-11 h-11 rounded-2xl bg-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center text-xl shrink-0">
+                                        🏢
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Headquarters</h3>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">123 Lifeline Tower, Gulshan Ave, Dhaka 1212</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-4">
+                                    <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                                        ✉️
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Email Us</h3>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">support@lifeline.org / info@lifeline.org</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-4">
+                                    <div className="w-11 h-11 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xl shrink-0">
+                                        📞
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Phone & Support</h3>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">+880 1700-000000 / Toll Free: 16212</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-4">
+                                    <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0">
+                                        ⏰
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Office Hours</h3>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">Mon - Fri: 9:00 AM - 6:00 PM (GMT+6)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Why Contact Us */}
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 px-1">
+                                Why Contact Lifeline?
+                            </h3>
+                            <div className="grid grid-cols-1 gap-3">
+                                <div className="p-4 rounded-2xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800/80 flex items-center gap-3">
+                                    <span className="text-xl">💳</span>
+                                    <div>
+                                        <h4 className="text-xs font-bold text-gray-900 dark:text-white">Donor Support</h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Questions about donation receipts, tax benefits, or campaign tracking.</p>
+                                    </div>
+                                </div>
+                                <div className="p-4 rounded-2xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800/80 flex items-center gap-3">
+                                    <span className="text-xl">🏛️</span>
+                                    <div>
+                                        <h4 className="text-xs font-bold text-gray-900 dark:text-white">NGO Verification</h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Inquire about partnership guidelines and institutional verification.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Email</label>
-                        <input type="email" id="email" name="email" required placeholder="you@example.com" className="w-full border border-gray-300 dark:border-gray-600 p-3 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" />
+
+                    {/* RIGHT: Modern Contact Form (7 Cols) */}
+                    <div className="lg:col-span-7 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 p-8 sm:p-10 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-2xl space-y-6">
+                        <div>
+                            <h2 className="font-display text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Send Us a Message</h2>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 font-medium">Fill in your details below and we will get back to you promptly.</p>
+                        </div>
+
+                        {/* Status Alert Banner */}
+                        {status && (
+                            <div className={`p-4 rounded-2xl text-sm font-bold flex items-center gap-3 animate-fade-in-up ${
+                                status.type === 'success'
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                                    : 'bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                            }`}>
+                                <span className="text-lg">{status.type === 'success' ? '✅' : '⚠️'}</span>
+                                <span>{status.text}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label htmlFor="name" className="form-label flex items-center gap-1.5">
+                                    <span>👤</span> Name
+                                </label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    required
+                                    placeholder="Your full name"
+                                    className="form-input w-full"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="email" className="form-label flex items-center gap-1.5">
+                                    <span>✉️</span> Email Address
+                                </label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    required
+                                    placeholder="you@example.com"
+                                    className="form-input w-full"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="message" className="form-label flex items-center gap-1.5">
+                                    <span>💬</span> Message
+                                </label>
+                                <textarea
+                                    id="message"
+                                    name="message"
+                                    required
+                                    placeholder="How can we help you today?"
+                                    className="form-input w-full h-36 resize-none"
+                                ></textarea>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn-primary w-full justify-center py-4 text-base shadow-lg shadow-primary-500/25 cursor-pointer"
+                            >
+                                {loading ? (
+                                    <span className="flex items-center gap-2">
+                                        <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                        Sending Message...
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        <span>Send Message</span>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </span>
+                                )}
+                            </button>
+                        </form>
                     </div>
-                    <div>
-                        <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Message</label>
-                        <textarea id="message" name="message" required placeholder="How can we help?" className="w-full border border-gray-300 dark:border-gray-600 p-3 rounded-lg h-32 resize-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow"></textarea>
-                    </div>
-                    <button type="submit" disabled={loading} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 transition-colors">
-                        {loading ? 'Sending...' : 'Send Message'}
-                    </button>
-                </form>
-            </div>
+                </div>
+            </section>
+
+            {/* ══════════════ EMBEDDED MAP ══════════════ */}
+            <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+                <div className="rounded-3xl overflow-hidden shadow-2xl border border-gray-200/80 dark:border-gray-800/80 h-96 relative">
+                    <iframe
+                        title="Lifeline Location Map"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.082725455845!2d90.4124314!3d23.7806357!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7715a40c60b%3A0x6b6c257936a718b5!2sGulshan%201%2C%20Dhaka%201212!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd"
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        allowFullScreen=""
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        className="filter grayscale contrast-125 dark:brightness-75 transition-all"
+                    ></iframe>
+                </div>
+            </section>
         </div>
     );
 };

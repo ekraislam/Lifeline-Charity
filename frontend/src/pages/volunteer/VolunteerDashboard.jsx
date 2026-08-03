@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import api from '../../api/axios';
@@ -24,30 +24,32 @@ const VolunteerDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const [statsRes, eventsRes, profileRes] = await Promise.all([
-                    api.get('/volunteers/stats'),
-                    api.get('/volunteers/events'),
-                    api.get('/profile')
-                ]);
-                setStats(statsRes.data);
-                setEvents(eventsRes.data.events || []);
-                
-                // Fetch profile to get skills and availability
-                if (profileRes.data) {
-                    setValue('skills', profileRes.data.volunteer?.skills || '');
-                    setValue('availability', profileRes.data.volunteer?.availability || '');
-                }
-            } catch (error) {
-                console.error("Error fetching volunteer dashboard data", error);
-            } finally {
-                setLoading(false);
+    const fetchDashboardData = useCallback(async () => {
+        try {
+            const [statsRes, eventsRes, profileRes] = await Promise.all([
+                api.get('/volunteers/stats'),
+                api.get('/volunteers/events'),
+                api.get('/profile')
+            ]);
+            setStats(statsRes.data);
+            setEvents(eventsRes.data.events || []);
+            
+            // Fetch profile to get skills and availability
+            if (profileRes.data) {
+                setValue('skills', profileRes.data.volunteer?.skills || '');
+                setValue('availability', profileRes.data.volunteer?.availability || '');
             }
-        };
-        fetchDashboardData();
+        } catch (error) {
+            console.error("Error fetching volunteer dashboard data", error);
+        } finally {
+            setLoading(false);
+        }
     }, [setValue]);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, [fetchDashboardData]);
+
 
     const onProfileSubmit = async (data) => {
         setProfileLoading(true);
@@ -415,7 +417,7 @@ const VolunteerDashboard = () => {
             <LiveActivityTimeline
 
                 title="Volunteer Activity Stream"
-                onRefresh={fetchData}
+                onRefresh={fetchDashboardData}
                 activities={
                     events.map((ev, i) => ({
                         id: `vol-ev-${i}`,

@@ -361,26 +361,6 @@ const AdminDashboard = () => {
                     />
                 </div>
 
-                {/* Management Quick Actions Grid */}
-                <div className="bg-white/90 dark:bg-[#111827]/90 p-5 sm:p-6 rounded-[20px] border border-gray-200/80 dark:border-gray-800/80 shadow-md backdrop-blur-xl">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-base font-black text-gray-900 dark:text-white flex items-center gap-2">
-                            <span>⚡</span> Management Quick Actions
-                        </h2>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-                        {quickLinks.map(link => (
-                            <Link key={link.href} to={link.href}
-                                className="group flex flex-col items-center p-3.5 rounded-[16px] bg-gray-50/80 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 hover:border-sky-500/40 hover:bg-sky-50/60 dark:hover:bg-sky-950/40 hover:-translate-y-1 transition-all duration-200 text-center">
-                                <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${link.grad} text-white flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform mb-2`}>
-                                    {link.icon}
-                                </div>
-                                <span className="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 line-clamp-1">{link.label}</span>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-
                 {/* Analytics Charts Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     {/* Financial & Revenue Growth Bar Chart */}
@@ -423,6 +403,27 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Management Quick Actions Grid */}
+                <div className="bg-white/90 dark:bg-[#111827]/90 p-5 sm:p-6 rounded-[20px] border border-gray-200/80 dark:border-gray-800/80 shadow-md backdrop-blur-xl">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-base font-black text-gray-900 dark:text-white flex items-center gap-2">
+                            <span>⚡</span> Management Quick Actions
+                        </h2>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                        {quickLinks.map(link => (
+                            <Link key={link.href} to={link.href}
+                                className="group flex flex-col items-center p-3.5 rounded-[16px] bg-gray-50/80 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 hover:border-sky-500/40 hover:bg-sky-50/60 dark:hover:bg-sky-950/40 hover:-translate-y-1 transition-all duration-200 text-center">
+                                <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${link.grad} text-white flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform mb-2`}>
+                                    {link.icon}
+                                </div>
+                                <span className="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 line-clamp-1">{link.label}</span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
 
                 {/* System Health & Analytics Section */}
                 <SystemHealthAnalytics
