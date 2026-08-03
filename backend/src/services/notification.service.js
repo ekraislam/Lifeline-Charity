@@ -1,46 +1,65 @@
 const db = require('../config/db');
-const { getIo } = require('../sockets/socket');
 const { sendEmail } = require('../utils/email.util');
 
-const createNotification = async (userId, title, message, type) => {
+/**
+ * Safely fetches socket.io instance without throwing unhandled exceptions
+ */
+const safeGetIo = () => {
     try {
+        const { getIo } = require('../sockets/socket');
+        return getIo();
+    } catch (e) {
+        return null;
+    }
+};
+
+/**
+ * General User Notification creator & real-time socket pusher
+ */
+const createNotification = async (userId, title, message, type = 'info', priority = 'normal') => {
+    try {
+        if (!userId) return null;
         const [result] = await db.query(
             'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
             [userId, title, message, type]
         );
 
         const notificationId = result.insertId;
-        
-        try {
-            const io = getIo();
-            if (io) {
-                io.to(`user_${userId}`).emit('notification', {
-                    id: notificationId,
-                    title,
-                    message,
-                    type,
-                    is_read: false,
-                    created_at: new Date()
-                });
-            }
-        } catch (error) {
-            console.error('Socket.io notification emit error:', error.message);
+        const payload = {
+            id: notificationId,
+            user_id: userId,
+            title,
+            message,
+            type,
+            priority,
+            is_read: false,
+            created_at: new Date().toISOString()
+        };
+
+        const io = safeGetIo();
+        if (io) {
+            io.to(`user_${userId}`).emit('notification', payload);
         }
 
-        if (type === 'important') {
-            const [rows] = await db.query('SELECT email FROM users WHERE id = ?', [userId]);
-            if (rows.length > 0) {
-                await sendEmail(rows[0].email, title, `<p>${message}</p>`);
+        if (priority === 'high' || type === 'important' || type === 'security_alert') {
+            try {
+                const [rows] = await db.query('SELECT email FROM users WHERE id = ?', [userId]);
+                if (rows.length > 0 && rows[0].email) {
+                    await sendEmail(rows[0].email, title, `<p>${message}</p>`);
+                }
+            } catch (emailErr) {
+                console.warn('Email trigger skipped:', emailErr.message);
             }
         }
         return notificationId;
     } catch (err) {
-        console.error('createNotification error:', err);
+        console.error('createNotification error:', err.message);
+        return null;
     }
 };
 
 /**
- * Creates an admin notification for all admin users & emits real-time Socket.IO events
+ * Creates an admin notification for all admin users & emits real-time events
  */
 const createAdminNotification = async ({ title, message, type = 'admin_info', priority = 'normal' }) => {
     try {
@@ -56,53 +75,65 @@ const createAdminNotification = async ({ title, message, type = 'admin_info', pr
             insertedNotifications.push({ id: res.insertId, user_id: admin.id });
         }
 
-        try {
-            const io = getIo();
-            if (io) {
-                const payload = { title, message, type, priority, is_read: false, created_at: new Date() };
-                io.to('admin').emit('admin_notification', payload);
-                for (const item of insertedNotifications) {
-                    io.to(`user_${item.user_id}`).emit('admin_notification', { ...payload, id: item.id });
-                }
+        const io = safeGetIo();
+        if (io) {
+            const payload = { title, message, type, priority, is_read: false, created_at: new Date().toISOString() };
+            io.to('admin').emit('admin_notification', payload);
+            for (const item of insertedNotifications) {
+                io.to(`user_${item.user_id}`).emit('notification', { ...payload, id: item.id });
             }
-        } catch (err) {
-            console.error('Socket.IO admin_notification emit error:', err.message);
         }
     } catch (err) {
-        console.error('createAdminNotification error:', err);
+        console.error('createAdminNotification error:', err.message);
     }
 };
 
 /**
- * Creates a notification for a specific NGO user & emits real-time via their socket room
+ * Helper for NGO notifications
  */
 const createNGONotification = async (ngoUserId, { title, message, type = 'ngo_info', priority = 'normal' }) => {
-    try {
-        const [res] = await db.query(
-            'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-            [ngoUserId, title, message, type]
-        );
-        const notificationId = res.insertId;
+    return await createNotification(ngoUserId, title, message, type, priority);
+};
 
-        try {
-            const io = getIo();
-            if (io) {
-                io.to(`user_${ngoUserId}`).emit('notification', {
-                    id: notificationId,
-                    title,
-                    message,
-                    type,
-                    priority,
-                    is_read: false,
-                    created_at: new Date()
-                });
-            }
-        } catch (err) {
-            console.error('Socket.IO ngo notification emit error:', err.message);
+/**
+ * Helper for Beneficiary notifications
+ */
+const createBeneficiaryNotification = async (beneficiaryUserId, { title, message, type = 'beneficiary_info', priority = 'normal' }) => {
+    return await createNotification(beneficiaryUserId, title, message, type, priority);
+};
+
+/**
+ * Helper for Volunteer notifications
+ */
+const createVolunteerNotification = async (volunteerUserId, { title, message, type = 'volunteer_info', priority = 'normal' }) => {
+    return await createNotification(volunteerUserId, title, message, type, priority);
+};
+
+/**
+ * Helper for Donor notifications
+ */
+const createDonorNotification = async (donorUserId, { title, message, type = 'donation_info', priority = 'normal' }) => {
+    return await createNotification(donorUserId, title, message, type, priority);
+};
+
+/**
+ * Broadcast system announcements to specified targetRole ('all' | 'ngo' | 'volunteer' | 'beneficiary' | 'donor')
+ */
+const broadcastSystemAnnouncement = async ({ title, message, targetRole = 'all', type = 'announcement', priority = 'normal' }) => {
+    try {
+        let sql = "SELECT id FROM users WHERE is_active = 1";
+        const params = [];
+        if (targetRole !== 'all') {
+            sql += " AND role = ?";
+            params.push(targetRole);
         }
-        return notificationId;
+        const [users] = await db.query(sql, params);
+
+        for (const u of users) {
+            await createNotification(u.id, title, message, type, priority);
+        }
     } catch (err) {
-        console.error('createNGONotification error:', err);
+        console.error('broadcastSystemAnnouncement error:', err.message);
     }
 };
 
@@ -135,6 +166,10 @@ module.exports = {
     createNotification,
     createAdminNotification,
     createNGONotification,
+    createBeneficiaryNotification,
+    createVolunteerNotification,
+    createDonorNotification,
+    broadcastSystemAnnouncement,
     getUserNotifications,
     markAsRead,
     markAllAsRead,

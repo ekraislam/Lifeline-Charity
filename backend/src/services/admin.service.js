@@ -166,10 +166,19 @@ const updateVolunteerStatus = async (id, status) => {
     // Also update users.is_active
     const [[vol]] = await db.query('SELECT user_id FROM volunteers WHERE id = ?', [id]);
     if (vol) {
-        const isActive = status === 'approved' ? 1 : (status === 'pending' || status === 'rejected' ? 0 : 1);
-        // Note: For pending, we might still want them to login but see "Pending" dashboard, so is_active=1 might be better.
-        // Let's keep is_active = 1 unless rejected.
         await db.query('UPDATE users SET is_active = ? WHERE id = ?', [status === 'rejected' ? 0 : 1, vol.user_id]);
+
+        try {
+            const { createNotification } = require('./notification.service');
+            await createNotification(
+                vol.user_id,
+                `🙋 Volunteer Application Status`,
+                `Your volunteer application status has been updated to: ${status.toUpperCase()}.`,
+                'volunteer_status'
+            );
+        } catch (notifErr) {
+            console.warn('Volunteer status notification error:', notifErr.message);
+        }
     }
 };
 
@@ -234,6 +243,39 @@ const updateBeneficiaryStatus = async (id, status, adminNote) => {
         'UPDATE help_requests SET status = ?, admin_note = ? WHERE id = ?',
         [finalStatus, adminNote || null, id]
     );
+
+    try {
+        const { createNotification, createNGONotification } = require('./notification.service');
+        const [hrRows] = await db.query(
+            `SELECT hr.title, b.user_id FROM help_requests hr 
+             JOIN beneficiaries b ON b.id = hr.beneficiary_id 
+             WHERE hr.id = ?`, [id]
+        );
+        if (hrRows.length > 0) {
+            const beneficiaryUserId = hrRows[0].user_id;
+            const reqTitle = hrRows[0].title;
+
+            await createNotification(
+                beneficiaryUserId,
+                `📋 Request Verification ${status === 'approved' ? 'Approved' : status.toUpperCase()}`,
+                `Your help request #${id} ("${reqTitle}") verification has been updated to: ${status.toUpperCase()}.`,
+                'beneficiary_verification'
+            );
+
+            if (status === 'approved') {
+                const [ngos] = await db.query('SELECT user_id FROM ngo_profiles');
+                for (const ngo of ngos) {
+                    await createNGONotification(ngo.user_id, {
+                        title: '🏥 New Beneficiary Available',
+                        message: `Verified help request #${id} ("${reqTitle}") is now available for campaign creation.`,
+                        type: 'beneficiary_available'
+                    });
+                }
+            }
+        }
+    } catch (notifErr) {
+        console.warn('updateBeneficiaryStatus notification error:', notifErr.message);
+    }
 };
 
 // ──────────────────────────────────────────────────────────────────

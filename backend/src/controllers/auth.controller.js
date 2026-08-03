@@ -18,8 +18,10 @@ const register = async (req, res) => {
 
         const userId = await authService.createUser(req.body);
         
-        // Trigger Admin Notifications
-        const { createAdminNotification } = require('../services/notification.service');
+        // Trigger User Welcome & Admin Notifications
+        const { createAdminNotification, createNotification } = require('../services/notification.service');
+        await createNotification(userId, '👋 Welcome to Lifeline Charity!', `Welcome ${req.body.name}! Your account has been registered successfully.`, 'welcome');
+
         if (req.body.role === 'ngo') {
             await createAdminNotification({
                 title: 'New NGO Registration Request',

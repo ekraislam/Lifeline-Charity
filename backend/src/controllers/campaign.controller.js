@@ -148,6 +148,41 @@ const uploadGallery = async (req, res) => {
     }
 };
 
+const handleAiAssistant = async (req, res) => {
+    try {
+        const aiCampaignAssistantService = require('../services/aiCampaignAssistant.service');
+        const { action, beneficiaryName, title, description, hospitalName, doctorName, amount, medicalCost, treatmentType, goalAmount, categoryId, hasImages, urgency, language } = req.body;
+
+        switch (action) {
+            case 'generate_titles': {
+                const titles = await aiCampaignAssistantService.generateTitles({ beneficiaryName, title, description, amount, urgency, language });
+                return res.json({ success: true, titles });
+            }
+            case 'generate_description': {
+                const generatedDescription = await aiCampaignAssistantService.generateDescription({ beneficiaryName, title, description, hospitalName, doctorName, amount, urgency, language });
+                return res.json({ success: true, description: generatedDescription });
+            }
+            case 'improve_writing': {
+                const result = await aiCampaignAssistantService.improveWriting({ title, description, language });
+                return res.json({ success: true, ...result });
+            }
+            case 'suggest_goal': {
+                const result = await aiCampaignAssistantService.suggestGoal({ requestedAmount: amount, medicalCost, treatmentType: title || treatmentType, language });
+                return res.json({ success: true, ...result });
+            }
+            case 'analyze_quality': {
+                const result = await aiCampaignAssistantService.analyzeQuality({ title, description, goalAmount, categoryId, hasImages, language });
+                return res.json({ success: true, ...result });
+            }
+            default:
+                return res.status(400).json({ message: 'Invalid AI assistant action' });
+        }
+    } catch (error) {
+        console.error('AI Campaign Assistant Error:', error);
+        res.status(500).json({ message: 'AI Assistant failed to process request' });
+    }
+};
+
 module.exports = {
     getAllCampaigns,
     getCampaignById,
@@ -155,5 +190,6 @@ module.exports = {
     updateCampaign,
     deleteCampaign,
     approveRejectCampaign,
-    uploadGallery
+    uploadGallery,
+    handleAiAssistant
 };

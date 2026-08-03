@@ -148,8 +148,40 @@ const updatePaymentStatus = async (donationId, status, transactionId, gatewayRes
                     }
                 }
             }
-        } catch (ngoErr) {
-            console.error('NGO donation notification error:', ngoErr.message);
+        } catch (ngoNotifErr) {
+            console.error('NGO donation notification error:', ngoNotifErr.message);
+        }
+
+        // ── Donor & Beneficiary Notifications ─────────────────────────────────
+        try {
+            const { createNotification } = require('./notification.service');
+            // Donor notification
+            if (donation.user_id) {
+                await createNotification(
+                    donation.user_id,
+                    '❤️ Thank You for Your Donation!',
+                    `Your donation of $${donAmt.toLocaleString()} to "${updatedCampaign?.title || 'Campaign'}" was completed successfully.`,
+                    'donation_success'
+                );
+            }
+            // Beneficiary notification
+            if (updatedCampaign?.help_request_id) {
+                const [bUser] = await db.query(
+                    `SELECT b.user_id FROM help_requests hr 
+                     JOIN beneficiaries b ON b.id = hr.beneficiary_id 
+                     WHERE hr.id = ?`, [updatedCampaign.help_request_id]
+                );
+                if (bUser.length > 0) {
+                    await createNotification(
+                        bUser[0].user_id,
+                        '💳 New Donation Received',
+                        `A new donation of $${donAmt.toLocaleString()} was received for your campaign "${updatedCampaign?.title || ''}"!`,
+                        'donation_success'
+                    );
+                }
+            }
+        } catch (donNotifErr) {
+            console.error('Donor/Beneficiary donation notification error:', donNotifErr.message);
         }
 
         try {

@@ -31,6 +31,20 @@ const submitHelpRequest = async (userId, data) => {
         console.error("AI Auto Analysis Error:", err.message);
     }
 
+    // Trigger notifications
+    try {
+        const { createNotification, createAdminNotification } = require('./notification.service');
+        await createNotification(userId, '📋 Help Request Submitted', `Your help request #${requestId} ("${title}") was submitted successfully and is under review.`, 'help_request');
+        await createAdminNotification({
+            title: '📋 New Help Request Submitted',
+            message: `A new help request #${requestId} ("${title}") was submitted and is awaiting review.`,
+            type: 'help_request',
+            priority: 'normal'
+        });
+    } catch (notifErr) {
+        console.warn('Notification error in submitHelpRequest:', notifErr.message);
+    }
+
     return requestId;
 };
 

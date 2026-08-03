@@ -5,8 +5,7 @@ import { ThemeContext } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getMediaUrl } from '../api/axios?v=1';
 import logo from '../assets/fogo.png';
-import AdminNotificationBell from '../components/admin/AdminNotificationBell';
-import NGONotificationBell from '../components/ngo/NGONotificationBell';
+import NotificationBell from '../components/common/NotificationBell';
 
 const MainLayout = ({ children }) => {
     const { user, logout } = useContext(AuthContext);
@@ -129,9 +128,8 @@ const MainLayout = ({ children }) => {
                                         {t('nav.dashboard')}
                                     </Link>
 
-                                    {/* Admin & NGO Notification Bells */}
-                                    <AdminNotificationBell />
-                                    <NGONotificationBell />
+                                    {/* Real-Time Notification Bell for All Users */}
+                                    <NotificationBell />
 
                                     {/* User Avatar Menu */}
                                     <div className="relative">

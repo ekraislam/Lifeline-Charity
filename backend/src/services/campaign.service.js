@@ -161,11 +161,38 @@ const createCampaign = async (campaignData, userId) => {
         [ngoId, category_id || null, title, description, goal_amount, formattedDeadline, is_featured || false, help_request_id || null]
     );
 
+    const campaignId = result.insertId;
+
     if (help_request_id) {
         await db.query("UPDATE help_requests SET status = 'campaign_active' WHERE id = ?", [help_request_id]);
     }
 
-    return result.insertId;
+    try {
+        const { createAdminNotification, createNotification } = require('./notification.service');
+        await createAdminNotification({
+            title: '📢 New Campaign Created',
+            message: `New campaign "${title}" (Goal: $${goal_amount}) was created.`,
+            type: 'campaign_created'
+        });
+
+        if (help_request_id) {
+            const [bUser] = await db.query(
+                `SELECT b.user_id FROM help_requests hr JOIN beneficiaries b ON b.id = hr.beneficiary_id WHERE hr.id = ?`, [help_request_id]
+            );
+            if (bUser.length > 0) {
+                await createNotification(
+                    bUser[0].user_id,
+                    '📢 Campaign Created for Your Request',
+                    `A fundraising campaign "${title}" has been launched for your help request #${help_request_id}!`,
+                    'campaign_created'
+                );
+            }
+        }
+    } catch (notifErr) {
+        console.warn('Campaign creation notification error:', notifErr.message);
+    }
+
+    return campaignId;
 };
 
 const updateCampaign = async (id, updateData) => {

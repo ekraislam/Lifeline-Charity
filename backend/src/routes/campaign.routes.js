@@ -21,6 +21,9 @@ router.delete('/:id', roleMiddleware(['admin', 'ngo']), campaignController.delet
 // Gallery upload
 router.post('/:id/gallery', roleMiddleware(['admin', 'ngo']), upload.array('images', 5), campaignController.uploadGallery);
 
+// AI Assistant route
+router.post('/ai-assistant', roleMiddleware(['admin', 'ngo']), campaignController.handleAiAssistant);
+
 // Admin only route
 router.put('/:id/status', roleMiddleware(['admin']), validate(approveRejectSchema), campaignController.approveRejectCampaign);
 

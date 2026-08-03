@@ -373,15 +373,27 @@ Perform strict document audit and return a JSON object ONLY with:
             reportData.recommendation
         ]);
 
-        // Notify admin that AI analysis completed
+        // Notify admin & beneficiary that AI analysis completed
         try {
-            const { createAdminNotification } = require('./notification.service');
+            const { createAdminNotification, createNotification } = require('./notification.service');
             await createAdminNotification({
                 title: '🤖 AI Document Analysis Completed',
                 message: `AI verification for Help Request #${helpRequestId} completed. Risk: ${risk_level}, Confidence: ${confidence_score}%.`,
                 type: 'ai_analysis',
                 priority: risk_level === 'High Risk' ? 'high' : 'normal'
             });
+
+            if (request && request.beneficiary_id) {
+                const [bUser] = await db.query('SELECT user_id FROM beneficiaries WHERE id = ?', [request.beneficiary_id]);
+                if (bUser.length > 0) {
+                    await createNotification(
+                        bUser[0].user_id,
+                        '🤖 AI Verification Completed',
+                        `AI document verification for your request #${helpRequestId} completed with status: ${risk_level}.`,
+                        'ai_analysis'
+                    );
+                }
+            }
         } catch (notifErr) {
             console.error('AI notification error:', notifErr.message);
         }

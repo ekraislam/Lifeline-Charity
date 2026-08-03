@@ -6,7 +6,20 @@ const saveMessage = async (data) => {
         'INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)',
         [name, email, message]
     );
-    return result.insertId;
+    const msgId = result.insertId;
+
+    try {
+        const { createAdminNotification } = require('./notification.service');
+        await createAdminNotification({
+            title: '📩 New Support Message Received',
+            message: `New message from ${name} (${email}): "${message ? message.slice(0, 80) : ''}..."`,
+            type: 'contact_message'
+        });
+    } catch (err) {
+        console.warn('Contact message notification error:', err.message);
+    }
+
+    return msgId;
 };
 
 const getMessages = async () => {

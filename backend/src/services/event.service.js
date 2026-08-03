@@ -87,7 +87,21 @@ const createEvent = async (data, organizerId) => {
         INSERT INTO events (title, description, category_id, location, event_date, end_date, max_volunteers, registration_deadline, status, cover_image, organizer_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'upcoming', ?, ?)
     `, [title, description, category_id || null, location, event_date, end_date, max_volunteers || 0, registration_deadline || null, cover_image || null, organizerId]);
-    return result.insertId;
+
+    const eventId = result.insertId;
+
+    try {
+        const { createAdminNotification } = require('./notification.service');
+        await createAdminNotification({
+            title: '📅 New Event Created',
+            message: `A new community event "${title}" was created by organizer #${organizerId}.`,
+            type: 'event_created'
+        });
+    } catch (notifErr) {
+        console.warn('Event creation notification error:', notifErr.message);
+    }
+
+    return eventId;
 };
 
 const updateEvent = async (id, data, userId, userRole) => {
@@ -177,6 +191,16 @@ const registerVolunteer = async (eventId, userId) => {
         INSERT INTO event_registrations (event_id, user_id, role, attendance_status)
         VALUES (?, ?, 'volunteer', 'pending')
     `, [eventId, userId]);
+
+    try {
+        const { createNotification } = require('./notification.service');
+        await createNotification(userId, '📅 Event Registration Submitted', `Your registration for "${event.title}" was submitted successfully.`, 'event_registration');
+        if (event.organizer_id) {
+            await createNotification(event.organizer_id, '🙋 New Volunteer Registered', `A volunteer registered for your event "${event.title}".`, 'event_volunteer');
+        }
+    } catch (notifErr) {
+        console.warn('Event registration notification error:', notifErr.message);
+    }
 };
 
 const getEventVolunteers = async (eventId, userId, userRole) => {
@@ -217,6 +241,13 @@ const updateVolunteerApplicationStatus = async (eventId, userId, status, updater
         SET attendance_status = ? 
         WHERE event_id = ? AND user_id = ? AND role = 'volunteer'
     `, [status, eventId, userId]);
+
+    try {
+        const { createNotification } = require('./notification.service');
+        await createNotification(userId, '📅 Event Attendance Updated', `Your attendance status for "${event.title}" has been updated to: ${status.toUpperCase()}.`, 'event_status');
+    } catch (notifErr) {
+        console.warn('Volunteer attendance status notification error:', notifErr.message);
+    }
 
     if (result.affectedRows === 0) {
         throw new Error('Volunteer registration not found');
