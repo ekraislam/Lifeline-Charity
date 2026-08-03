@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -99,7 +99,7 @@ const AdminManageCampaigns = () => {
             await api.put(`/admin/campaigns/${form.id}`, form);
             setCampaigns(prev => prev.map(c => c.id === form.id ? { ...c, ...form } : c));
             setEditTarget(null);
-        } catch (e) { alert('Failed to update campaign'); }
+        } catch (e) { alert(e.response?.data?.message || 'Failed to update campaign'); }
     };
 
     const handleDelete = async () => {

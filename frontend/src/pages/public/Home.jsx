@@ -28,9 +28,9 @@ const Home = () => {
                     </div>
                     
                     <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-gray-900 dark:text-white tracking-tight mb-6 leading-[1.08] max-w-5xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                        {t('home.hero').split('transparent giving')[0]}
+                        {t('home.heroPrefix')}{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-indigo-600 to-emerald-500 pb-2 inline-block">
-                            {t('home.hero').includes('transparent giving') ? 'transparent giving' : t('home.hero')}
+                            {t('home.heroHighlight')}
                         </span>
                     </h1>
                     

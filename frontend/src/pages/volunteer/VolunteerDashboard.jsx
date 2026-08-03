@@ -268,7 +268,7 @@ const VolunteerDashboard = () => {
                         >
                             <option value="All">All Statuses</option>
                             <option value="pending">Registered</option>
-                            <option value="attended">Attended</option>
+                            <option value="attended">Completed / Attended</option>
                             <option value="absent">Absent</option>
                         </select>
                     </div>
@@ -280,6 +280,7 @@ const VolunteerDashboard = () => {
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Event Name</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Location</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hours Credited</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                             </tr>
                         </thead>
@@ -287,41 +288,77 @@ const VolunteerDashboard = () => {
                             {events
                                 .filter(ev => {
                                     const matchSearch = ev.title.toLowerCase().includes(searchTerm.toLowerCase()) || (ev.description && ev.description.toLowerCase().includes(searchTerm.toLowerCase()));
-                                    const actualStatus = ev.attendance_status || 'pending';
-                                    const matchStatus = statusFilter === 'All' || actualStatus.toLowerCase() === statusFilter.toLowerCase();
+                                    const isPast = ev.is_event_past || new Date() >= new Date(ev.event_date);
+                                    const computedStatus = ev.attendance_status === 'attended' 
+                                        ? 'attended' 
+                                        : ev.attendance_status === 'absent' 
+                                        ? 'absent' 
+                                        : isPast 
+                                        ? 'completed' 
+                                        : 'pending';
+                                    const matchStatus = statusFilter === 'All' || 
+                                        (statusFilter === 'pending' && computedStatus === 'pending') ||
+                                        (statusFilter === 'attended' && (computedStatus === 'attended' || computedStatus === 'completed')) ||
+                                        (statusFilter === 'absent' && computedStatus === 'absent');
                                     return matchSearch && matchStatus;
                                 })
                                 .map((ev) => {
-                                    const actualStatus = ev.attendance_status || 'pending';
+                                    const isPast = ev.is_event_past || new Date() >= new Date(ev.event_date);
+                                    const computedStatus = ev.attendance_status === 'attended' 
+                                        ? 'attended' 
+                                        : ev.attendance_status === 'absent' 
+                                        ? 'absent' 
+                                        : isPast 
+                                        ? 'completed' 
+                                        : 'pending';
+                                    const hours = computedStatus === 'absent' ? 0 : parseFloat(ev.hours_credit || 4.0);
+
                                     return (
-                                <tr key={ev.registration_id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900 dark:text-white">{ev.title}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        {ev.location}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        {new Date(ev.event_date).toLocaleString()}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            ${actualStatus === 'attended' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                                              actualStatus === 'absent' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                                              'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
-                                            {actualStatus === 'pending' ? 'Registered' : actualStatus.charAt(0).toUpperCase() + actualStatus.slice(1)}
-                                        </span>
-                                    </td>
-                                </tr>
-                            )})}
+                                        <tr key={ev.registration_id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{ev.title}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                {ev.location}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                {new Date(ev.event_date).toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary-600 dark:text-primary-400">
+                                                {hours.toFixed(1)} hrs
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    ${computedStatus === 'attended' || computedStatus === 'completed' 
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                                      computedStatus === 'absent' 
+                                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                                                        'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                                    {computedStatus === 'completed' ? 'Completed' : computedStatus === 'pending' ? 'Registered' : computedStatus.charAt(0).toUpperCase() + computedStatus.slice(1)}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            }
                             {events.filter(ev => {
                                     const matchSearch = ev.title.toLowerCase().includes(searchTerm.toLowerCase()) || (ev.description && ev.description.toLowerCase().includes(searchTerm.toLowerCase()));
-                                    const actualStatus = ev.attendance_status || 'pending';
-                                    const matchStatus = statusFilter === 'All' || actualStatus.toLowerCase() === statusFilter.toLowerCase();
+                                    const isPast = ev.is_event_past || new Date() >= new Date(ev.event_date);
+                                    const computedStatus = ev.attendance_status === 'attended' 
+                                        ? 'attended' 
+                                        : ev.attendance_status === 'absent' 
+                                        ? 'absent' 
+                                        : isPast 
+                                        ? 'completed' 
+                                        : 'pending';
+                                    const matchStatus = statusFilter === 'All' || 
+                                        (statusFilter === 'pending' && computedStatus === 'pending') ||
+                                        (statusFilter === 'attended' && (computedStatus === 'attended' || computedStatus === 'completed')) ||
+                                        (statusFilter === 'absent' && computedStatus === 'absent');
                                     return matchSearch && matchStatus;
                                 }).length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    <td colSpan="5" className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No events found matching your criteria.
                                     </td>
                                 </tr>

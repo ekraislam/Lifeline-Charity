@@ -115,6 +115,20 @@ const createCampaign = async (campaignData, userId) => {
 
     const { title, description, category_id, goal_amount, deadline, is_featured, help_request_id } = campaignData;
 
+    // Default deadline to 30 days from now if not specified or invalid
+    let formattedDeadline = null;
+    if (deadline && typeof deadline === 'string' && deadline.trim() !== '') {
+        const d = new Date(deadline);
+        if (!isNaN(d.getTime())) {
+            formattedDeadline = d.toISOString().slice(0, 19).replace('T', ' ');
+        }
+    }
+    if (!formattedDeadline) {
+        const defaultDeadline = new Date();
+        defaultDeadline.setDate(defaultDeadline.getDate() + 30);
+        formattedDeadline = defaultDeadline.toISOString().slice(0, 19).replace('T', ' ');
+    }
+
     // If creating campaign for a beneficiary help request
     if (help_request_id) {
         const [hrRows] = await db.query('SELECT status, assigned_ngo_id FROM help_requests WHERE id = ?', [help_request_id]);
@@ -129,7 +143,7 @@ const createCampaign = async (campaignData, userId) => {
 
     const [result] = await db.query(
         "INSERT INTO campaigns (ngo_id, category_id, title, description, goal_amount, deadline, is_featured, help_request_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved')",
-        [ngoId, category_id || null, title, description, goal_amount, deadline || null, is_featured || false, help_request_id || null]
+        [ngoId, category_id || null, title, description, goal_amount, formattedDeadline, is_featured || false, help_request_id || null]
     );
 
     if (help_request_id) {

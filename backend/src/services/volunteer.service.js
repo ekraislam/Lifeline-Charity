@@ -43,34 +43,84 @@ const issueCertificate = async (volunteerId) => {
 };
 
 const getStats = async (userId) => {
-    // Basic stats: hours logged, events assigned
-    const [[vol]] = await db.query('SELECT id FROM volunteers WHERE user_id = ?', [userId]);
-    if (!vol) return { total_hours: 0, events_assigned: 0 };
+    // Check or auto-create volunteer profile entry
+    let [[vol]] = await db.query('SELECT id FROM volunteers WHERE user_id = ?', [userId]);
+    if (!vol) {
+        await db.query('INSERT INTO volunteers (user_id, status) VALUES (?, ?)', [userId, 'approved']);
+        [[vol]] = await db.query('SELECT id FROM volunteers WHERE user_id = ?', [userId]);
+    }
 
-    const [[hoursRow]] = await db.query('SELECT SUM(hours_logged) as total FROM volunteer_assignments WHERE volunteer_id = ?', [vol.id]);
+    const [[hoursRow]] = await db.query('SELECT SUM(hours_logged) as total FROM volunteer_assignments WHERE volunteer_id = ?', [vol?.id || 0]);
     
-    // Calculate total hours from attended events (end_date - event_date)
+    // Calculate total hours from attended OR completed/past events (unless marked absent)
+    // Default to 4.0 hours per event if end_date is missing or invalid
     const [[eventHoursRow]] = await db.query(`
-        SELECT SUM(TIMESTAMPDIFF(MINUTE, e.event_date, e.end_date) / 60.0) as event_total
+        SELECT SUM(
+            CASE 
+                WHEN e.end_date IS NOT NULL AND TIMESTAMPDIFF(MINUTE, e.event_date, e.end_date) > 0 
+                THEN TIMESTAMPDIFF(MINUTE, e.event_date, e.end_date) / 60.0
+                ELSE 4.0
+            END
+        ) as event_total
         FROM event_registrations er
         JOIN events e ON er.event_id = e.id
-        WHERE er.user_id = ? AND er.role = 'volunteer' AND er.attendance_status = 'attended'
+        WHERE er.user_id = ? 
+          AND er.role = 'volunteer' 
+          AND (
+              er.attendance_status = 'attended' 
+              OR (
+                  er.attendance_status != 'absent' 
+                  AND (NOW() >= e.event_date OR (e.end_date IS NOT NULL AND NOW() >= e.end_date) OR e.status = 'completed')
+              )
+          )
     `, [userId]);
 
     const [[eventsRow]] = await db.query('SELECT COUNT(*) as total FROM event_registrations WHERE user_id = ? AND role = "volunteer"', [userId]);
-    const [[attendedRow]] = await db.query('SELECT COUNT(*) as total FROM event_registrations WHERE user_id = ? AND role = "volunteer" AND attendance_status = "attended"', [userId]);
+    const [[attendedRow]] = await db.query(`
+        SELECT COUNT(*) as total 
+        FROM event_registrations er
+        JOIN events e ON er.event_id = e.id
+        WHERE er.user_id = ? 
+          AND er.role = 'volunteer' 
+          AND (
+              er.attendance_status = 'attended' 
+              OR (
+                  er.attendance_status != 'absent' 
+                  AND (NOW() >= e.event_date OR (e.end_date IS NOT NULL AND NOW() >= e.end_date) OR e.status = 'completed')
+              )
+          )
+    `, [userId]);
     
+    const taskHours = parseFloat(hoursRow?.total) || 0;
+    const eventHours = parseFloat(eventHoursRow?.event_total) || 0;
+    const totalHours = taskHours + eventHours;
+
     return {
-        total_hours: (parseFloat(hoursRow?.total) || 0) + (parseFloat(eventHoursRow?.event_total) || 0),
+        total_hours: totalHours,
         events_assigned: eventsRow?.total || 0,
-        tasks_completed: eventsRow?.total || 0, // Mock tasks completed for UI compatibility
+        tasks_completed: eventsRow?.total || 0,
         participated_events: attendedRow?.total || 0
     };
 };
 
 const getEvents = async (userId) => {
     const [rows] = await db.query(`
-        SELECT er.id as registration_id, er.attendance_status, e.id as event_id, e.title, e.description, e.location, e.event_date
+        SELECT 
+            er.id as registration_id, 
+            er.attendance_status, 
+            e.id as event_id, 
+            e.title, 
+            e.description, 
+            e.location, 
+            e.event_date,
+            e.end_date,
+            e.status as event_status,
+            (NOW() >= e.event_date OR (e.end_date IS NOT NULL AND NOW() >= e.end_date) OR e.status = 'completed') as is_event_past,
+            CASE 
+                WHEN e.end_date IS NOT NULL AND TIMESTAMPDIFF(MINUTE, e.event_date, e.end_date) > 0 
+                THEN ROUND(TIMESTAMPDIFF(MINUTE, e.event_date, e.end_date) / 60.0, 1)
+                ELSE 4.0
+            END as hours_credit
         FROM event_registrations er
         JOIN events e ON er.event_id = e.id
         WHERE er.user_id = ? AND er.role = 'volunteer'

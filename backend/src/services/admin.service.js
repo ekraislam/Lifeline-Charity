@@ -85,9 +85,20 @@ const getCampaigns = async (status) => {
 
 const editCampaign = async (id, data) => {
     const { title, description, goal_amount, deadline, status } = data;
+
+    let formattedDeadline = null;
+    if (deadline && typeof deadline === 'string' && deadline.trim() !== '') {
+        const d = new Date(deadline);
+        if (!isNaN(d.getTime())) {
+            formattedDeadline = d.toISOString().slice(0, 19).replace('T', ' ');
+        }
+    } else if (deadline instanceof Date && !isNaN(deadline.getTime())) {
+        formattedDeadline = deadline.toISOString().slice(0, 19).replace('T', ' ');
+    }
+
     await db.query(
         'UPDATE campaigns SET title=?, description=?, goal_amount=?, deadline=?, status=? WHERE id=?',
-        [title, description, goal_amount, deadline, status, id]
+        [title, description, parseFloat(goal_amount) || 0, formattedDeadline, status, id]
     );
 };
 

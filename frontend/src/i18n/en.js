@@ -42,6 +42,8 @@ const en = {
     // ──────────────────────────────────────────
     home: {
         badge: 'Transparent • Direct Impact • Verified NGOs',
+        heroPrefix: 'Empower lives through',
+        heroHighlight: 'transparent giving',
         hero: 'Empower lives through transparent giving',
         heroSub: 'Lifeline connects verified beneficiaries, registered NGOs, passionate volunteers, and generous donors on a single, secure platform.',
         donateNow: '❤️ Donate Now',
