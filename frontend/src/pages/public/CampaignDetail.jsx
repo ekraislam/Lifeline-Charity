@@ -1,11 +1,13 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
 import { useDonation } from '../../context/DonationContext';
 import useCampaignRealtime from '../../hooks/useCampaignRealtime';
 import { useLanguage } from '../../context/LanguageContext';
+import CampaignCard from '../../components/common/CampaignCard';
 
 const CampaignDetail = () => {
+
     const { id } = useParams();
     const { openDonationModal } = useDonation();
     const [campaign, setCampaign] = useState(null);
@@ -182,28 +184,12 @@ const CampaignDetail = () => {
                     <h2 className="font-display text-2xl font-black text-gray-900 dark:text-white">Recommended Campaigns</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {recommendations.map(item => (
-                            <div key={item.id} className="card-premium overflow-hidden flex flex-col group">
-                                <div className="h-48 bg-gray-100 dark:bg-gray-800 relative">
-                                    {item.gallery && item.gallery[0] ? (
-                                        <img src={getMediaUrl(item.gallery[0])} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-xs">No Image</div>
-                                    )}
-                                </div>
-                                <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                                    <div>
-                                        <h3 className="font-display text-base font-black text-gray-900 dark:text-white truncate" title={item.title}>{item.title}</h3>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{item.description}</p>
-                                    </div>
-                                    <Link to={`/campaigns/${item.id}`} className="btn-secondary py-2.5 text-xs text-center">
-                                        View Details
-                                    </Link>
-                                </div>
-                            </div>
+                            <CampaignCard key={item.id} campaign={item} />
                         ))}
                     </div>
                 </div>
             )}
+
         </div>
     );
 };
