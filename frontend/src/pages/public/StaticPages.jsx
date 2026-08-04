@@ -2,7 +2,28 @@ import React, { useState } from 'react';
 import api from '../../api/axios';
 import { useLanguage } from '../../context/LanguageContext';
 
-export const About = () => (
+export const About = () => {
+    const [stats, setStats] = useState(null);
+
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await api.get('/search/public-stats');
+                if (res.data) setStats(res.data);
+            } catch (err) {}
+        };
+        fetchStats();
+    }, []);
+
+    const raisedAmount = stats ? parseFloat(stats.total_raised || 0) : 2000000;
+    let formattedRaised = '$2M+';
+    if (stats) {
+        if (raisedAmount >= 1000000) formattedRaised = `$${(raisedAmount / 1000000).toFixed(1)}M+`;
+        else if (raisedAmount >= 1000) formattedRaised = `$${(raisedAmount / 1000).toFixed(1)}K+`;
+        else formattedRaised = `$${Math.round(raisedAmount)}+`;
+    }
+
+    return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen overflow-x-hidden transition-colors duration-200">
         {/* ══════════════ HERO SECTION ══════════════ */}
         <section className="relative py-20 lg:py-28 overflow-hidden">
@@ -127,44 +148,6 @@ export const About = () => (
                         </div>
                     </div>
                 </div>
-
-                {/* Why Choose Lifeline? */}
-                <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 p-8 sm:p-10 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-xl space-y-6">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md">⭐</div>
-                    <h2 className="font-display text-3xl font-black text-gray-900 dark:text-white tracking-tight">Why Choose Lifeline?</h2>
-                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                        Unlike traditional charities, Lifeline is an end-to-end ecosystem. We don't just collect donations; we actively manage the lifecycle of philanthropy. From the moment a beneficiary requests help, to an NGO adopting their case, to a volunteer dedicating their time, and a donor funding the initiative—everything happens in one unified, secure platform.
-                    </p>
-                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                        We believe that when good intentions are backed by great technology, there is no limit to what we can achieve together.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        {/* ══════════════ OUR IMPACT ══════════════ */}
-        <section className="relative py-16 lg:py-20 bg-gradient-to-r from-primary-600 to-indigo-600 text-white overflow-hidden shadow-2xl">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.15),transparent_50%)] pointer-events-none" />
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="font-display text-3xl sm:text-4xl font-black mb-12 tracking-tight">Our Impact So Far</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">500+</div>
-                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Verified NGOs</div>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">$2M+</div>
-                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Donations Raised</div>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">10k+</div>
-                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Active Volunteers</div>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                        <div className="font-display text-4xl sm:text-5xl font-black mb-2 tracking-tight">50k+</div>
-                        <div className="text-primary-100 font-bold text-sm uppercase tracking-wider">Lives Impacted</div>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -185,7 +168,8 @@ export const About = () => (
             </div>
         </section>
     </div>
-);
+    );
+};
 
 export const Contact = () => {
     const [status, setStatus] = useState(null);

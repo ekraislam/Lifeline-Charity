@@ -11,4 +11,14 @@ const globalSearch = async (req, res) => {
     }
 };
 
-module.exports = { globalSearch };
+const getPublicStats = async (req, res) => {
+    try {
+        const stats = await searchService.getPublicStats();
+        res.json(stats);
+    } catch (error) {
+        console.error('Error fetching public stats:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+module.exports = { globalSearch, getPublicStats };

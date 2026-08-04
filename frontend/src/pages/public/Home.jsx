@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../api/axios?v=1';
 import { useDonation } from '../../context/DonationContext';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -14,7 +15,7 @@ function useCountUp(target, duration = 2000, start = false) {
             if (!startTime) startTime = timestamp;
             const progress = Math.min((timestamp - startTime) / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.floor(eased * numericTarget));
+            setCount(parseFloat((eased * numericTarget).toFixed(numericTarget % 1 !== 0 ? 1 : 0)));
             if (progress < 1) requestAnimationFrame(frame);
             else setCount(numericTarget);
         };
@@ -24,7 +25,7 @@ function useCountUp(target, duration = 2000, start = false) {
 }
 
 /* ─── Stat Card ─────────────────────────────────────────────────── */
-function StatCard({ icon, value, suffix, label, color, delay, animate }) {
+function StatCard({ icon, value, prefix = '', suffix = '', label, color, delay, animate }) {
     const num = useCountUp(value, 2200, animate);
     return (
         <div className="hero-stat-card" style={{ animationDelay: delay }}>
@@ -32,7 +33,7 @@ function StatCard({ icon, value, suffix, label, color, delay, animate }) {
                 <span style={{ fontSize: '1.5rem' }}>{icon}</span>
             </div>
             <div className="hero-stat-number" style={{ color }}>
-                {animate ? num.toLocaleString() : '0'}{suffix}
+                {prefix}{animate ? num.toLocaleString() : '0'}{suffix}
             </div>
             <div className="hero-stat-label">{label}</div>
         </div>
@@ -155,6 +156,21 @@ const Home = () => {
     const { t } = useLanguage();
     const statsRef = useRef(null);
     const [statsVisible, setStatsVisible] = useState(false);
+    const [liveStats, setLiveStats] = useState(null);
+
+    useEffect(() => {
+        const fetchPublicStats = async () => {
+            try {
+                const res = await api.get('/search/public-stats');
+                if (res.data) {
+                    setLiveStats(res.data);
+                }
+            } catch (err) {
+                console.error("Failed to load public stats:", err);
+            }
+        };
+        fetchPublicStats();
+    }, []);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -164,6 +180,29 @@ const Home = () => {
         if (statsRef.current) observer.observe(statsRef.current);
         return () => observer.disconnect();
     }, []);
+
+    // Format funds raised stat based on real database value
+    const totalRaisedAmount = liveStats ? parseFloat(liveStats.total_raised || 0) : 2500000;
+    let raisedValue = 2.5;
+    let raisedPrefix = '$';
+    let raisedSuffix = 'M+';
+
+    if (liveStats) {
+        if (totalRaisedAmount >= 1000000) {
+            raisedValue = parseFloat((totalRaisedAmount / 1000000).toFixed(1));
+            raisedSuffix = 'M+';
+        } else if (totalRaisedAmount >= 1000) {
+            raisedValue = parseFloat((totalRaisedAmount / 1000).toFixed(1));
+            raisedSuffix = 'K+';
+        } else {
+            raisedValue = Math.round(totalRaisedAmount);
+            raisedSuffix = '+';
+        }
+    }
+
+    const ngosCount = liveStats ? liveStats.total_ngos : 500;
+    const volunteersCount = liveStats ? liveStats.total_volunteers : 12000;
+    const impactRate = liveStats ? (liveStats.impact_rate || 100) : 100;
 
     return (
         <div className="bg-gray-50 dark:bg-gray-950 overflow-x-hidden transition-colors duration-200">
@@ -264,10 +303,10 @@ const Home = () => {
                         className="hero-stats-row animate-fade-in-up"
                         style={{ animationDelay: '0.5s' }}
                     >
-                        <StatCard icon="🏛️" value={500}   suffix="+"  label={t('home.stats.ngos')}       color="#0ea5e9" delay="0s"    animate={statsVisible} />
-                        <StatCard icon="💰" value={2.5}   suffix="M+" label={t('home.stats.raised')}     color="#10b981" delay="0.08s" animate={statsVisible} />
-                        <StatCard icon="🙌" value={12000} suffix="+"  label={t('home.stats.volunteers')} color="#6366f1" delay="0.16s" animate={statsVisible} />
-                        <StatCard icon="✅" value={100}   suffix="%"  label={t('home.stats.impact')}     color="#f59e0b" delay="0.24s" animate={statsVisible} />
+                        <StatCard icon="🏛️" value={ngosCount} suffix="+" label={t('home.stats.ngos')} color="#0ea5e9" delay="0s" animate={statsVisible} />
+                        <StatCard icon="💰" value={raisedValue} prefix={raisedPrefix} suffix={raisedSuffix} label={t('home.stats.raised')} color="#10b981" delay="0.08s" animate={statsVisible} />
+                        <StatCard icon="🙌" value={volunteersCount} suffix="+" label={t('home.stats.volunteers')} color="#6366f1" delay="0.16s" animate={statsVisible} />
+                        <StatCard icon="✅" value={impactRate} suffix="%" label={t('home.stats.impact')} color="#f59e0b" delay="0.24s" animate={statsVisible} />
                     </div>
                 </div>
             </section>
