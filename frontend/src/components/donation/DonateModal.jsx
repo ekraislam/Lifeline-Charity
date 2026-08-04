@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios?v=1';
-import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { broadcastLocalCampaignUpdate } from '../../hooks/useCampaignRealtime';
+import { generateProfessionalPDFReceipt } from '../../utils/pdfReceiptGenerator';
 
 const PRESET_AMOUNTS = [10, 25, 50, 100, 250];
 
 const DonateModal = ({ isOpen, onClose, campaignProp }) => {
+
     const navigate = useNavigate();
     const [campaign, setCampaign] = useState(null);
     const [loadingCampaign, setLoadingCampaign] = useState(false);
@@ -146,95 +147,13 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
     const generatePDFReceipt = (receiptData) => {
         setDownloadingPDF(true);
         try {
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-            doc.setFillColor(2, 132, 199);
-            doc.rect(0, 0, 210, 42, 'F');
-
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(22);
-            doc.setTextColor(255, 255, 255);
-            doc.text('LIFELINE FOUNDATION', 15, 22);
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Official Stripe Payment Receipt', 15, 29);
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('DONATION RECEIPT', 140, 22);
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`NO: LL-REC-${String(receiptData.id || 0).padStart(6, '0')}`, 140, 29);
-
-            doc.setDrawColor(226, 232, 240);
-            doc.setFillColor(248, 250, 252);
-            doc.roundedRect(15, 50, 180, 20, 3, 3, 'FD');
-
-            doc.setFontSize(10);
-            doc.setTextColor(71, 85, 105);
-            const issueDate = receiptData.created_at ? format(new Date(receiptData.created_at), 'MMMM dd, yyyy • hh:mm a') : format(new Date(), 'MMMM dd, yyyy');
-            doc.text(`Date of Issue: ${issueDate}`, 22, 62);
-
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(16, 185, 129);
-            doc.text('STATUS: PAID VIA STRIPE', 125, 62);
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(30, 41, 59);
-            doc.text('DONATION SUMMARY', 15, 85);
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(14, 165, 233);
-            doc.line(15, 88, 195, 88);
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(51, 65, 85);
-            doc.text('Campaign:', 15, 98);
-            doc.setFont('helvetica', 'normal');
-            doc.text(receiptData.campaign_title || campaign?.title || 'Lifeline Campaign', 50, 98);
-
-            doc.setFont('helvetica', 'bold');
-            doc.text('Amount Donated:', 15, 106);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(14, 165, 233);
-            doc.text(`$${parseFloat(receiptData.amount || finalAmount).toFixed(2)} USD`, 50, 106);
-
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(51, 65, 85);
-            doc.text('Payment Gateway:', 15, 114);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Stripe Checkout (Test Mode)', 50, 114);
-
-            doc.setFont('helvetica', 'bold');
-            doc.text('Transaction ID:', 15, 122);
-            doc.setFont('helvetica', 'normal');
-            doc.text(receiptData.transaction_id || `cs_test_${receiptData.id}`, 50, 122);
-
-            doc.setFillColor(254, 243, 199);
-            doc.setDrawColor(251, 191, 36);
-            doc.roundedRect(15, 140, 180, 20, 2, 2, 'FD');
-
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(146, 64, 14);
-            doc.text('Tax Deductible Receipt:', 20, 148);
-
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(180, 83, 9);
-            doc.text('Lifeline Charity Foundation is a registered 501(c)(3) organization. Keep this receipt for your records.', 20, 154);
-
-            doc.setDrawColor(203, 213, 225);
-            doc.line(15, 250, 195, 250);
-
-            doc.setFontSize(9);
-            doc.setTextColor(100, 116, 139);
-            doc.text('Thank you for supporting Lifeline Foundation!', 15, 258);
-            doc.text('Stripe Verified Digital Receipt', 140, 258);
-
-            doc.save(`Lifeline_Stripe_Receipt_${receiptData.id || Date.now()}.pdf`);
+            generateProfessionalPDFReceipt({
+                ...receiptData,
+                campaign_title: receiptData.campaign_title || campaign?.title,
+                amount: receiptData.amount || finalAmount,
+                donor_name: receiptData.donor_name || (isAnonymous ? 'Anonymous Donor' : 'Generous Donor'),
+                is_anonymous: isAnonymous
+            }, 'DONATION RECEIPT', 'Lifeline_Receipt');
         } catch (err) {
             console.error("Failed to generate PDF:", err);
             alert("Could not generate PDF receipt.");
@@ -242,6 +161,7 @@ const DonateModal = ({ isOpen, onClose, campaignProp }) => {
             setDownloadingPDF(false);
         }
     };
+
 
     if (!isOpen) return null;
 

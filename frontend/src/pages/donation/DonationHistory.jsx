@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { AuthContext } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
+import { generateProfessionalPDFReceipt } from '../../utils/pdfReceiptGenerator';
 
 const DonationHistory = () => {
+
     const { user } = useContext(AuthContext);
     const { t } = useLanguage();
     const [donations, setDonations] = useState([]);
@@ -96,169 +97,14 @@ const DonationHistory = () => {
     };
 
     const generatePDFReceipt = (receiptData) => {
-        const doc = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
-
-        // Header Background
-        doc.setFillColor(14, 165, 233); // Primary Ocean Blue
-        doc.rect(0, 0, 210, 40, 'F');
-
-        // Logo & Organization Name
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(24);
-        doc.setTextColor(255, 255, 255);
-        doc.text('LIFELINE FOUNDATION', 15, 22);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Connecting Hearts, Empowering Communities', 15, 29);
-
-        // Receipt Tag
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('DONATION RECEIPT', 140, 22);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`NO: ${receiptData.receipt_number || `LL-REC-${String(receiptData.id || 0).padStart(6, '0')}`}`, 140, 29);
-
-        // Date & Status Banner
-        doc.setDrawColor(226, 232, 240);
-        doc.setFillColor(248, 250, 252);
-        doc.roundedRect(15, 48, 180, 18, 3, 3, 'FD');
-
-        doc.setFontSize(10);
-        doc.setTextColor(71, 85, 105);
-        const receiptDate = receiptData.date ? format(new Date(receiptData.date), 'MMMM dd, yyyy • hh:mm a') : format(new Date(), 'MMMM dd, yyyy');
-        doc.text(`Date of Issue: ${receiptDate}`, 22, 59);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(16, 185, 129); // Green
-        doc.text('STATUS: OFFICIAL PAID RECEIPT', 125, 59);
-
-        // Donor & Org Info Grid
-        // Donor Details (Left)
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 41, 59);
-        doc.text('DONOR DETAILS', 15, 78);
-
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(14, 165, 233);
-        doc.line(15, 81, 95, 81);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(51, 65, 85);
-        doc.text('Name:', 15, 89);
-        doc.setFont('helvetica', 'normal');
-        doc.text(receiptData.donor_name || 'Generous Donor', 40, 89);
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Email:', 15, 96);
-        doc.setFont('helvetica', 'normal');
-        doc.text(receiptData.donor_email || 'N/A', 40, 96);
-
-        // Organization Info (Right)
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 41, 59);
-        doc.text('ISSUED BY', 115, 78);
-
-        doc.line(115, 81, 195, 81);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(51, 65, 85);
-        doc.text('Lifeline Charity Management System', 115, 89);
-        doc.text('Email: support@lifeline-charity.org', 115, 96);
-        doc.text('Website: www.lifeline-charity.org', 115, 103);
-
-        // Contribution Details Table
-        const tableY = 115;
-        doc.setFillColor(30, 41, 59);
-        doc.rect(15, tableY, 180, 10, 'F');
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(255, 255, 255);
-        doc.text('DESCRIPTION / CAMPAIGN', 20, tableY + 6.5);
-        doc.text('PAYMENT METHOD', 105, tableY + 6.5);
-        doc.text('AMOUNT (USD)', 155, tableY + 6.5);
-
-        // Table Content
-        doc.setFillColor(255, 255, 255);
-        doc.rect(15, tableY + 10, 180, 25, 'D');
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 41, 59);
-        
-        // Campaign Title Wrap
-        const campaignTitle = receiptData.campaign_title || 'General Contribution';
-        const splitTitle = doc.splitTextToSize(campaignTitle, 80);
-        doc.text(splitTitle, 20, tableY + 18);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(71, 85, 105);
-        doc.text(`Txn ID: ${receiptData.transaction_id || `TXN_${receiptData.id}`}`, 20, tableY + 28);
-
-        doc.text(receiptData.payment_method || 'Credit Card', 105, tableY + 18);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(14, 165, 233);
-        doc.text(`$${parseFloat(receiptData.amount || 0).toFixed(2)}`, 155, tableY + 18);
-
-        // Total Section Box
-        const summaryY = tableY + 42;
-        doc.setFillColor(241, 245, 249);
-        doc.roundedRect(115, summaryY, 80, 22, 2, 2, 'F');
-
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 41, 59);
-        doc.text('TOTAL PAID:', 122, summaryY + 14);
-
-        doc.setFontSize(14);
-        doc.setTextColor(16, 185, 129);
-        doc.text(`$${parseFloat(receiptData.amount || 0).toFixed(2)} USD`, 152, summaryY + 14);
-
-        // Tax Exemption Note
-        doc.setFillColor(254, 243, 199);
-        doc.setDrawColor(251, 191, 36);
-        doc.roundedRect(15, summaryY + 30, 180, 18, 2, 2, 'FD');
-
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(146, 64, 14);
-        doc.text('Tax Exemption & Tax Information:', 20, summaryY + 37);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(180, 83, 9);
-        doc.text('Lifeline Foundation is a registered tax-exempt charitable organization. Please retain this receipt for tax purposes.', 20, summaryY + 43);
-
-        // Authorization Stamp & Footer
-        const footerY = 240;
-        doc.setDrawColor(203, 213, 225);
-        doc.line(15, footerY, 195, footerY);
-
-        doc.setFontSize(9);
-        doc.setTextColor(100, 116, 139);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Thank you for making a difference in the lives of those in need!', 15, footerY + 8);
-        doc.text('This is an electronically generated official receipt and requires no physical signature.', 15, footerY + 13);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(14, 165, 233);
-        doc.text('Lifeline Verification Seal: VERIFIED', 140, footerY + 8);
-
-        // Save PDF
-        doc.save(`Lifeline_Receipt_${receiptData.receipt_number || receiptData.id}.pdf`);
+        generateProfessionalPDFReceipt({
+            ...receiptData,
+            donor_name: receiptData.donor_name || user?.name,
+            donor_email: receiptData.donor_email || user?.email,
+            donor_phone: receiptData.donor_phone || user?.phone
+        }, 'DONATION RECEIPT', 'Lifeline_Receipt');
     };
+
 
     const downloadReceipt = async (donation) => {
         setDownloadingId(donation.id);

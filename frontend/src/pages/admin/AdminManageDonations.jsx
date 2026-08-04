@@ -1,11 +1,12 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
-import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { useLanguage } from '../../context/LanguageContext';
+import { generateProfessionalPDFReceipt } from '../../utils/pdfReceiptGenerator';
 
 const AdminManageDonations = () => {
+
     const [donations, setDonations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -83,55 +84,9 @@ const AdminManageDonations = () => {
     };
 
     const downloadPDFReceipt = (receiptData) => {
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-        // Header Background
-        doc.setFillColor(14, 165, 233);
-        doc.rect(0, 0, 210, 40, 'F');
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(24);
-        doc.setTextColor(255, 255, 255);
-        doc.text('LIFELINE FOUNDATION', 15, 22);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Official Administrative Receipt Record', 15, 29);
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('DONATION RECEIPT', 140, 22);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`NO: LL-REC-${String(receiptData.id).padStart(6, '0')}`, 140, 29);
-
-        // Details
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 41, 59);
-        doc.text('DONOR DETAILS', 15, 55);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Name: ${receiptData.donor_name || 'Anonymous Donor'}`, 15, 63);
-        doc.text(`Email: ${receiptData.donor_email || 'N/A'}`, 15, 70);
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('CONTRIBUTION DETAILS', 15, 85);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Campaign: ${receiptData.campaign_title}`, 15, 93);
-        doc.text(`Amount: $${parseFloat(receiptData.amount).toFixed(2)} USD`, 15, 100);
-        doc.text(`Payment Method: ${receiptData.payment_method || 'Credit Card'}`, 15, 107);
-        doc.text(`Transaction ID: ${receiptData.transaction_id || `TXN_${receiptData.id}`}`, 15, 114);
-        doc.text(`Date: ${receiptData.created_at ? format(new Date(receiptData.created_at), 'MMMM dd, yyyy • hh:mm a') : 'N/A'}`, 15, 121);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(16, 185, 129);
-        doc.text('STATUS: VERIFIED & PAID', 15, 135);
-
-        doc.save(`Lifeline_Admin_Receipt_${receiptData.id}.pdf`);
+        generateProfessionalPDFReceipt(receiptData, 'ADMIN DONATION RECEIPT', 'Lifeline_Admin_Receipt');
     };
+
 
     const getStatusBadge = (status) => {
         switch (status) {
