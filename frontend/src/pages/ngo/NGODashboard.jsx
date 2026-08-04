@@ -17,14 +17,58 @@ const STATUS_BADGE = {
     approved: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-200',
     rejected: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-200',
     completed: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200',
+    withdrawn: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-200',
 };
+
+const WITHDRAWAL_REASONS = [
+    'Suspected fraud',
+    'Fake documents detected',
+    'Beneficiary cannot be contacted',
+    'Policy violation',
+    'NGO lacks resources',
+    'Duplicate campaign',
+    'Other'
+];
 
 const NGODashboard = () => {
     const { t } = useLanguage();
     const [assignedBeneficiaries, setAssignedBeneficiaries] = useState([]);
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCampaignForWithdraw, setSelectedCampaignForWithdraw] = useState(null);
+    const [withdrawReason, setWithdrawReason] = useState('');
+    const [customWithdrawReason, setCustomWithdrawReason] = useState('');
+    const [withdrawing, setWithdrawing] = useState(false);
     const navigate = useNavigate();
+
+    const handleConfirmWithdraw = async () => {
+        if (!withdrawReason) {
+            alert('Please select a withdrawal reason.');
+            return;
+        }
+        if (withdrawReason === 'Other' && !customWithdrawReason.trim()) {
+            alert('Please specify details for Other reason.');
+            return;
+        }
+        setWithdrawing(true);
+        try {
+            await api.post(`/campaigns/${selectedCampaignForWithdraw.id}/withdraw`, {
+                reason: withdrawReason,
+                custom_reason: customWithdrawReason.trim()
+            });
+            setSelectedCampaignForWithdraw(null);
+            setWithdrawReason('');
+            setCustomWithdrawReason('');
+            fetchData();
+        } catch (err) {
+            console.error("Failed to withdraw campaign:", err);
+            alert(err.response?.data?.message || "Failed to withdraw campaign. Please try again.");
+        } finally {
+            setWithdrawing(false);
+        }
+    };
+
+
 
     const fetchData = useCallback(async () => {
         try {
@@ -238,15 +282,23 @@ const NGODashboard = () => {
                                         >
                                             View Request Details
                                         </Link>
-                                        {!req.campaign_id && req.status === 'assigned' && (
+                                        {req.campaign_id ? (
                                             <Link
-                                                to={`/campaigns/create?requestId=${req.id}`}
-                                                className="w-full text-center py-2 px-3 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 shadow-sm transition-all"
+                                                to={`/campaigns/${req.campaign_id}`}
+                                                className="w-full text-center py-2 px-3 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-sm transition-all flex items-center justify-center gap-1"
                                             >
-                                                Create Campaign
+                                                ✏️ Edit Campaign
+                                            </Link>
+                                        ) : (
+                                            <Link
+                                                to={`/campaigns/create?help_request_id=${req.id}&title=${encodeURIComponent(req.title || '')}&amount=${req.required_amount || ''}`}
+                                                className="w-full text-center py-2 px-3 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 shadow-sm transition-all flex items-center justify-center gap-1"
+                                            >
+                                                ➕ Create Campaign
                                             </Link>
                                         )}
                                     </div>
+
                                 </div>
                             );
                         })}
@@ -297,13 +349,25 @@ const NGODashboard = () => {
                                                     {isCompleted ? 'Completed' : campaign.status}
                                                 </span>
                                             </td>
-                                            <td className="py-3.5 px-4 text-right">
+                                            <td className="py-3.5 px-4 text-right flex items-center justify-end gap-2">
                                                 <Link
                                                     to={`/campaigns/${campaign.id}`}
                                                     className="inline-flex items-center px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-xs font-extrabold rounded-xl text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 shadow-xs"
                                                 >
                                                     View
                                                 </Link>
+                                                {campaign.status !== 'withdrawn' && !isCompleted && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedCampaignForWithdraw(campaign);
+                                                            setWithdrawReason('');
+                                                            setCustomWithdrawReason('');
+                                                        }}
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 border border-rose-200 dark:border-rose-800/60 text-xs font-extrabold rounded-xl text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 transition-all shadow-xs"
+                                                    >
+                                                        🚩 Withdraw Campaign
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     );
@@ -342,9 +406,111 @@ const NGODashboard = () => {
                     }))
                 ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))}
             />
+
+            {/* WITHDRAW CAMPAIGN MODAL */}
+            {selectedCampaignForWithdraw && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[28px] max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center text-xl font-bold">
+                                    🚩
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-gray-900 dark:text-white">Withdraw Campaign</h3>
+                                    <p className="text-xs text-gray-400">Campaign ID #{selectedCampaignForWithdraw.id}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setSelectedCampaignForWithdraw(null);
+                                    setWithdrawReason('');
+                                    setCustomWithdrawReason('');
+                                }}
+                                className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center justify-center text-sm font-bold"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-2xl text-xs text-amber-900 dark:text-amber-300 space-y-1">
+                            <strong className="font-extrabold flex items-center gap-1 text-amber-800 dark:text-amber-200">
+                                ⚠️ Important Notice:
+                            </strong>
+                            <p>This campaign will become inactive and will no longer accept donations.</p>
+                            <p>The beneficiary request will become available for other NGOs to review.</p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="block text-xs font-black uppercase text-gray-600 dark:text-gray-300">
+                                Select Withdrawal Reason <span className="text-rose-500">*</span>
+                            </label>
+
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                {WITHDRAWAL_REASONS.map((r) => (
+                                    <label
+                                        key={r}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
+                                            withdrawReason === r
+                                                ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200 font-extrabold shadow-sm'
+                                                : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="withdrawReason"
+                                            value={r}
+                                            checked={withdrawReason === r}
+                                            onChange={(e) => setWithdrawReason(e.target.value)}
+                                            className="accent-rose-600 w-4 h-4"
+                                        />
+                                        <span>{r}</span>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {withdrawReason === 'Other' && (
+                                <div className="pt-2 animate-in fade-in duration-200">
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                        Specific Reason Details <span className="text-rose-500">*</span>
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={customWithdrawReason}
+                                        onChange={(e) => setCustomWithdrawReason(e.target.value)}
+                                        placeholder="Please explain why you are withdrawing this campaign..."
+                                        className="w-full border border-gray-300 dark:border-gray-700 rounded-xl p-3 text-xs focus:ring-2 focus:ring-rose-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none resize-none"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <button
+                                onClick={() => {
+                                    setSelectedCampaignForWithdraw(null);
+                                    setWithdrawReason('');
+                                    setCustomWithdrawReason('');
+                                }}
+                                className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-extrabold transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmWithdraw}
+                                disabled={withdrawing || !withdrawReason || (withdrawReason === 'Other' && !customWithdrawReason.trim())}
+                                className="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {withdrawing ? 'Withdrawing...' : '🚩 Confirm Campaign Withdrawal'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
 
 
 export default NGODashboard;

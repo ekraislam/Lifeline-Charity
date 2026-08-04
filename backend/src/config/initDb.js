@@ -100,13 +100,36 @@ const initDb = async () => {
             console.warn("Payment columns check warning:", colErr.message);
         }
 
-        // Ensure campaigns status ENUM supports target_reached, processing_payout
+        // Ensure campaigns status ENUM supports target_reached, processing_payout, withdrawn
         try {
             await dbPool.query(`
                 ALTER TABLE campaigns 
-                MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'target_reached', 'processing_payout', 'completed', 'cancelled') DEFAULT 'pending';
+                MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'target_reached', 'processing_payout', 'completed', 'cancelled', 'withdrawn') DEFAULT 'pending';
             `);
         } catch (e) {}
+
+        // Ensure campaigns withdrawal columns exist
+        try {
+            const dbName = database;
+            const campaignCols = [
+                { column: 'withdrawal_reason', definition: 'TEXT NULL' },
+                { column: 'withdrawn_at',      definition: 'DATETIME NULL' },
+            ];
+            for (const col of campaignCols) {
+                const [colRows] = await dbPool.query(
+                    `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                     WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'campaigns' AND COLUMN_NAME = ?`,
+                    [dbName, col.column]
+                );
+                if (colRows.length === 0) {
+                    await dbPool.query(`ALTER TABLE campaigns ADD COLUMN ${col.column} ${col.definition}`);
+                    console.log(`Added column campaigns.${col.column}`);
+                }
+            }
+        } catch (colErr) {
+            console.warn("Campaign withdrawal columns check warning:", colErr.message);
+        }
+
 
         // Ensure campaign_payouts table exists
         await dbPool.query(`
@@ -170,7 +193,22 @@ const initDb = async () => {
             );
         `);
 
-
+        // Ensure ngo_request_decisions table exists
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS ngo_request_decisions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                help_request_id INT NOT NULL,
+                ngo_id INT NOT NULL,
+                action ENUM('accepted', 'declined') NOT NULL,
+                reason VARCHAR(255) NULL,
+                custom_reason TEXT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (help_request_id) REFERENCES help_requests(id) ON DELETE CASCADE,
+                FOREIGN KEY (ngo_id) REFERENCES ngo_profiles(id) ON DELETE CASCADE,
+                UNIQUE KEY unique_ngo_request (help_request_id, ngo_id)
+            );
+        `);
         const [cats] = await dbPool.query("SELECT COUNT(*) as count FROM categories");
         if (cats[0].count === 0) {
             console.log("Seeding default categories...");
@@ -186,7 +224,47 @@ const initDb = async () => {
             console.log("Default categories seeded successfully.");
         }
 
+        // Sync help_requests status & unassign NGO if campaign is missing, deleted, or withdrawn
+        try {
+            // Explicitly set rejected status for requests whose campaigns were deleted by Admin
+            await dbPool.query(`
+                UPDATE help_requests
+                SET status = 'rejected', assigned_ngo_id = NULL, admin_note = COALESCE(admin_note, 'Associated campaign was permanently deleted by Admin')
+                WHERE id IN (8, 10) 
+                   OR admin_note LIKE '%deleted by Admin%' 
+                   OR admin_note LIKE '%permanently deleted%'
+            `);
+
+            await dbPool.query(`
+                UPDATE help_requests hr
+                LEFT JOIN campaigns c ON c.help_request_id = hr.id AND c.status NOT IN ('cancelled', 'withdrawn')
+                SET hr.assigned_ngo_id = NULL,
+                    hr.status = CASE 
+                        WHEN hr.id IN (8, 10) OR hr.admin_note LIKE '%deleted by Admin%' OR hr.status = 'rejected' THEN 'rejected' 
+                        ELSE hr.status
+                    END
+                WHERE c.id IS NULL
+            `);
+
+            // Unassign help_requests where assigned NGO has a declined decision
+            await dbPool.query(`
+                UPDATE help_requests hr
+                JOIN ngo_request_decisions nrd ON nrd.help_request_id = hr.id AND nrd.ngo_id = hr.assigned_ngo_id AND nrd.action = 'declined'
+                SET hr.assigned_ngo_id = NULL, 
+                    hr.status = CASE WHEN hr.status = 'rejected' THEN 'rejected' ELSE 'waiting_for_ngo' END
+                WHERE hr.assigned_ngo_id IS NOT NULL
+            `);
+        } catch (syncErr) {
+            console.warn("Status sync warning:", syncErr.message);
+        }
     } catch (error) {
+
+
+
+
+
+
+
         console.error("Auto database initialization warning/error:", error.message);
     }
 };

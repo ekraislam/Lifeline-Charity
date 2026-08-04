@@ -16,6 +16,10 @@ const createDonation = async (userId, donationData) => {
     const goalAmount = parseFloat(campaign.goal_amount) || 0;
     const isExpired = campaign.deadline && new Date(campaign.deadline) <= new Date();
 
+    if (campaign.status === 'withdrawn') {
+        throw new Error('This campaign has been withdrawn and is no longer accepting donations');
+    }
+
     if (campaign.status === 'completed' || isExpired || (goalAmount > 0 && raisedAmount >= goalAmount)) {
         throw new Error('This campaign has been completed and is no longer accepting donations');
     }
@@ -23,6 +27,7 @@ const createDonation = async (userId, donationData) => {
     if (campaign.status !== 'approved' && campaign.status !== 'pending' && campaign.status !== 'running') {
         throw new Error('Donations are only allowed for active campaigns');
     }
+
 
     const connection = await db.getConnection();
     try {

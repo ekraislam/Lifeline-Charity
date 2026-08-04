@@ -3,11 +3,27 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useLanguage } from '../../context/LanguageContext';
 
+const DECLINE_REASONS = [
+    'Outside our service area',
+    'Insufficient resources',
+    'Does not match NGO policy',
+    'Documents need improvement',
+    'Currently unable to manage this campaign',
+    'Other'
+];
+
 const NGOBeneficiaryRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [accepting, setAccepting] = useState(null);
+    const [declining, setDeclining] = useState(null);
     const [confirmId, setConfirmId] = useState(null);
+
+    // Decline Modal state
+    const [declineReqId, setDeclineReqId] = useState(null);
+    const [selectedReason, setSelectedReason] = useState(DECLINE_REASONS[0]);
+    const [customReason, setCustomReason] = useState('');
+    const [declineError, setDeclineError] = useState('');
 
     // Filters & Search
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +64,39 @@ const NGOBeneficiaryRequests = () => {
         }
     };
 
+    const openDeclineModal = (reqId) => {
+        setDeclineReqId(reqId);
+        setSelectedReason(DECLINE_REASONS[0]);
+        setCustomReason('');
+        setDeclineError('');
+    };
+
+    const handleDeclineSubmit = async () => {
+        if (!selectedReason) {
+            setDeclineError('Please select a reason for declining.');
+            return;
+        }
+        if (selectedReason === 'Other' && !customReason.trim()) {
+            setDeclineError('Please provide a custom reason.');
+            return;
+        }
+
+        setDeclining(declineReqId);
+        try {
+            await api.post(`/beneficiaries/requests/${declineReqId}/decline`, {
+                reason: selectedReason,
+                custom_reason: selectedReason === 'Other' ? customReason.trim() : customReason.trim() || undefined
+            });
+            // Remove request from pending list
+            setRequests(prev => prev.filter(r => r.id !== declineReqId));
+            setDeclineReqId(null);
+        } catch (e) {
+            setDeclineError(e.response?.data?.message || 'Failed to decline request');
+        } finally {
+            setDeclining(null);
+        }
+    };
+
     // Filter & Sort Logic
     const filteredRequests = requests.filter(req => {
         const matchesSearch =
@@ -77,14 +126,14 @@ const NGOBeneficiaryRequests = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-            {/* Confirmation Dialog */}
+            {/* Accept Confirmation Dialog */}
             {confirmId && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[9999] p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-6 max-w-md w-full border border-gray-100 dark:border-gray-700 animate-fade-in-up">
                         <div className="text-4xl mb-3 text-center">🤝</div>
-                        <h3 className="text-xl font-black text-gray-900 dark:text-white text-center mb-2">Accept Beneficiary</h3>
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white text-center mb-2">Accept & Create Campaign</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-6 leading-relaxed">
-                            Once accepted, this verified beneficiary will be assigned to your NGO organization and you will proceed to launch their fundraising campaign.
+                            Once accepted, this verified beneficiary will be locked and assigned exclusively to your NGO. You will be redirected to create their fundraising campaign.
                         </p>
                         <div className="flex gap-3">
                             <button
@@ -98,7 +147,85 @@ const NGOBeneficiaryRequests = () => {
                                 disabled={accepting === confirmId}
                                 className="flex-1 py-2.5 btn-primary rounded-xl text-xs uppercase tracking-wider font-black disabled:opacity-60 cursor-pointer shadow-md"
                             >
-                                {accepting === confirmId ? 'Accepting...' : '✓ Confirm & Launch'}
+                                {accepting === confirmId ? 'Accepting...' : '✓ Confirm & Accept'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Decline Dialog Modal */}
+            {declineReqId && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[9999] p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-6 max-w-md w-full border border-gray-100 dark:border-gray-700 animate-fade-in-up">
+                        <div className="text-4xl mb-2 text-center">❌</div>
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white text-center mb-1">Decline Help Request</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4 leading-relaxed">
+                            Please select a reason for declining this request. This request will be removed from your pending list while remaining accessible to other NGOs.
+                        </p>
+
+                        {declineError && (
+                            <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold">
+                                ⚠️ {declineError}
+                            </div>
+                        )}
+
+                        <div className="space-y-3 mb-6">
+                            <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-300">
+                                Select Reason <span className="text-rose-500">*</span>
+                            </label>
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                {DECLINE_REASONS.map((reason) => (
+                                    <label
+                                        key={reason}
+                                        className={`flex items-center p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                                            selectedReason === reason
+                                                ? 'bg-primary-50 dark:bg-primary-950/60 border-primary-500 text-primary-900 dark:text-primary-200 font-bold'
+                                                : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="decline_reason"
+                                            value={reason}
+                                            checked={selectedReason === reason}
+                                            onChange={() => setSelectedReason(reason)}
+                                            className="mr-2.5 text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span>{reason}</span>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {selectedReason === 'Other' && (
+                                <div className="mt-3">
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                        Custom Reason Details <span className="text-rose-500">*</span>
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={customReason}
+                                        onChange={(e) => setCustomReason(e.target.value)}
+                                        placeholder="Please provide details on why your NGO is declining this request..."
+                                        className="w-full p-2.5 text-xs rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeclineReqId(null)}
+                                className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeclineSubmit}
+                                disabled={declining === declineReqId}
+                                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs uppercase tracking-wider font-black disabled:opacity-60 cursor-pointer shadow-md transition-colors"
+                            >
+                                {declining === declineReqId ? 'Declining...' : '❌ Decline Request'}
                             </button>
                         </div>
                     </div>
@@ -118,13 +245,13 @@ const NGOBeneficiaryRequests = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => navigate('/ngo/dashboard')}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 transition-colors"
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 transition-colors cursor-pointer"
                     >
                         ← Back to Portal
                     </button>
                     <button
                         onClick={fetchRequests}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 hover:bg-primary-100 transition-colors"
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 hover:bg-primary-100 transition-colors cursor-pointer"
                     >
                         🔄 Refresh Requests
                     </button>
@@ -215,7 +342,7 @@ const NGOBeneficiaryRequests = () => {
                     <h3 className="text-xl font-black text-gray-900 dark:text-white">No Matching Requests Found</h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">
                         {requests.length === 0
-                            ? 'All verified beneficiary help requests have been assigned to NGOs.'
+                            ? 'All verified beneficiary help requests have been processed.'
                             : 'Try adjusting your search criteria or filters to see more requests.'}
                     </p>
                 </div>
@@ -229,18 +356,38 @@ const NGOBeneficiaryRequests = () => {
                             riskLevel === 'High Risk' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-200' :
                             'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200';
 
+                        const isAcceptedByOther = req.is_accepted_by_other;
+                        const isAcceptedByMe = req.is_accepted_by_me;
+
                         return (
                             <div
                                 key={req.id}
-                                className="card-premium p-5 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl hover:border-primary-500/50 hover:shadow-xl transition-all duration-200"
+                                className={`card-premium p-5 flex flex-col justify-between bg-white dark:bg-gray-800 border rounded-2xl transition-all duration-200 ${
+                                    isAcceptedByMe
+                                        ? 'border-indigo-300 dark:border-indigo-800/60 bg-indigo-50/20 dark:bg-indigo-950/10'
+                                        : isAcceptedByOther
+                                        ? 'opacity-85 border-purple-200 dark:border-purple-900/40 bg-purple-50/20 dark:bg-purple-950/10'
+                                        : 'border-gray-100 dark:border-gray-700 hover:border-primary-500/50 hover:shadow-xl'
+                                }`}
                             >
                                 <div className="space-y-3">
                                     {/* Badges row */}
                                     <div className="flex flex-wrap items-center justify-between gap-2">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-200">
-                                                ✓ Verified
-                                            </span>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            {isAcceptedByMe ? (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800 shadow-xs">
+                                                    ✅ Accepted by You
+                                                </span>
+                                            ) : isAcceptedByOther ? (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-300 dark:border-purple-800 shadow-xs">
+                                                    🔒 Accepted by another NGO
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200">
+                                                    ✨ Available for Review
+                                                </span>
+                                            )}
+
                                             <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black border ${riskBadge}`}>
                                                 🤖 {riskLevel}
                                             </span>
@@ -272,26 +419,84 @@ const NGOBeneficiaryRequests = () => {
                                             <span className="text-gray-400">Medical Documents</span>
                                             <span className="font-bold text-indigo-600 dark:text-indigo-400">📄 {req.document_count || 0} Attached</span>
                                         </div>
+                                        {(isAcceptedByOther || isAcceptedByMe) && (
+                                            <div className="flex justify-between items-center pt-1 border-t border-purple-100 dark:border-purple-900/30 text-purple-700 dark:text-purple-300">
+                                                <span className="font-bold">Managing NGO</span>
+                                                <span className="font-extrabold truncate max-w-[140px]">{isAcceptedByMe ? 'Your NGO' : (req.assigned_ngo_org || 'Partner NGO')}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700/60 grid grid-cols-2 gap-2">
-                                    <Link
-                                        to={`/ngo/beneficiary-requests/${req.id}`}
-                                        className="py-2 px-3 text-center rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                    >
-                                        🔍 View Details
-                                    </Link>
-                                    <button
-                                        onClick={() => setConfirmId(req.id)}
-                                        className="py-2 px-3 text-center btn-primary rounded-xl text-xs uppercase tracking-wider font-extrabold shadow-sm cursor-pointer"
-                                    >
-                                        🚀 Accept & Launch
-                                    </button>
+                                <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700/60">
+                                    {isAcceptedByMe ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            <Link
+                                                to={`/ngo/beneficiary-requests/${req.id}`}
+                                                className="py-2 px-2 text-center rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
+                                            >
+                                                🔍 Details
+                                            </Link>
+                                            <button
+                                                onClick={() => openDeclineModal(req.id)}
+                                                className="py-2 px-2 text-center rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer flex items-center justify-center gap-1"
+                                            >
+                                                ❌ Reject / Withdraw
+                                            </button>
+                                            {req.campaign_id ? (
+                                                <Link
+                                                    to={`/campaigns/${req.campaign_id}`}
+                                                    className="py-2 px-2 text-center bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-extrabold shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                                                >
+                                                    ✏️ Edit Campaign
+                                                </Link>
+                                            ) : (
+                                                <Link
+                                                    to={`/campaigns/create?help_request_id=${req.id}&title=${encodeURIComponent(req.title || '')}&amount=${req.required_amount || ''}`}
+                                                    className="py-2 px-2 text-center bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-xl text-xs font-extrabold shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                                                >
+                                                    ➕ Create Campaign
+                                                </Link>
+                                            )}
+                                        </div>
+                                    ) : isAcceptedByOther ? (
+
+
+                                        <div className="flex items-center justify-between gap-2">
+                                            <Link
+                                                to={`/ngo/beneficiary-requests/${req.id}`}
+                                                className="w-full py-2 px-3 text-center rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                            >
+                                                🔍 View Details
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            <Link
+                                                to={`/ngo/beneficiary-requests/${req.id}`}
+                                                className="py-2 px-2 text-center rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
+                                            >
+                                                🔍 Details
+                                            </Link>
+                                            <button
+                                                onClick={() => openDeclineModal(req.id)}
+                                                className="py-2 px-2 text-center rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer flex items-center justify-center gap-1"
+                                            >
+                                                ❌ Decline
+                                            </button>
+                                            <button
+                                                onClick={() => setConfirmId(req.id)}
+                                                className="py-2 px-2 text-center btn-primary rounded-xl text-xs uppercase tracking-wider font-extrabold shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                                            >
+                                                🚀 Accept
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
+
                     })}
                 </div>
             )}
@@ -300,3 +505,4 @@ const NGOBeneficiaryRequests = () => {
 };
 
 export default NGOBeneficiaryRequests;
+

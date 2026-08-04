@@ -195,14 +195,33 @@ const handleAiAssistant = async (req, res) => {
     }
 };
 
+const withdrawCampaign = async (req, res) => {
+    try {
+        const { reason, custom_reason } = req.body;
+        if (!reason) {
+            return res.status(400).json({ message: 'Withdrawal reason is required' });
+        }
+        await campaignService.withdrawCampaign(req.params.id, req.user.id, { reason, custom_reason });
+        res.json({ message: 'Campaign withdrawn successfully and help request has been reopened for other NGOs.' });
+    } catch (error) {
+        console.error('withdrawCampaign controller error:', error);
+        if (error.message.includes('not found') || error.message.includes('not authorized') || error.message.includes('already withdrawn')) {
+            return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: error.message || 'Internal server error' });
+    }
+};
+
 module.exports = {
     getAllCampaigns,
     getMyCampaigns,
     getCampaignById,
     createCampaign,
+    withdrawCampaign,
     updateCampaign,
     deleteCampaign,
     approveRejectCampaign,
     uploadGallery,
     handleAiAssistant
 };
+

@@ -8,8 +8,22 @@ const NGOBeneficiaryDetail = () => {
     const [request, setRequest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [accepting, setAccepting] = useState(false);
+    const [declining, setDeclining] = useState(false);
+    const [showDeclineModal, setShowDeclineModal] = useState(false);
+    const [selectedReason, setSelectedReason] = useState('Outside our service area');
+    const [customReason, setCustomReason] = useState('');
+    const [declineError, setDeclineError] = useState('');
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [error, setError] = useState('');
+
+    const DECLINE_REASONS = [
+        'Outside our service area',
+        'Insufficient resources',
+        'Does not match NGO policy',
+        'Documents need improvement',
+        'Currently unable to manage this campaign',
+        'Other'
+    ];
 
     useEffect(() => {
         const fetchRequest = async () => {
@@ -34,7 +48,6 @@ const NGOBeneficiaryDetail = () => {
             navigate(`/campaigns/create?help_request_id=${id}&title=${encodeURIComponent(request.title)}&amount=${request.required_amount}`);
         } catch (err) {
             console.error("Accept failed:", err);
-            // If already accepted/assigned, still navigate to create campaign
             if (err.response?.status === 400 || err.response?.data?.message?.includes('already')) {
                 navigate(`/campaigns/create?help_request_id=${id}&title=${encodeURIComponent(request.title)}&amount=${request.required_amount}`);
             } else {
@@ -42,6 +55,30 @@ const NGOBeneficiaryDetail = () => {
             }
         } finally {
             setAccepting(false);
+        }
+    };
+
+    const handleDeclineSubmit = async () => {
+        if (!selectedReason) {
+            setDeclineError('Please select a reason for declining.');
+            return;
+        }
+        if (selectedReason === 'Other' && !customReason.trim()) {
+            setDeclineError('Please provide a custom reason.');
+            return;
+        }
+
+        setDeclining(true);
+        try {
+            await api.post(`/beneficiaries/requests/${id}/decline`, {
+                reason: selectedReason,
+                custom_reason: selectedReason === 'Other' ? customReason.trim() : customReason.trim() || undefined
+            });
+            navigate('/ngo/beneficiary-requests');
+        } catch (e) {
+            setDeclineError(e.response?.data?.message || 'Failed to decline request');
+        } finally {
+            setDeclining(false);
         }
     };
 
@@ -80,8 +117,88 @@ const NGOBeneficiaryDetail = () => {
         ai.risk_level === 'High Risk' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-200' :
         'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200';
 
+    const isAcceptedByOther = request.status === 'assigned' || request.status === 'campaign_active';
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            {/* Decline Dialog Modal */}
+            {showDeclineModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[9999] p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-6 max-w-md w-full border border-gray-100 dark:border-gray-700 animate-fade-in-up">
+                        <div className="text-4xl mb-2 text-center">❌</div>
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white text-center mb-1">Decline Help Request</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4 leading-relaxed">
+                            Please select a reason for declining this request. This request will be removed from your pending list while remaining accessible to other NGOs.
+                        </p>
+
+                        {declineError && (
+                            <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold">
+                                ⚠️ {declineError}
+                            </div>
+                        )}
+
+                        <div className="space-y-3 mb-6">
+                            <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-300">
+                                Select Reason <span className="text-rose-500">*</span>
+                            </label>
+                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                {DECLINE_REASONS.map((reason) => (
+                                    <label
+                                        key={reason}
+                                        className={`flex items-center p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                                            selectedReason === reason
+                                                ? 'bg-primary-50 dark:bg-primary-950/60 border-primary-500 text-primary-900 dark:text-primary-200 font-bold'
+                                                : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="detail_decline_reason"
+                                            value={reason}
+                                            checked={selectedReason === reason}
+                                            onChange={() => setSelectedReason(reason)}
+                                            className="mr-2.5 text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span>{reason}</span>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {selectedReason === 'Other' && (
+                                <div className="mt-3">
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                                        Custom Reason Details <span className="text-rose-500">*</span>
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={customReason}
+                                        onChange={(e) => setCustomReason(e.target.value)}
+                                        placeholder="Please provide details on why your NGO is declining this request..."
+                                        className="w-full p-2.5 text-xs rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeclineModal(false)}
+                                className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeclineSubmit}
+                                disabled={declining}
+                                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs uppercase tracking-wider font-black disabled:opacity-60 cursor-pointer shadow-md transition-colors"
+                            >
+                                {declining ? 'Declining...' : '❌ Decline Request'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Top Navigation & Breadcrumbs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-5">
                 <div>
@@ -97,17 +214,57 @@ const NGOBeneficiaryDetail = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => navigate('/ngo/beneficiary-requests')}
-                        className="px-4 py-2 rounded-xl text-xs font-bold border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 transition-colors"
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 transition-colors cursor-pointer"
                     >
                         ← Back to List
                     </button>
-                    <button
-                        onClick={handleAcceptAndCreate}
-                        disabled={accepting}
-                        className="btn-primary py-2.5 px-6 text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition-all cursor-pointer"
-                    >
-                        {accepting ? 'Processing...' : '🚀 Accept & Create Campaign'}
-                    </button>
+                    {isAcceptedByMe ? (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowDeclineModal(true)}
+                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors cursor-pointer"
+                            >
+                                ❌ Reject / Withdraw
+                            </button>
+                            {request.campaign_id ? (
+                                <Link
+                                    to={`/campaigns/${request.campaign_id}`}
+                                    className="py-2.5 px-6 rounded-xl text-xs uppercase tracking-wider font-black text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-lg hover:scale-105 transition-all cursor-pointer flex items-center gap-1"
+                                >
+                                    ✏️ Edit Campaign
+                                </Link>
+                            ) : (
+                                <Link
+                                    to={`/campaigns/create?help_request_id=${request.id}&title=${encodeURIComponent(request.title || '')}&amount=${request.required_amount || ''}`}
+                                    className="btn-primary py-2.5 px-6 text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition-all cursor-pointer font-black flex items-center gap-1"
+                                >
+                                    ➕ Create Campaign
+                                </Link>
+                            )}
+                        </div>
+                    ) : isAcceptedByOther ? (
+
+                        <span className="px-4 py-2.5 rounded-xl text-xs font-black bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-300 dark:border-purple-800 shadow-xs flex items-center gap-1.5">
+                            🔒 Accepted by another NGO ({request.assigned_ngo_org || 'Partner NGO'})
+                        </span>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowDeclineModal(true)}
+                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors cursor-pointer"
+                            >
+                                ❌ Decline
+                            </button>
+                            <button
+                                onClick={handleAcceptAndCreate}
+                                disabled={accepting}
+                                className="btn-primary py-2.5 px-6 text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition-all cursor-pointer font-black"
+                            >
+                                {accepting ? 'Processing...' : '🚀 Accept & Create Campaign'}
+                            </button>
+                        </div>
+                    )}
+
                 </div>
             </div>
 
@@ -307,13 +464,27 @@ const NGOBeneficiaryDetail = () => {
                             </div>
                         </div>
 
-                        <button
-                            onClick={handleAcceptAndCreate}
-                            disabled={accepting}
-                            className="w-full btn-primary py-3 text-xs uppercase tracking-wider font-extrabold shadow-md cursor-pointer mt-4"
-                        >
-                            🚀 Accept & Launch Campaign
-                        </button>
+                        {isAcceptedByOther ? (
+                            <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-center text-xs font-black text-purple-800 dark:text-purple-300 mt-4">
+                                🔒 Accepted by {request.assigned_ngo_org || 'another NGO'}
+                            </div>
+                        ) : (
+                            <div className="space-y-2 mt-4">
+                                <button
+                                    onClick={handleAcceptAndCreate}
+                                    disabled={accepting}
+                                    className="w-full btn-primary py-3 text-xs uppercase tracking-wider font-extrabold shadow-md cursor-pointer"
+                                >
+                                    🚀 Accept & Launch Campaign
+                                </button>
+                                <button
+                                    onClick={() => setShowDeclineModal(true)}
+                                    className="w-full py-2.5 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors cursor-pointer"
+                                >
+                                    ❌ Decline Request
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Timeline Card */}
@@ -348,7 +519,9 @@ const NGOBeneficiaryDetail = () => {
                                 <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold flex-shrink-0">📢</div>
                                 <div>
                                     <p className="font-bold text-gray-900 dark:text-white">NGO Campaign Launch</p>
-                                    <p className="text-[11px] text-amber-600 font-semibold">Pending NGO Action</p>
+                                    <p className="text-[11px] text-amber-600 font-semibold">
+                                        {request.assigned_ngo_org ? `Accepted by ${request.assigned_ngo_org}` : 'Pending NGO Action'}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -376,3 +549,4 @@ const NGOBeneficiaryDetail = () => {
 };
 
 export default NGOBeneficiaryDetail;
+

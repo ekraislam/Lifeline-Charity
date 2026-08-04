@@ -64,6 +64,8 @@ const getCampaigns = async (filters = {}) => {
     } else if (filters.ngoId) {
         whereClauses.push("c.ngo_id = ?");
         params.push(filters.ngoId);
+    } else if (!filters.includeWithdrawn && !filters.admin) {
+        whereClauses.push("c.status != 'withdrawn'");
     }
 
     const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -92,6 +94,7 @@ const getCampaigns = async (filters = {}) => {
         is_completed: row.status === 'completed' || parseFloat(row.raised_amount || 0) >= parseFloat(row.goal_amount || 0)
     }));
 };
+
 
 const getCampaignById = async (id) => {
     await syncCampaignCompletionStatus(id);
@@ -165,9 +168,10 @@ const createCampaign = async (campaignData, userId) => {
         if (hrRows[0].assigned_ngo_id !== ngoId) throw new Error('You are not assigned to this beneficiary');
 
         const [existingCampaigns] = await db.query(
-            "SELECT id FROM campaigns WHERE help_request_id = ? AND status NOT IN ('cancelled','completed')", [help_request_id]
+            "SELECT id FROM campaigns WHERE help_request_id = ? AND status NOT IN ('cancelled','completed','withdrawn')", [help_request_id]
         );
         if (existingCampaigns.length > 0) throw new Error('An active campaign already exists for this beneficiary');
+
     }
 
     const [result] = await db.query(
@@ -285,6 +289,125 @@ const updateCampaignStatus = async (id, status) => {
 };
 
 
+const withdrawCampaign = async (campaignId, userId, { reason, custom_reason }) => {
+    // 1. Get user role & NGO profile
+    const [[usr]] = await db.query('SELECT role, name FROM users WHERE id = ?', [userId]);
+    let ngoId = null;
+    let ngoOrgName = usr?.name || 'NGO Partner';
+
+    if (usr?.role === 'ngo') {
+        const [ngoRows] = await db.query('SELECT id, org_name FROM ngo_profiles WHERE user_id = ?', [userId]);
+        if (ngoRows.length === 0) throw new Error('NGO profile not found');
+        ngoId = ngoRows[0].id;
+        ngoOrgName = ngoRows[0].org_name;
+    }
+
+    // 2. Fetch campaign
+    const [cRows] = await db.query('SELECT id, title, ngo_id, help_request_id, status, raised_amount FROM campaigns WHERE id = ?', [campaignId]);
+    if (cRows.length === 0) throw new Error('Campaign not found');
+    const campaign = cRows[0];
+
+    if (campaign.status === 'withdrawn') {
+        throw new Error('This campaign is already withdrawn');
+    }
+
+    if (usr?.role === 'ngo' && campaign.ngo_id !== ngoId) {
+        throw new Error('You are not authorized to withdraw this campaign');
+    }
+
+    const finalReason = reason === 'Other' && custom_reason ? custom_reason : (custom_reason ? `${reason} - ${custom_reason}` : reason);
+
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // Mark campaign as withdrawn
+        await connection.query(
+            'UPDATE campaigns SET status = "withdrawn", withdrawal_reason = ?, withdrawn_at = NOW() WHERE id = ?',
+            [finalReason, campaignId]
+        );
+
+        if (campaign.help_request_id) {
+            const raisedAmount = parseFloat(campaign.raised_amount || 0);
+            // Reopen beneficiary help request & deduct previously raised amount from required target
+            await connection.query(
+                'UPDATE help_requests SET status = "waiting_for_ngo", assigned_ngo_id = NULL, required_amount = GREATEST(0, required_amount - ?) WHERE id = ?',
+                [raisedAmount, campaign.help_request_id]
+            );
+
+
+            // Permanently exclude withdrawing NGO from re-evaluating this request
+            const targetNgoId = ngoId || campaign.ngo_id;
+            if (targetNgoId) {
+                await connection.query(
+                    `INSERT INTO ngo_request_decisions (help_request_id, ngo_id, action, reason, custom_reason) 
+                     VALUES (?, ?, 'declined', ?, ?)
+                     ON DUPLICATE KEY UPDATE action = 'declined', reason = VALUES(reason), custom_reason = VALUES(custom_reason), updated_at = NOW()`,
+                    [campaign.help_request_id, targetNgoId, `Withdrew Campaign: ${reason}`, custom_reason || null]
+                );
+            }
+        }
+
+        await connection.commit();
+
+        // Trigger Notifications & Activity Log
+        try {
+            const { createNotification, createAdminNotification, broadcastSystemAnnouncement } = require('./notification.service');
+            const { logActivity } = require('./activityLog.service');
+
+            await createAdminNotification({
+                title: '🚩 Campaign Withdrawn',
+                message: `NGO "${ngoOrgName}" withdrew campaign #${campaignId} ("${campaign.title}"). Reason: ${finalReason}`,
+                type: 'campaign_withdrawn',
+                priority: 'high'
+            });
+
+            if (campaign.help_request_id) {
+                const [bRows] = await db.query(
+                    'SELECT b.user_id FROM help_requests hr JOIN beneficiaries b ON hr.beneficiary_id = b.id WHERE hr.id = ?',
+                    [campaign.help_request_id]
+                );
+                if (bRows.length > 0) {
+                    await createNotification(
+                        bRows[0].user_id,
+                        '📢 Campaign Status Update',
+                        `Your campaign "${campaign.title}" has been withdrawn. Your request has been reopened for other NGOs to review.`,
+                        'campaign_withdrawn',
+                        'high'
+                    );
+                }
+
+                await broadcastSystemAnnouncement({
+                    title: '🏥 Reopened Beneficiary Request',
+                    message: `A beneficiary request ("${campaign.title}") is now available for review by NGOs.`,
+                    targetRole: 'ngo',
+                    type: 'beneficiary_available',
+                    priority: 'normal'
+                });
+            }
+
+            await logActivity({
+                userId,
+                userName: ngoOrgName,
+                userRole: usr?.role === 'admin' ? 'Admin' : 'NGO',
+                activityType: 'campaign_withdrawn',
+                activityTitle: 'Campaign Withdrawn',
+                activityDescription: `Withdrew campaign #${campaignId} ("${campaign.title}"). Reason: ${finalReason}`,
+                relatedId: campaignId
+            });
+        } catch (notifErr) {
+            console.warn('Notification error in withdrawCampaign:', notifErr.message);
+        }
+
+        return { success: true };
+    } catch (err) {
+        await connection.rollback();
+        throw err;
+    } finally {
+        connection.release();
+    }
+};
+
 const addCampaignGallery = async (campaignId, imageUrls) => {
     if (!imageUrls || imageUrls.length === 0) return;
     const values = imageUrls.map(url => [campaignId, url]);
@@ -296,8 +419,11 @@ module.exports = {
     getCampaigns,
     getCampaignById,
     createCampaign,
+    withdrawCampaign,
     updateCampaign,
     deleteCampaign,
     updateCampaignStatus,
     addCampaignGallery
 };
+
+

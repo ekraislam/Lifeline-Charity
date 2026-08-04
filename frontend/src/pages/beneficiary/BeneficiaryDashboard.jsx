@@ -8,19 +8,24 @@ import LiveActivityTimeline from '../../components/common/LiveActivityTimeline';
 
 
 const STATUS_CONFIG = {
-    pending: { labelKey: 'beneficiary.status.pending', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
-    under_review: { labelKey: 'beneficiary.status.under_review', color: 'bg-blue-100 text-blue-800', icon: '🔍' },
-    waiting_for_ngo: { labelKey: 'beneficiary.status.pending', color: 'bg-purple-100 text-purple-800', icon: '🏢' },
-    assigned: { labelKey: 'beneficiary.status.approved', color: 'bg-indigo-100 text-indigo-800', icon: '✅' },
-    campaign_active: { labelKey: 'beneficiary.status.approved', color: 'bg-green-100 text-green-800', icon: '📢' },
-    rejected: { labelKey: 'beneficiary.status.rejected', color: 'bg-red-100 text-red-800', icon: '❌' },
-    fulfilled: { labelKey: 'beneficiary.status.approved', color: 'bg-emerald-100 text-emerald-800', icon: '🎉' },
+    pending: { label: 'Pending Review', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300', icon: '⏳' },
+    under_review: { label: 'Under Review', color: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300', icon: '🔍' },
+    waiting_for_ngo: { label: 'Waiting for NGO', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300', icon: '🏢' },
+    assigned: { label: 'Accepted by NGO', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300', icon: '✅' },
+    campaign_active: { label: 'Campaign Active', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300', icon: '📢' },
+    withdrawn: { label: 'Campaign Withdrawn', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300', icon: '🚩' },
+    rejected: { label: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300', icon: '❌' },
+    fulfilled: { label: 'Fulfilled', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300', icon: '🎉' },
 };
+
+
 
 const BeneficiaryDashboard = () => {
     const { t } = useLanguage();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState(null);
+
 
     const fetchData = useCallback(async () => {
         try {
@@ -41,6 +46,19 @@ const BeneficiaryDashboard = () => {
     // Socket Realtime sync
     useCampaignRealtime(fetchData);
 
+    const handleDeleteRequest = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this rejected request? This action cannot be undone.")) return;
+        try {
+            setDeletingId(id);
+            await api.delete(`/beneficiaries/requests/${id}`);
+            setRequests(prev => prev.filter(r => r.id !== id));
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete help request');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     if (loading) return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
             <div className="skeleton-pulse h-28 w-full rounded-[22px]" />
@@ -49,7 +67,7 @@ const BeneficiaryDashboard = () => {
     );
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -71,7 +89,7 @@ const BeneficiaryDashboard = () => {
                 <div className="bg-white dark:bg-gray-900 rounded-[20px] p-4 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-wrap gap-2">
                     {Object.entries(STATUS_CONFIG).map(([key, val]) => (
                         <span key={key} className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold shadow-2xs ${val.color}`}>
-                            {val.icon} {t(val.labelKey)}
+                            {val.icon} {val.label}
                         </span>
                     ))}
                 </div>
@@ -98,8 +116,9 @@ const BeneficiaryDashboard = () => {
                                                     {request.title}
                                                 </h3>
                                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold ${cfg.color}`}>
-                                                    {cfg.icon} {t(cfg.labelKey)}
+                                                    {cfg.icon} {cfg.label}
                                                 </span>
+
                                             </div>
 
                                             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">{request.description}</p>
@@ -127,6 +146,18 @@ const BeneficiaryDashboard = () => {
                                                     <strong>Admin Note:</strong> {request.admin_note}
                                                 </div>
                                             )}
+                                            {(request.status === 'rejected' || request.status === 'withdrawn' || (request.admin_note && request.admin_note.includes('deleted by Admin'))) && (
+                                                 <div className="mt-3 flex justify-end">
+                                                     <button
+                                                         onClick={() => handleDeleteRequest(request.id)}
+                                                         disabled={deletingId === request.id}
+                                                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 hover:scale-[1.02] active:scale-[0.98] text-rose-600 dark:text-rose-400 font-extrabold text-xs transition-all border border-rose-500/20 cursor-pointer shadow-xs"
+                                                     >
+                                                         <span>🗑️</span>
+                                                         <span>{deletingId === request.id ? 'Deleting...' : 'Delete Request'}</span>
+                                                     </button>
+                                                 </div>
+                                             )}
                                         </div>
                                     </div>
                                 </div>
@@ -144,15 +175,16 @@ const BeneficiaryDashboard = () => {
                 activities={
                     requests.map((req, i) => ({
                         id: `ben-req-${i}`,
-                        icon: req.status === 'fulfilled' ? '🎉' : req.status === 'rejected' ? '❌' : '📋',
-                        type: req.status === 'fulfilled' ? 'success' : req.status === 'rejected' ? 'critical' : 'warning',
+                        icon: req.status === 'fulfilled' ? '🎉' : req.status === 'rejected' ? '❌' : req.status === 'withdrawn' ? '🚩' : '📋',
+                        type: req.status === 'fulfilled' ? 'success' : req.status === 'rejected' ? 'critical' : req.status === 'withdrawn' ? 'warning' : 'warning',
                         user: req.title || 'Help Request',
                         role: 'Beneficiary',
                         title: `Application "${req.title}"`,
-                        description: `Status: ${req.status} | Amount: $${parseFloat(req.required_amount || 0).toLocaleString()}`,
+                        description: `Status: ${STATUS_CONFIG[req.status]?.label || req.status} | Amount: $${parseFloat(req.required_amount || 0).toLocaleString()}`,
                         timestamp: req.created_at || new Date()
                     })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
                 }
+
             />
         </div>
     );

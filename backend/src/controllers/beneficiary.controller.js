@@ -80,7 +80,7 @@ const updateRequestStatus = async (req, res) => {
 // NGO: get waiting_for_ngo requests
 const getWaitingRequests = async (req, res) => {
     try {
-        const requests = await beneficiaryService.getWaitingRequests();
+        const requests = await beneficiaryService.getWaitingRequests(req.user.id);
         res.json(requests);
     } catch (error) {
         console.error(error);
@@ -91,16 +91,29 @@ const getWaitingRequests = async (req, res) => {
 // NGO: accept/claim a request
 const acceptRequest = async (req, res) => {
     try {
-        await beneficiaryService.acceptRequest(req.params.id, req.user.id);
-        res.json({ message: 'Request accepted successfully. Beneficiary is now assigned to your NGO.' });
+        const result = await beneficiaryService.acceptRequest(req.params.id, req.user.id);
+        res.json({ message: 'Request accepted successfully. Beneficiary is now assigned to your NGO.', result });
     } catch (error) {
-        console.error(error);
-        if (error.message.includes('already been assigned') || error.message.includes('not found') || error.message.includes('not approved')) {
-            return res.status(400).json({ message: error.message });
-        }
-        res.status(500).json({ message: 'Internal server error' });
+        console.error("acceptRequest controller error:", error);
+        res.status(400).json({ message: error.message || 'Failed to accept help request' });
     }
 };
+
+// NGO: decline a request
+const declineRequest = async (req, res) => {
+    try {
+        const { reason, custom_reason } = req.body;
+        if (!reason) {
+            return res.status(400).json({ message: 'Decline reason is required' });
+        }
+        await beneficiaryService.declineRequest(req.params.id, req.user.id, { reason, custom_reason });
+        res.json({ message: 'Help request declined successfully.' });
+    } catch (error) {
+        console.error("declineRequest controller error:", error);
+        res.status(400).json({ message: error.message || 'Failed to decline help request' });
+    }
+};
+
 
 // NGO: get my assigned beneficiaries
 const getMyAssigned = async (req, res) => {
@@ -113,6 +126,16 @@ const getMyAssigned = async (req, res) => {
     }
 };
 
+const deleteHelpRequest = async (req, res) => {
+    try {
+        await beneficiaryService.deleteHelpRequest(req.params.id, req.user.id);
+        res.json({ message: 'Help request deleted successfully' });
+    } catch (error) {
+        console.error("deleteHelpRequest controller error:", error);
+        res.status(400).json({ message: error.message || 'Failed to delete help request' });
+    }
+};
+
 module.exports = {
     submitHelpRequest,
     uploadDocuments,
@@ -121,5 +144,9 @@ module.exports = {
     updateRequestStatus,
     getWaitingRequests,
     acceptRequest,
-    getMyAssigned
+    declineRequest,
+    getMyAssigned,
+    deleteHelpRequest
 };
+
+

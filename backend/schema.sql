@@ -53,10 +53,13 @@ CREATE TABLE IF NOT EXISTS campaigns (
     goal_amount DECIMAL(15, 2) NOT NULL,
     raised_amount DECIMAL(15, 2) DEFAULT 0.00,
     deadline DATETIME,
-    status ENUM('pending', 'approved', 'rejected', 'target_reached', 'processing_payout', 'completed', 'cancelled') DEFAULT 'pending',
+    status ENUM('pending', 'approved', 'rejected', 'target_reached', 'processing_payout', 'completed', 'cancelled', 'withdrawn') DEFAULT 'pending',
     is_featured BOOLEAN DEFAULT FALSE,
     help_request_id INT,
+    withdrawal_reason TEXT,
+    withdrawn_at DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (ngo_id) REFERENCES ngo_profiles(id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -327,6 +330,17 @@ CREATE TABLE IF NOT EXISTS campaign_payouts (
     FOREIGN KEY (beneficiary_id) REFERENCES beneficiaries(id) ON DELETE CASCADE,
     FOREIGN KEY (ngo_id) REFERENCES ngo_profiles(id) ON DELETE CASCADE
 );
-
-
-
+-- 25. NGO Request Decisions
+CREATE TABLE IF NOT EXISTS ngo_request_decisions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    help_request_id INT NOT NULL,
+    ngo_id INT NOT NULL,
+    action ENUM('accepted', 'declined') NOT NULL,
+    reason VARCHAR(255) NULL,
+    custom_reason TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (help_request_id) REFERENCES help_requests(id) ON DELETE CASCADE,
+    FOREIGN KEY (ngo_id) REFERENCES ngo_profiles(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_ngo_request (help_request_id, ngo_id)
+);

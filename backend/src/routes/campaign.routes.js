@@ -16,8 +16,10 @@ router.get('/:id', campaignController.getCampaignById);
 router.use(authMiddleware);
 
 router.post('/', roleMiddleware(['admin', 'ngo']), validate(createCampaignSchema), campaignController.createCampaign);
+router.post('/:id/withdraw', roleMiddleware(['admin', 'ngo']), campaignController.withdrawCampaign);
 router.put('/:id', roleMiddleware(['admin', 'ngo']), validate(updateCampaignSchema), campaignController.updateCampaign);
 router.delete('/:id', roleMiddleware(['admin', 'ngo']), campaignController.deleteCampaign);
+
 
 // Gallery upload
 router.post('/:id/gallery', roleMiddleware(['admin', 'ngo']), upload.array('images', 5), campaignController.uploadGallery);

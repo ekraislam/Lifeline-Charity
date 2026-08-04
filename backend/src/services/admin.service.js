@@ -7,27 +7,6 @@ const ExcelJS = require('exceljs');
 const getSystemStats = async () => {
     const stats = {};
 
-    const [[userRow]] = await db.query('SELECT COUNT(*) as count FROM users');
-    stats.total_users = userRow.count;
-
-    const [[campaignRow]] = await db.query('SELECT COUNT(*) as count FROM campaigns');
-    stats.total_campaigns = campaignRow.count;
-
-    const [[donationRow]] = await db.query('SELECT SUM(amount) as total FROM donations WHERE status = "success"');
-    stats.total_donations = donationRow.total || 0;
-
-    const [[volunteerRow]] = await db.query("SELECT COUNT(*) as count FROM volunteers WHERE status = 'approved'");
-    stats.total_volunteers = volunteerRow.count;
-
-    const [[ngoRow]] = await db.query('SELECT COUNT(*) as count FROM ngo_profiles');
-    stats.total_ngos = ngoRow.count;
-
-    const [demographicsRows] = await db.query('SELECT role, COUNT(*) as count FROM users GROUP BY role');
-    stats.usersByRole = { donor: 0, volunteer: 0, ngo: 0, beneficiary: 0, admin: 0 };
-    demographicsRows.forEach(row => {
-        if (stats.usersByRole[row.role] !== undefined) stats.usersByRole[row.role] = row.count;
-    });
-
     // Generate last 6 months in chronological order
     const months = [];
     const monthTotals = {};
@@ -39,32 +18,62 @@ const getSystemStats = async () => {
         monthTotals[monthLabel] = 0;
     }
 
-    const [trendRows] = await db.query(`
-        SELECT DATE_FORMAT(created_at, '%b') as month, SUM(amount) as total
-        FROM donations
-        WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-        GROUP BY DATE_FORMAT(created_at, '%b')
-    `);
-
-    trendRows.forEach(r => {
-        if (monthTotals[r.month] !== undefined) {
-            monthTotals[r.month] = parseFloat(r.total) || 0;
-        }
-    });
-
-    stats.donationTrendLabels = months;
-    stats.donationTrendData = months.map(m => monthTotals[m]);
-
-    // Real Database System Health & Analytics Metrics
     try {
-        const [[todayDonation]] = await db.query("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM donations WHERE status = 'success' AND DATE(created_at) = CURDATE()");
-        const [[weekDonation]] = await db.query("SELECT COALESCE(SUM(amount), 0) as total FROM donations WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
-        const [[activeCampRow]] = await db.query("SELECT COUNT(*) as count FROM campaigns WHERE status IN ('approved', 'active')");
-        const [[compCampRow]] = await db.query("SELECT COUNT(*) as count FROM campaigns WHERE status = 'completed'");
-        const [[beneficiaryCountRow]] = await db.query("SELECT COUNT(*) as count FROM beneficiaries");
-        const [[approvedNgoRow]] = await db.query("SELECT COUNT(*) as count FROM ngo_profiles WHERE status = 'approved'");
-        const [[approvedVolRow]] = await db.query("SELECT COUNT(*) as count FROM volunteers WHERE status = 'approved'");
-        const [[activeUserRow]] = await db.query("SELECT COUNT(*) as count FROM users WHERE is_active = 1");
+        const [
+            [[userRow]],
+            [[campaignRow]],
+            [[donationRow]],
+            [[volunteerRow]],
+            [[ngoRow]],
+            [demographicsRows],
+            [trendRows],
+            [[todayDonation]],
+            [[weekDonation]],
+            [[activeCampRow]],
+            [[compCampRow]],
+            [[beneficiaryCountRow]],
+            [[approvedNgoRow]],
+            [[approvedVolRow]],
+            [[activeUserRow]]
+        ] = await Promise.all([
+            db.query('SELECT COUNT(*) as count FROM users'),
+            db.query('SELECT COUNT(*) as count FROM campaigns'),
+            db.query('SELECT SUM(amount) as total FROM donations WHERE status = "success"'),
+            db.query("SELECT COUNT(*) as count FROM volunteers WHERE status = 'approved'"),
+            db.query('SELECT COUNT(*) as count FROM ngo_profiles'),
+            db.query('SELECT role, COUNT(*) as count FROM users GROUP BY role'),
+            db.query(`
+                SELECT DATE_FORMAT(created_at, '%b') as month, SUM(amount) as total
+                FROM donations
+                WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+                GROUP BY DATE_FORMAT(created_at, '%b')
+            `),
+            db.query("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM donations WHERE status = 'success' AND DATE(created_at) = CURDATE()"),
+            db.query("SELECT COALESCE(SUM(amount), 0) as total FROM donations WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"),
+            db.query("SELECT COUNT(*) as count FROM campaigns WHERE status IN ('approved', 'active')"),
+            db.query("SELECT COUNT(*) as count FROM campaigns WHERE status = 'completed'"),
+            db.query("SELECT COUNT(*) as count FROM beneficiaries"),
+            db.query("SELECT COUNT(*) as count FROM ngo_profiles WHERE status = 'approved'"),
+            db.query("SELECT COUNT(*) as count FROM volunteers WHERE status = 'approved'"),
+            db.query("SELECT COUNT(*) as count FROM users WHERE is_active = 1")
+        ]);
+
+        stats.total_users = userRow?.count || 0;
+        stats.total_campaigns = campaignRow?.count || 0;
+        stats.total_donations = donationRow?.total || 0;
+        stats.total_volunteers = volunteerRow?.count || 0;
+        stats.total_ngos = ngoRow?.count || 0;
+
+        stats.usersByRole = { donor: 0, volunteer: 0, ngo: 0, beneficiary: 0, admin: 0 };
+        demographicsRows.forEach(row => {
+            if (stats.usersByRole[row.role] !== undefined) stats.usersByRole[row.role] = row.count;
+        });
+
+        trendRows.forEach(r => {
+            if (monthTotals[r.month] !== undefined) {
+                monthTotals[r.month] = parseFloat(r.total) || 0;
+            }
+        });
 
         stats.systemHealth = {
             database: { status: 'Online', code: 'green', detail: 'Latency 2ms' },
@@ -82,24 +91,66 @@ const getSystemStats = async () => {
             totalNgos: approvedNgoRow?.count || 0,
             totalVolunteers: approvedVolRow?.count || 0
         };
-    } catch (healthErr) {
-        console.warn('Error fetching system health metrics:', healthErr.message);
-        stats.systemHealth = {
-            database: { status: 'Online', code: 'green', detail: 'Latency 2ms' },
-            api: { status: 'Operational', code: 'green', detail: '99.99% Uptime' },
-            aiService: { status: 'Active', code: 'green', detail: 'Engine Ready' },
-            notificationService: { status: 'Live', code: 'green', detail: 'Socket Active' },
-            paymentGateway: { status: 'Connected', code: 'green', detail: 'Gateways Ready' },
-            activeUsersOnline: 0,
-            todayDonations: 0,
-            todayDonationsCount: 0,
-            thisWeekDonations: 0,
-            activeCampaigns: 0,
-            completedCampaigns: 0,
-            totalBeneficiaries: 0,
-            totalNgos: 0,
-            totalVolunteers: 0
-        };
+    } catch (err) {
+        console.error('Error in getSystemStats parallel queries:', err.message);
+    }
+
+    stats.donationTrendLabels = months;
+    stats.donationTrendData = months.map(m => monthTotals[m]);
+
+    try {
+        // Real Daily Trend (last 7 days)
+        const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const dailyTotals = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+        const [dailyRows] = await db.query(`
+            SELECT DATE_FORMAT(created_at, '%a') as day, SUM(amount) as total
+            FROM donations
+            WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY DATE_FORMAT(created_at, '%a')
+        `);
+        dailyRows.forEach(r => {
+            if (dailyTotals[r.day] !== undefined) dailyTotals[r.day] = parseFloat(r.total) || 0;
+        });
+        stats.dailyTrend = { labels: daysOfWeek, data: daysOfWeek.map(d => dailyTotals[d]) };
+
+        // Real Weekly Trend (last 4 weeks)
+        const weeks = ['W1', 'W2', 'W3', 'W4'];
+        const weeklyTotals = { W1: 0, W2: 0, W3: 0, W4: 0 };
+        const [weeklyRows] = await db.query(`
+            SELECT 
+                CASE 
+                    WHEN created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 'W4'
+                    WHEN created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) THEN 'W3'
+                    WHEN created_at >= DATE_SUB(NOW(), INTERVAL 21 DAY) THEN 'W2'
+                    ELSE 'W1'
+                END as week,
+                SUM(amount) as total
+            FROM donations
+            WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 28 DAY)
+            GROUP BY week
+        `);
+        weeklyRows.forEach(r => {
+            if (weeklyTotals[r.week] !== undefined) weeklyTotals[r.week] = parseFloat(r.total) || 0;
+        });
+        stats.weeklyTrend = { labels: weeks, data: weeks.map(w => weeklyTotals[w]) };
+
+        // Real Yearly Trend (last 4 years)
+        const currentYear = new Date().getFullYear();
+        const years = [currentYear - 3, currentYear - 2, currentYear - 1, currentYear].map(String);
+        const yearlyTotals = {};
+        years.forEach(y => yearlyTotals[y] = 0);
+        const [yearlyRows] = await db.query(`
+            SELECT DATE_FORMAT(created_at, '%Y') as year, SUM(amount) as total
+            FROM donations
+            WHERE status = 'success' AND created_at >= DATE_SUB(NOW(), INTERVAL 4 YEAR)
+            GROUP BY DATE_FORMAT(created_at, '%Y')
+        `);
+        yearlyRows.forEach(r => {
+            if (yearlyTotals[r.year] !== undefined) yearlyTotals[r.year] = parseFloat(r.total) || 0;
+        });
+        stats.yearlyTrend = { labels: years, data: years.map(y => yearlyTotals[y]) };
+    } catch (trendErr) {
+        console.warn('Error fetching detailed trend metrics:', trendErr.message);
     }
 
     try {
@@ -112,6 +163,8 @@ const getSystemStats = async () => {
 
     return stats;
 };
+
+
 
 
 // ──────────────────────────────────────────────────────────────────
@@ -159,9 +212,110 @@ const editCampaign = async (id, data) => {
 };
 
 const deleteCampaign = async (id) => {
-    await db.query('DELETE FROM campaign_gallery WHERE campaign_id = ?', [id]);
-    await db.query('DELETE FROM campaigns WHERE id = ?', [id]);
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // 1. Fetch campaign info to check for linked help_request_id and ngo_id
+        const [cRows] = await connection.query(
+            'SELECT id, title, ngo_id, help_request_id FROM campaigns WHERE id = ?',
+            [id]
+        );
+
+        if (cRows.length > 0) {
+            const campaign = cRows[0];
+            const helpRequestId = campaign.help_request_id;
+            const ngoProfileId = campaign.ngo_id;
+
+            // 2. If campaign is linked to a beneficiary help request, REJECT the beneficiary request
+            if (helpRequestId) {
+                await connection.query(
+                    "UPDATE help_requests SET status = 'rejected', admin_note = 'Associated campaign was permanently deleted by Admin' WHERE id = ?",
+                    [helpRequestId]
+                );
+
+                // Send notification to Beneficiary
+                try {
+                    const [bUser] = await connection.query(
+                        `SELECT b.user_id FROM help_requests hr JOIN beneficiaries b ON b.id = hr.beneficiary_id WHERE hr.id = ?`,
+                        [helpRequestId]
+                    );
+                    if (bUser.length > 0) {
+                        const { createNotification } = require('./notification.service');
+                        await createNotification(
+                            bUser[0].user_id,
+                            '❌ Help Request Rejected',
+                            `Your help request #${helpRequestId} ("${campaign.title}") has been marked as rejected by Admin following campaign removal.`,
+                            'request_rejected',
+                            'high'
+                        );
+                    }
+                } catch (notifErr) {
+                    console.warn('Beneficiary notification error on campaign deletion:', notifErr.message);
+                }
+            }
+
+            // 3. Send notification to NGO owner of the campaign
+            if (ngoProfileId) {
+                try {
+                    const [ngoUsr] = await connection.query(
+                        'SELECT user_id FROM ngo_profiles WHERE id = ?',
+                        [ngoProfileId]
+                    );
+                    if (ngoUsr.length > 0) {
+                        const { createNotification } = require('./notification.service');
+                        await createNotification(
+                            ngoUsr[0].user_id,
+                            '⚠️ Campaign Permanently Deleted by Admin',
+                            `Your campaign "${campaign.title}" was permanently deleted by the platform administrator.`,
+                            'campaign_deleted',
+                            'high'
+                        );
+                    }
+                } catch (ngoNotifErr) {
+                    console.warn('NGO notification error on campaign deletion:', ngoNotifErr.message);
+                }
+            }
+
+            // 4. Delete related transactions, donations, gallery, payouts, and campaign
+            await connection.query(
+                `DELETE FROM payment_transactions WHERE donation_id IN (SELECT id FROM donations WHERE campaign_id = ?)`,
+                [id]
+            );
+            await connection.query('DELETE FROM donations WHERE campaign_id = ?', [id]);
+            await connection.query('DELETE FROM campaign_gallery WHERE campaign_id = ?', [id]);
+            try {
+                await connection.query('DELETE FROM campaign_payouts WHERE campaign_id = ?', [id]);
+            } catch (e) {}
+            await connection.query('DELETE FROM campaigns WHERE id = ?', [id]);
+
+
+            // 5. Log Activity
+            try {
+                const { logActivity } = require('./activityLog.service');
+                await logActivity({
+                    userId: null,
+                    userName: 'Platform Admin',
+                    userRole: 'Admin',
+                    activityType: 'admin_deleted_campaign',
+                    activityTitle: 'Admin Permanently Deleted Campaign',
+                    activityDescription: `Admin deleted campaign "${campaign.title}" (ID #${id})${helpRequestId ? ` and rejected help request #${helpRequestId}` : ''}.`,
+                    relatedId: id
+                });
+            } catch (actErr) {
+                console.warn('Activity log error on campaign deletion:', actErr.message);
+            }
+        }
+
+        await connection.commit();
+    } catch (err) {
+        await connection.rollback();
+        throw err;
+    } finally {
+        connection.release();
+    }
 };
+
 
 const updateCampaignStatus = async (id, status) => {
     await db.query('UPDATE campaigns SET status = ? WHERE id = ?', [status, id]);
@@ -273,8 +427,15 @@ const updateVolunteerStatus = async (id, status) => {
 // ──────────────────────────────────────────────────────────────────
 const getBeneficiaryRequests = async (search) => {
     let query = `
-        SELECT hr.id, hr.title, hr.description, hr.status, hr.admin_note, hr.required_amount,
+        SELECT hr.id, hr.title, hr.description,
+               CASE 
+                   WHEN hr.status = 'campaign_active' AND (SELECT COUNT(*) FROM campaigns c WHERE c.help_request_id = hr.id AND c.status NOT IN ('cancelled', 'withdrawn')) = 0 
+                   THEN (CASE WHEN hr.assigned_ngo_id IS NOT NULL THEN 'assigned' ELSE 'waiting_for_ngo' END)
+                   ELSE hr.status
+               END as status,
+               hr.admin_note, hr.required_amount,
                hr.assigned_ngo_id, hr.created_at,
+
                u.name as beneficiary_name, u.email as beneficiary_email,
                np.org_name as assigned_ngo_org,
                COALESCE(air.risk_level, 'Not Analyzed') as ai_risk_level,

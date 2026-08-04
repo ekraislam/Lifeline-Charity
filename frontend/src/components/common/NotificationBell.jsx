@@ -110,8 +110,14 @@ const NotificationBell = () => {
     useEffect(() => {
         if (!user) return;
 
-        const socket = io(API_BASE_URL, { transports: ['websocket', 'polling'] });
+        const socketHost = API_BASE_URL ? API_BASE_URL.replace(/\/api\/?$/, '') : '';
+        const socket = io(socketHost || undefined, {
+            transports: ['polling', 'websocket'],
+            reconnectionAttempts: 3,
+            timeout: 5000
+        });
         socketRef.current = socket;
+
 
         socket.on('connect', () => {
             socket.emit('join', { userId: user.id, role: user.role });

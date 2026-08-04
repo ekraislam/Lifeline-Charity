@@ -30,9 +30,15 @@ const editCampaign = async (req, res) => {
 };
 
 const deleteCampaign = async (req, res) => {
-    try { await adminService.deleteCampaign(req.params.id); res.json({ message: 'Campaign deleted' }); }
-    catch (e) { console.error(e); res.status(500).json({ message: 'Internal server error' }); }
+    try {
+        await adminService.deleteCampaign(req.params.id);
+        res.json({ message: 'Campaign deleted' });
+    } catch (e) {
+        console.error("admin deleteCampaign error:", e);
+        res.status(400).json({ message: e.message || 'Failed to delete campaign' });
+    }
 };
+
 
 const updateCampaignStatus = async (req, res) => {
     try { await adminService.updateCampaignStatus(req.params.id, req.body.status); res.json({ message: 'Status updated' }); }

@@ -17,10 +17,12 @@ router.post('/requests/:id/documents', roleMiddleware(['beneficiary']), upload.a
 router.get('/requests/waiting', roleMiddleware(['ngo']), beneficiaryController.getWaitingRequests);
 router.get('/requests/my-assigned', roleMiddleware(['ngo']), beneficiaryController.getMyAssigned);
 router.post('/requests/:id/accept', roleMiddleware(['ngo']), beneficiaryController.acceptRequest);
+router.post('/requests/:id/decline', roleMiddleware(['ngo']), beneficiaryController.declineRequest);
 
 // Admin / NGO / Beneficiary routes
 router.get('/requests', roleMiddleware(['admin', 'ngo', 'beneficiary']), beneficiaryController.getAllRequests);
 router.get('/requests/:id', roleMiddleware(['admin', 'ngo']), beneficiaryController.getRequestById);
-router.put('/requests/:id/status', roleMiddleware(['admin']), validate(updateStatusSchema), beneficiaryController.updateRequestStatus);
+router.delete('/requests/:id', roleMiddleware(['beneficiary']), beneficiaryController.deleteHelpRequest);
 
 module.exports = router;
+

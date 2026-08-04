@@ -141,30 +141,32 @@ const AdminDashboard = () => {
 
     if (error) return <div className="max-w-7xl mx-auto px-4 py-12 text-center text-rose-500 font-bold">{error}</div>;
 
-    const baseLabels = stats?.donationTrendLabels || ['Jan','Feb','Mar','Apr','May','Jun'];
-    const baseData = stats?.donationTrendData || [0,0,0,0,0,0];
-
     const getFilteredBarData = () => {
         if (timeframe === 'Daily') {
             return {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                data: baseData.length >= 7 ? baseData.slice(0, 7) : [120, 340, 290, 480, 610, 750, 520]
+                labels: stats?.dailyTrend?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                data: stats?.dailyTrend?.data || [0, 0, 0, 0, 0, 0, 0]
             };
         }
         if (timeframe === 'Weekly') {
             return {
-                labels: ['W1', 'W2', 'W3', 'W4'],
-                data: [baseData.slice(0, 2).reduce((a,b)=>a+b,0) || 1400, 1850, 2100, 2950]
+                labels: stats?.weeklyTrend?.labels || ['W1', 'W2', 'W3', 'W4'],
+                data: stats?.weeklyTrend?.data || [0, 0, 0, 0]
             };
         }
         if (timeframe === 'Yearly') {
+            const currentYear = new Date().getFullYear();
             return {
-                labels: ['2023', '2024', '2025', '2026'],
-                data: [12500, 28400, 49200, parseFloat(stats?.total_donations||0) || 68000]
+                labels: stats?.yearlyTrend?.labels || [String(currentYear - 3), String(currentYear - 2), String(currentYear - 1), String(currentYear)],
+                data: stats?.yearlyTrend?.data || [0, 0, 0, 0]
             };
         }
-        return { labels: baseLabels, data: baseData };
+        return {
+            labels: stats?.donationTrendLabels || ['Jan','Feb','Mar','Apr','May','Jun'],
+            data: stats?.donationTrendData || [0, 0, 0, 0, 0, 0]
+        };
     };
+
 
     const activeBarInfo = getFilteredBarData();
     const hasBarData = activeBarInfo.data.some(v => v > 0);

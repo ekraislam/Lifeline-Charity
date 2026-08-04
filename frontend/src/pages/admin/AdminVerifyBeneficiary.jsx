@@ -383,6 +383,97 @@ const DetailModal = ({ request, onClose, onStatusUpdate, onReportUpdate }) => {
                         )}
                     </div>
 
+                    {/* NGO Decision Audit Trail */}
+
+                    <div className="bg-gray-50 dark:bg-gray-900/70 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-3">
+                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+                                <span>🏢</span> NGO Decision Audit Trail
+                            </h4>
+                            <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
+                                Status: <strong className="text-indigo-600 dark:text-indigo-400">{STATUS_LABELS[request.status] || request.status?.replace(/_/g, ' ')}</strong>
+                            </span>
+                        </div>
+
+                        {/* Accepted NGO Details */}
+                        {request.assigned_ngo_org ? (
+                            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="font-extrabold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                                        <span>🤝</span> Accepted & Claimed by: <strong className="underline">{request.assigned_ngo_org}</strong>
+                                    </span>
+                                    {request.updated_at && (
+                                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
+                                            {new Date(request.updated_at).toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 text-xs text-purple-700 dark:text-purple-300 font-semibold flex items-center gap-2">
+                                <span>⏳</span> Waiting for an approved NGO partner to accept & launch fundraising campaign.
+                            </div>
+                        )}
+
+                        {/* Declined / Withdrawn / Historical NGO Action Logs */}
+                        {request.decisions && request.decisions.length > 0 ? (
+                            <div className="space-y-2 pt-2">
+                                <span className="text-[11px] font-extrabold text-gray-600 dark:text-gray-300 uppercase tracking-wider block">
+                                    📜 Historical NGO Action Audit Logs ({request.decisions.length}):
+                                </span>
+                                <div className="space-y-2">
+                                    {request.decisions.map((dec, idx) => {
+                                        const isWithdrawal = dec.reason?.toLowerCase().includes('withdrew') || dec.action === 'withdrawn';
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`p-3 rounded-xl border text-xs space-y-1 ${
+                                                    isWithdrawal
+                                                        ? 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800'
+                                                        : dec.action === 'accepted'
+                                                        ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800'
+                                                        : 'bg-rose-50/70 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/60'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                                        <span>{isWithdrawal ? '🚩' : dec.action === 'accepted' ? '🤝' : '❌'}</span>
+                                                        {dec.org_name}
+                                                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${
+                                                            isWithdrawal
+                                                                ? 'bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200'
+                                                                : dec.action === 'accepted'
+                                                                ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
+                                                                : 'bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-200'
+                                                        }`}>
+                                                            {isWithdrawal ? 'Withdrew Campaign' : dec.action === 'accepted' ? 'Accepted Request' : 'Declined Request'}
+                                                        </span>
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+                                                        {new Date(dec.updated_at || dec.created_at).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                                <div className="text-gray-800 dark:text-gray-200 font-semibold pl-6">
+                                                    Reason: <span className="font-extrabold">"{dec.reason}"</span>
+                                                    {dec.custom_reason && (
+                                                        <p className="text-[11px] text-gray-600 dark:text-gray-400 font-normal italic mt-0.5">
+                                                            Note: "{dec.custom_reason}"
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-[11px] text-gray-400 italic pt-1">
+                                No NGO actions or declines logged yet.
+                            </div>
+                        )}
+                    </div>
+
+
                     {/* Admin Action Box */}
                     {['pending', 'under_review'].includes(request.status) && (
                         <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">

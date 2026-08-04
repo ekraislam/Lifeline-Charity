@@ -7,7 +7,7 @@ const globalSearch = async (query, categoryId, status, location) => {
     };
 
     if (query) {
-        let campaignQuery = 'SELECT * FROM campaigns WHERE title LIKE ? OR description LIKE ?';
+        let campaignQuery = "SELECT * FROM campaigns WHERE (title LIKE ? OR description LIKE ?) AND status != 'withdrawn'";
         let campaignParams = [`%${query}%`, `%${query}%`];
         
         if (categoryId) {
@@ -20,6 +20,7 @@ const globalSearch = async (query, categoryId, status, location) => {
         }
 
         const [campaigns] = await db.query(campaignQuery, campaignParams);
+
         results.campaigns = campaigns;
 
         let eventQuery = 'SELECT * FROM events WHERE title LIKE ? OR description LIKE ?';
