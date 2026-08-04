@@ -52,8 +52,21 @@ const syncCampaignCompletionStatus = async (campaignId = null) => {
     }
 };
 
-const getCampaigns = async () => {
+const getCampaigns = async (filters = {}) => {
     await syncCampaignCompletionStatus();
+
+    let whereClauses = [];
+    let params = [];
+
+    if (filters.ngoUserId) {
+        whereClauses.push("np.user_id = ?");
+        params.push(filters.ngoUserId);
+    } else if (filters.ngoId) {
+        whereClauses.push("c.ngo_id = ?");
+        params.push(filters.ngoId);
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const [rows] = await db.query(`
         SELECT c.*,
@@ -69,8 +82,9 @@ const getCampaigns = async () => {
         LEFT JOIN ngo_profiles np ON c.ngo_id = np.id
         LEFT JOIN help_requests hr ON c.help_request_id = hr.id
         LEFT JOIN ai_verification_reports air ON air.help_request_id = hr.id
+        ${whereSql}
         ORDER BY c.created_at DESC
-    `);
+    `, params);
 
     return rows.map(row => ({
         ...row,

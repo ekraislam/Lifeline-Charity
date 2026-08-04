@@ -15,6 +15,7 @@ const EventForm = () => {
     const [apiError, setApiError] = useState('');
     const [categories, setCategories] = useState([]);
     const [previewImage, setPreviewImage] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null);
 
     // Watch dates for validation
@@ -82,13 +83,14 @@ const EventForm = () => {
     };
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
                 setApiError('Only image files are allowed');
                 e.target.value = null;
                 return;
             }
+            setSelectedFile(file);
             setPreviewImage(URL.createObjectURL(file));
         }
     };
@@ -114,7 +116,7 @@ const EventForm = () => {
             if (data.max_volunteers) formData.append('max_volunteers', data.max_volunteers);
             if (data.registration_deadline) formData.append('registration_deadline', data.registration_deadline);
             
-            const file = fileInputRef.current?.files[0];
+            const file = selectedFile || fileInputRef.current?.files?.[0];
             if (file) {
                 formData.append('cover_image', file);
             }
@@ -282,12 +284,38 @@ const EventForm = () => {
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cover Image</label>
-                                <label htmlFor="file-upload" className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-xl hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-900 cursor-pointer">
-                                    <div className="space-y-1 text-center">
+                                
+                                <input 
+                                    id="file-upload" 
+                                    name="file-upload" 
+                                    type="file" 
+                                    className="hidden" 
+                                    ref={fileInputRef} 
+                                    onChange={handleImageChange} 
+                                    accept="image/*" 
+                                />
+
+                                <div 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-xl hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-900 cursor-pointer"
+                                >
+                                    <div className="space-y-1 text-center w-full">
                                         {previewImage ? (
-                                            <div className="relative inline-block">
+                                            <div className="relative inline-block group max-w-md mx-auto w-full">
                                                 <img src={previewImage} alt="Cover preview" className="h-48 w-full object-cover rounded-lg shadow-md" />
-                                                <button type="button" onClick={(e) => { e.preventDefault(); setPreviewImage(null); if(fileInputRef.current) fileInputRef.current.value = null; }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600">
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                                                    Click to change image
+                                                </div>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        setPreviewImage(null); 
+                                                        setSelectedFile(null); 
+                                                        if(fileInputRef.current) fileInputRef.current.value = null; 
+                                                    }} 
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg hover:bg-red-600 z-10"
+                                                >
                                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                                 </button>
                                             </div>
@@ -297,17 +325,16 @@ const EventForm = () => {
                                                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
                                                 <div className="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                                                    <span className="relative bg-transparent rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                                                        <span>Upload a file</span>
-                                                        <input id="file-upload" name="file-upload" type="file" className="sr-only" ref={fileInputRef} onChange={handleImageChange} accept="image/*" />
+                                                    <span className="relative bg-transparent rounded-md font-medium text-primary-600 hover:text-primary-500">
+                                                        Upload cover photo
                                                     </span>
                                                     <p className="pl-1">or drag and drop</p>
                                                 </div>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 5MB</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, GIF, WEBP up to 5MB</p>
                                             </>
                                         )}
                                     </div>
-                                </label>
+                                </div>
                             </div>
                         </div>
 

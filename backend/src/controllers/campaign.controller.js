@@ -2,7 +2,19 @@ const campaignService = require('../services/campaign.service');
 
 const getAllCampaigns = async (req, res) => {
     try {
-        const campaigns = await campaignService.getCampaigns();
+        const filters = {};
+        if (req.query.ngo_id) filters.ngoId = req.query.ngo_id;
+        const campaigns = await campaignService.getCampaigns(filters);
+        res.json(campaigns);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+const getMyCampaigns = async (req, res) => {
+    try {
+        const campaigns = await campaignService.getCampaigns({ ngoUserId: req.user.id });
         res.json(campaigns);
     } catch (error) {
         console.error(error);
@@ -185,6 +197,7 @@ const handleAiAssistant = async (req, res) => {
 
 module.exports = {
     getAllCampaigns,
+    getMyCampaigns,
     getCampaignById,
     createCampaign,
     updateCampaign,

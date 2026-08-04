@@ -140,17 +140,23 @@ const EventsList = () => {
                                     <div>
                                         {/* Image & Status Badge */}
                                         <div className="relative h-52 w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                            {event.cover_image ? (
-                                                <img
-                                                    src={getMediaUrl(event.cover_image)}
-                                                    alt={event.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500/10 to-indigo-500/10 text-primary-500 text-5xl">
-                                                    📅
-                                                </div>
-                                            )}
+                                            <img
+                                                src={event.cover_image ? getMediaUrl(event.cover_image) : (
+                                                    (event.title?.toLowerCase().includes('blood') || event.category_name?.toLowerCase().includes('blood'))
+                                                    ? 'https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=1000&q=80'
+                                                    : (event.title?.toLowerCase().includes('medical') || event.title?.toLowerCase().includes('health') || event.category_name?.toLowerCase().includes('health'))
+                                                    ? 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1000&q=80'
+                                                    : (event.title?.toLowerCase().includes('cloth') || event.title?.toLowerCase().includes('winter'))
+                                                    ? 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=80'
+                                                    : 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=1000&q=80'
+                                                )}
+                                                alt={event.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=1000&q=80';
+                                                }}
+                                            />
 
                                             {/* Status Badge */}
                                             <div className="absolute top-4 right-4">

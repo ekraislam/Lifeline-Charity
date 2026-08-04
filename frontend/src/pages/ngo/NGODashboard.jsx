@@ -30,7 +30,7 @@ const NGODashboard = () => {
         try {
             const [assignedRes, campaignsRes] = await Promise.allSettled([
                 api.get('/beneficiaries/requests/my-assigned'),
-                api.get('/campaigns')
+                api.get('/campaigns/my-campaigns')
             ]);
             
             setAssignedBeneficiaries(assignedRes.status === 'fulfilled' ? assignedRes.value.data : []);

@@ -9,6 +9,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', campaignController.getAllCampaigns);
+router.get('/my-campaigns', authMiddleware, roleMiddleware(['ngo', 'admin']), campaignController.getMyCampaigns);
 router.get('/:id', campaignController.getCampaignById);
 
 // Protected routes (Admin or NGO)

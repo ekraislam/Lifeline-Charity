@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api, { getMediaUrl } from '../../api/axios?v=1';
 import { AuthContext } from '../../context/AuthContext';
@@ -66,17 +66,23 @@ const EventDetails = () => {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 {/* Cover Image */}
                 <div className="w-full h-64 sm:h-96 bg-gray-200 dark:bg-gray-700 relative">
-                    {event.cover_image ? (
-                        <img 
-                            src={getMediaUrl(event.cover_image)} 
-                            alt={event.title} 
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-500 text-6xl">
-                            📅
-                        </div>
-                    )}
+                    <img 
+                        src={event.cover_image ? getMediaUrl(event.cover_image) : (
+                            (event.title?.toLowerCase().includes('blood') || event.category_name?.toLowerCase().includes('blood'))
+                            ? 'https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=1000&q=80'
+                            : (event.title?.toLowerCase().includes('medical') || event.title?.toLowerCase().includes('health') || event.category_name?.toLowerCase().includes('health'))
+                            ? 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1000&q=80'
+                            : (event.title?.toLowerCase().includes('cloth') || event.title?.toLowerCase().includes('winter'))
+                            ? 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=80'
+                            : 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=1000&q=80'
+                        )} 
+                        alt={event.title} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=1000&q=80';
+                        }}
+                    />
                     <div className="absolute top-4 right-4 flex gap-2">
                         <span className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm font-bold rounded-full shadow-md">
                             {event.category_name || 'General'}
